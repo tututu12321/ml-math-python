@@ -1,0 +1,37 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Generate a synthetic dataset (サンプルデータセットの生成)
+np.random.seed(42)
+X = 2 * np.random.rand(100, 1)  # Input feature (入力特徴量)
+y = 4 + 3 * X + np.random.randn(100, 1)  # Output with some noise (ノイズを含む出力)
+
+# Add a bias term to X (Xにバイアス項を追加)
+X_b = np.c_[np.ones((100, 1)), X]  # Add a column of ones for the intercept (切片のための列を追加)
+
+# Calculate the pseudo-inverse using NumPy's pinv (NumPyのpinvを使って擬似逆行列を計算)
+X_pseudo_inverse = np.linalg.pinv(X_b)
+
+# Calculate the optimal theta (パラメータthetaの最適値を計算)
+theta_best = X_pseudo_inverse @ y
+
+# Display the result (結果を表示)
+print("Optimal parameters (最適なパラメータ):")
+print(f"Intercept (切片): {theta_best[0][0]:.2f}")
+print(f"Slope (傾き): {theta_best[1][0]:.2f}")
+
+# Predict using the model (モデルを使って予測)
+X_new = np.array([[0], [2]])  # New input values for prediction (新しい入力値)
+X_new_b = np.c_[np.ones((2, 1)), X_new]  # Add bias term (バイアス項を追加)
+y_predict = X_new_b @ theta_best
+
+# Plot the data and the regression line (データと回帰直線をプロット)
+plt.figure(figsize=(8, 6))
+plt.plot(X, y, "b.", label="Training data")
+plt.plot(X_new, y_predict, "r-", label="Regression line")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Linear Regression using Pseudo-Inverse")
+plt.grid(True)
+plt.legend()
+plt.show()
