@@ -1,0 +1,38 @@
+import xgboost as xgb
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+import matplotlib.pyplot as plt
+
+# Load the Iris dataset (Irisデータセットを読み込み)
+data = load_iris()
+X = data.data  # Features (特徴量)
+y = data.target  # Target labels (目的変数)
+
+# Split the data into training and testing sets (データを訓練用とテスト用に分割)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Create the XGBoost model (XGBoostモデルを作成)
+model = xgb.XGBClassifier(
+    n_estimators=100,  # Number of trees (木の数)
+    learning_rate=0.1,  # Learning rate (学習率)
+    max_depth=3,  # Maximum depth of each tree (各木の最大深さ)
+    random_state=42  # Random seed (乱数シード)
+)
+
+# Train the model (モデルを訓練)
+model.fit(X_train, y_train)
+
+# Make predictions on the test set (テストデータで予測)
+y_pred = model.predict(X_test)
+
+# Calculate accuracy (精度を計算)
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy (精度): {accuracy * 100:.2f}%")
+
+# Feature importance visualization (特徴量の重要度の可視化)
+xgb.plot_importance(model)
+plt.title('Feature Importance')
+plt.xlabel('F Score')
+plt.ylabel('Features')
+plt.show()
