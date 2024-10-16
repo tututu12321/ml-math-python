@@ -1,0 +1,28 @@
+import gensim.downloader as api
+
+# GloVeの学習済みモデルをダウンロード (例: 6B 100次元のもの)
+# Download a pre-trained GloVe model (example: 6B with 100 dimensions)
+model = api.load("glove-wiki-gigaword-100")  # 100次元のGloVeベクトル / 100-dimensional GloVe vectors
+
+# 単語のベクトルを取得 / Get the vector for a word
+word = "king"
+vector = model[word]
+
+print(f"Vector for '{word}':\n", vector)
+
+# 単語の類似度を計算 / Calculate similarity between words
+similarity = model.similarity("king", "queen")
+print(f"Similarity between 'king' and 'queen': {similarity}")
+
+# 最も類似した単語を取得 / Get the most similar words
+similar_words = model.most_similar("king", topn=5)
+print("\nMost similar words to 'king':")
+for word, score in similar_words:
+    print(f"{word}: {score}")
+
+# 単語間のベクトル演算の例 / Example of vector arithmetic with words
+result_vector = model["king"] - model["man"] + model["woman"]
+similar_to_result = model.similar_by_vector(result_vector, topn=5)
+print("\nResult of 'king' - 'man' + 'woman':")
+for word, score in similar_to_result:
+    print(f"{word}: {score}")
