@@ -1,0 +1,158 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# シンプルな線形回帰モデル / Simple Linear Regression Model
+class LinearRegression:
+    def __init__(self):
+        self.weight = np.random.randn()  # 重みの初期化 / Initialize weight
+        self.bias = np.random.randn()    # バイアスの初期化 / Initialize bias
+
+        # Momentum用の初期パラメータ / Initial parameters for Momentum
+        self.velocity_w = 0
+        self.velocity_b = 0
+
+        # RMSProp用の初期パラメータ / Initial parameters for RMSProp
+        self.s_w = 0
+        self.s_b = 0
+
+        # Adam用の初期パラメータ / Initial parameters for Adam
+        self.m_w = 0
+        self.v_w = 0
+        self.m_b = 0
+        self.v_b = 0
+
+    def predict(self, x):
+        # 予測値の計算 / Calculate predicted value
+        return self.weight * x + self.bias
+
+    def compute_loss(self, x, y):
+        # 損失関数の計算 (MSE) / Compute loss function (MSE)
+        y_pred = self.predict(x)
+        return np.mean((y - y_pred) ** 2)
+
+    def compute_gradients(self, x, y):
+        # 勾配の計算 / Compute gradients
+        y_pred = self.predict(x)
+        grad_weight = -2 * np.mean(x * (y - y_pred))
+        grad_bias = -2 * np.mean(y - y_pred)
+        return grad_weight, grad_bias
+
+    def update_parameters_momentum(self, grad_weight, grad_bias, learning_rate, beta=0.9):
+        # Momentumの更新 / Update with Momentum
+        self.velocity_w = beta * self.velocity_w + (1 - beta) * grad_weight
+        self.velocity_b = beta * self.velocity_b + (1 - beta) * grad_bias
+        self.weight -= learning_rate * self.velocity_w
+        self.bias -= learning_rate * self.velocity_b
+
+    def update_parameters_rmsprop(self, grad_weight, grad_bias, learning_rate, beta=0.9, epsilon=1e-8):
+        # RMSPropの更新 / Update with RMSProp
+        self.s_w = beta * self.s_w + (1 - beta) * (grad_weight ** 2)
+        self.s_b = beta * self.s_b + (1 - beta) * (grad_bias ** 2)
+        self.weight -= learning_rate * grad_weight / (np.sqrt(self.s_w) + epsilon)
+        self.bias -= learning_rate * grad_bias / (np.sqrt(self.s_b) + epsilon)
+
+    def update_parameters_adam(self, grad_weight, grad_bias, learning_rate, beta1=0.9, beta2=0.999, epsilon=1e-8, t=1):
+        # Adamの更新 / Update with Adam
+        self.m_w = beta1 * self.m_w + (1 - beta1) * grad_weight
+        self.v_w = beta2 * self.v_w + (1 - beta2) * (grad_weight ** 2)
+        self.m_b = beta1 * self.m_b + (1 - beta1) * grad_bias
+        self.v_b = beta2 * self.v_b + (1 - beta2) * (grad_bias ** 2)
+
+        # バイアス補正 / Bias correction
+        m_w_hat = self.m_w / (1 - beta1 ** t)
+        v_w_hat = self.v_w / (1 - beta2 ** t)
+        m_b_hat = self.m_b / (1 - beta1 ** t)
+        v_b_hat = self.v_b / (1 - beta2 ** t)
+
+        self.weight -= learning_rate * m_w_hat / (np.sqrt(v_w_hat) + epsilon)
+        self.bias -= learning_rate * m_b_hat / (np.sqrt(v_b_hat) + epsilon)
+
+# データの生成 / Generate data
+np.random.seed(42)
+x_train = np.linspace(-1, 1, 100)
+y_train = 3 * x_train + 2 + np.random.randn(*x_train.shape) * 0.1
+
+# モデルのインスタンス化 / Instantiate models
+model_momentum = LinearRegression()
+model_rmsprop = LinearRegression()
+model_adam = LinearRegression()
+
+# ハイパーパラメータ / Hyperparameters
+learning_rate = 0.01
+n_epochs = 100
+batch_size = 16
+beta1 = 0.9
+beta2 = 0.999
+epsilon = 1e-8
+
+# 損失の履歴を保存 / Store loss history
+loss_history_momentum = []
+loss_history_rmsprop = []
+loss_history_adam = []
+
+# 各手法のトレーニング / Training each method
+for epoch in range(1, n_epochs + 1):
+    # シャッフルしてミニバッチを作成 / Shuffle and create mini-batches
+    indices = np.random.permutation(len(x_train))
+    x_shuffled = x_train[indices]
+    y_shuffled = y_train[indices]
+    
+    for start in range(0, len(x_train), batch_size):
+        end = start + batch_size
+        x_batch = x_shuffled[start:end]
+        y_batch = y_shuffled[start:end]
+        
+        # 勾配の計算 / Compute gradients
+        grad_weight_m, grad_bias_m = model_momentum.compute_gradients(x_batch, y_batch)
+        grad_weight_r, grad_bias_r = model_rmsprop.compute_gradients(x_batch, y_batch)
+        grad_weight_a, grad_bias_a = model_adam.compute_gradients(x_batch, y_batch)
+        
+        # 各手法のパラメータの更新 / Update parameters for each method
+        model_momentum.update_parameters_momentum(grad_weight_m, grad_bias_m, learning_rate, beta=0.9)
+        model_rmsprop.update_parameters_rmsprop(grad_weight_r, grad_bias_r, learning_rate, beta=0.9, epsilon=epsilon)
+        model_adam.update_parameters_adam(grad_weight_a, grad_bias_a, learning_rate, beta1=beta1, beta2=beta2, epsilon=epsilon, t=epoch)
+    
+    # 全データでの損失を計算して記録 / Compute and record loss for all data
+    loss_m = model_momentum.compute_loss(x_train, y_train)
+    loss_r = model_rmsprop.compute_loss(x_train, y_train)
+    loss_a = model_adam.compute_loss(x_train, y_train)
+    loss_history_momentum.append(loss_m)
+    loss_history_rmsprop.append(loss_r)
+    loss_history_adam.append(loss_a)
+    
+    if epoch % 10 == 0:
+        print(f'Epoch {epoch}, Loss (Momentum): {loss_m}, Loss (RMSProp): {loss_r}, Loss (Adam): {loss_a}')
+
+# 学習結果の表示 / Display training results
+plt.figure(figsize=(12, 5))
+
+# 損失関数の履歴をプロット / Plot loss history
+plt.subplot(1, 2, 1)
+plt.plot(range(n_epochs), loss_history_momentum, label='Momentum')
+plt.plot(range(n_epochs), loss_history_rmsprop, label='RMSProp', linestyle='--')
+plt.plot(range(n_epochs), loss_history_adam, label='Adam', linestyle='-.')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.title('Loss over Epochs')
+plt.grid(True)
+plt.legend()
+
+# 学習結果のプロット（予測線） / Plot training results (prediction lines)
+plt.subplot(1, 2, 2)
+plt.scatter(x_train, y_train, label='Data', color='blue', alpha=0.6)
+plt.plot(x_train, model_momentum.predict(x_train), color='red', label='Momentum')
+plt.plot(x_train, model_rmsprop.predict(x_train), color='green', linestyle='--', label='RMSProp')
+plt.plot(x_train, model_adam.predict(x_train), color='orange', linestyle='-.', label='Adam')
+plt.xlabel('x')
+plt.ylabel('y')
+plt.title('Data and Learned Models')
+plt.grid(True)
+plt.legend()
+
+plt.tight_layout()
+plt.show()
+
+# 学習されたパラメータを表示 / Display learned parameters
+print(f"Momentum - Learned weight: {model_momentum.weight}, bias: {model_momentum.bias}")
+print(f"RMSProp - Learned weight: {model_rmsprop.weight}, bias: {model_rmsprop.bias}")
+print(f"Adam - Learned weight: {model_adam.weight}, bias: {model_adam.bias}")
