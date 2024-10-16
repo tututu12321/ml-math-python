@@ -1,0 +1,44 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import norm
+
+# データの生成（正規分布に従う） / Generate data (follows a normal distribution)
+np.random.seed(42)
+mu_true = 5  # 真の平均 / True mean
+sigma_true = 2  # 真の標準偏差 / True standard deviation
+data = np.random.normal(mu_true, sigma_true, 100)
+
+# 尤度関数の定義 / Define the likelihood function
+def likelihood(mu, sigma, data):
+    # データ点ごとの正規分布の尤度の積を計算 / Compute the product of likelihoods for each data point
+    return np.prod(norm.pdf(data, mu, sigma))
+
+# 最尤推定の計算 / Calculate MLE for mu and sigma
+mu_mle = np.mean(data)  # データの平均が最尤推定量 / MLE of the mean is the sample mean
+sigma_mle = np.std(data, ddof=1)  # データの標準偏差が最尤推定量 / MLE of the standard deviation is the sample standard deviation
+
+print(f"True mean (mu): {mu_true}, Estimated mean (MLE): {mu_mle}")
+print(f"True std dev (sigma): {sigma_true}, Estimated std dev (MLE): {sigma_mle}")
+
+# 尤度関数を用いたベイズの定理の適用（簡単な例） / Applying Bayes' theorem with the likelihood (simple example)
+# 事前分布（平均の一様分布） / Prior distribution (uniform)
+mu_prior = np.linspace(mu_mle - 3, mu_mle + 3, 1000)
+sigma_prior = sigma_mle  # 固定の標準偏差を使用 / Use fixed standard deviation for simplicity
+
+# 尤度関数を計算 / Calculate the likelihood
+likelihoods = [likelihood(mu, sigma_prior, data) for mu in mu_prior]
+
+# 事後分布の計算（正規化） / Calculate the posterior (normalized)
+posterior = likelihoods / np.sum(likelihoods)
+
+# 事後分布の可視化 / Visualize the posterior distribution
+plt.figure(figsize=(8, 5))
+plt.plot(mu_prior, posterior, label='Posterior distribution', color='blue')
+plt.axvline(mu_true, color='red', linestyle='--', label='True mean')
+plt.axvline(mu_mle, color='green', linestyle='--', label='MLE of mean')
+plt.xlabel('Mu (mean)')
+plt.ylabel('Posterior Probability')
+plt.title('Posterior Distribution of the Mean (Bayesian Inference)')
+plt.legend()
+plt.grid(True)
+plt.show()
