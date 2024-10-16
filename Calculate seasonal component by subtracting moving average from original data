@@ -1,0 +1,53 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Step 1: Generate sample data (time series data with seasonality and trend)
+np.random.seed(42)
+n = 60  # Number of data points (e.g., monthly data for 5 years) (データポイント数：5年分の月次データ)
+date_range = pd.date_range(start='2019-01-01', periods=n, freq='M')  # Create date range (日付範囲の作成)
+
+# Generate seasonal data (e.g., Sine wave + Noise + Gentle Trend)
+seasonal_pattern = 10 + 5 * np.sin(2 * np.pi * np.arange(n) / 12)  # Seasonal pattern (季節性のパターン)
+trend = np.linspace(0, 10, n)  # Gentle trend (緩やかなトレンド)
+noise = np.random.normal(0, 2, n)  # Random noise (ランダムノイズ)
+data = seasonal_pattern + trend + noise  # Combine to create final data (最終データの生成)
+
+# Create a DataFrame
+df = pd.DataFrame({'Date': date_range, 'Value': data})  # データフレームの作成
+df.set_index('Date', inplace=True)  # Date as index (日付をインデックスに設定)
+
+# Step 2: Extract trend using moving average (Calculate 12-month moving average)
+df['12-Month MA'] = df['Value'].rolling(window=12, center=True).mean()  # 12ヶ月移動平均の計算
+
+# Step 3: Calculate seasonal indices
+# Calculate seasonal component by subtracting moving average from original data
+df['Seasonal + Noise'] = df['Value'] - df['12-Month MA']  # 季節成分の計算
+
+# Calculate average for each month (Calculate seasonal indices)
+monthly_seasonal_indices = df.groupby(df.index.month)['Seasonal + Noise'].mean()  # 各月の季節指数を計算
+print("Monthly Seasonal Indices:\n", monthly_seasonal_indices)  # 各月の季節指数を表示
+
+# Step 4: Create seasonally adjusted data
+# Seasonally adjust by subtracting seasonal indices from original data
+df['Seasonally Adjusted'] = df['Value'] - df.index.month.map(monthly_seasonal_indices)  # 季節調整済みデータの作成
+
+# Step 5: Plot original and seasonally adjusted data
+plt.figure(figsize=(12, 6))
+plt.plot(df.index, df['Value'], label='Original Data')  # Plot original data (元データのプロット)
+plt.plot(df.index, df['Seasonally Adjusted'], label='Seasonally Adjusted Data', linestyle='--')  # Plot seasonally adjusted data (季節調整済みデータのプロット)
+plt.title('Original Data vs Seasonally Adjusted Data')  # Title of the plot (プロットのタイトル)
+plt.xlabel('Date')  # X-axis label (X軸のラベル)
+plt.ylabel('Value')  # Y-axis label (Y軸のラベル)
+plt.legend()  # Show legend (凡例の表示)
+plt.grid(True)  # Enable grid (グリッドの表示)
+plt.show()  # Show the plot (プロットの表示)
+
+# Step 6: Visualize seasonal components
+plt.figure(figsize=(12, 6))
+plt.bar(monthly_seasonal_indices.index, monthly_seasonal_indices, color='skyblue')  # Plot seasonal indices (季節指数のプロット)
+plt.title('Seasonal Indices for Each Month')  # Title of the plot (プロットのタイトル)
+plt.xlabel('Month')  # X-axis label (X軸のラベル)
+plt.ylabel('Seasonal Index')  # Y-axis label (Y軸のラベル)
+plt.grid(True)  # Enable grid (グリッドの表示)
+plt.show()  # Show the plot (プロットの表示)
