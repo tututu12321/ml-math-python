@@ -1,0 +1,66 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import SimpleRNN, Dense
+from sklearn.preprocessing import MinMaxScaler
+
+# サイン波データの生成 / Generate sine wave data
+def generate_sine_wave(seq_length=1000, time_steps=50):
+    x = np.linspace(0, 50, seq_length)
+    y = np.sin(x)
+    X, Y = [], []
+    for i in range(len(y) - time_steps):
+        X.append(y[i:i + time_steps])
+        Y.append(y[i + time_steps])
+    return np.array(X), np.array(Y)
+
+# データの生成 / Generate data
+X, Y = generate_sine_wave(seq_length=1000, time_steps=50)
+
+# データの前処理 / Data preprocessing
+X = X.reshape((X.shape[0], X.shape[1], 1))  # 形状を変更 / Reshape for RNN
+scaler = MinMaxScaler(feature_range=(0, 1))
+Y = scaler.fit_transform(Y.reshape(-1, 1))  # 正規化 / Normalize target
+
+# トレーニングデータとテストデータの分割 / Split into train and test sets
+train_size = int(len(X) * 0.8)
+X_train, X_test = X[:train_size], X[train_size:]
+Y_train, Y_test = Y[:train_size], Y[train_size:]
+
+# RNNモデルの定義 / Define the RNN model
+model = Sequential()
+model.add(SimpleRNN(50, activation='relu', input_shape=(X_train.shape[1], 1)))
+model.add(Dense(1))  # 出力層 / Output layer
+model.compile(optimizer='adam', loss='mean_squared_error')  # モデルのコンパイル / Compile the model
+
+# モデルのトレーニング / Train the model
+history = model.fit(X_train, Y_train, epochs=50, batch_size=32, validation_data=(X_test, Y_test))
+
+# モデルの評価 / Evaluate the model
+test_loss = model.evaluate(X_test, Y_test)
+print(f"Test Loss: {test_loss}")
+
+# 学習曲線の可視化 / Plot training loss
+plt.figure(figsize=(8, 5))
+plt.plot(history.history['loss'], label='Training Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.title('Training and Validation Loss')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# テストデータに対する予測 / Predict on the test data
+Y_pred = model.predict(X_test)
+
+# 結果の可視化 / Visualize the results
+plt.figure(figsize=(10, 5))
+plt.plot(Y_test, label='True Value', color='blue')
+plt.plot(Y_pred, label='Predicted Value', color='red')
+plt.xlabel('Time Steps')
+plt.ylabel('Normalized Value')
+plt.title('True vs Predicted Values')
+plt.legend()
+plt.grid(True)
+plt.show()
