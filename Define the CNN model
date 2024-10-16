@@ -1,0 +1,107 @@
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
+import matplotlib.pyplot as plt
+
+# データの前処理 / Data preprocessing
+transform = transforms.Compose([
+    transforms.ToTensor(),  # テンソルに変換 / Convert to tensor
+    transforms.Normalize((0.5,), (0.5,))  # 正規化 / Normalize
+])
+
+# MNISTデータセットのダウンロードとローダーの作成 / Download MNIST dataset and create data loaders
+train_dataset = datasets.MNIST(root='./data', train=True, download=True, transform=transform)
+train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+
+test_dataset = datasets.MNIST(root='./data', train=False, download=True, transform=transform)
+test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
+
+# CNNモデルの定義 / Define the CNN model
+class CNN(nn.Module):
+    def __init__(self):
+        super(CNN, self).__init__()
+        # 畳み込み層1 / Convolutional layer 1
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=32, kernel_size=3, stride=1, padding=1)
+        # 畳み込み層2 / Convolutional layer 2
+        self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, stride=1, padding=1)
+        # プーリング層 / Pooling layer
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=2, padding=0)
+        # 全結合層1 / Fully connected layer 1
+        self.fc1 = nn.Linear(64 * 7 * 7, 128)
+        # 全結合層2 / Fully connected layer 2
+        self.fc2 = nn.Linear(128, 10)
+        # 活性化関数 / Activation function
+        self.relu = nn.ReLU()
+    
+    def forward(self, x):
+        # 畳み込みとReLUとプーリングの適用 / Apply convolution, ReLU, and pooling
+        x = self.pool(self.relu(self.conv1(x)))
+        x = self.pool(self.relu(self.conv2(x)))
+        # 特徴マップをフラット化 / Flatten feature maps
+        x = x.view(-1, 64 * 7 * 7)
+        # 全結合層とReLUの適用 / Apply fully connected layer and ReLU
+        x = self.relu(self.fc1(x))
+        # 出力層の適用 / Apply output layer
+        x = self.fc2(x)
+        return x
+
+# モデルのインスタンス化 / Instantiate the model
+model = CNN()
+
+# 損失関数とオプティマイザの定義 / Define the loss function and optimizer
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+# トレーニングループ / Training loop
+n_epochs = 5
+for epoch in range(n_epochs):
+    model.train()
+    total_loss = 0
+    for images, labels in train_loader:
+        # 勾配の初期化 / Zero the gradients
+        optimizer.zero_grad()
+        # フォワードパス / Forward pass
+        outputs = model(images)
+        # 損失の計算 / Calculate loss
+        loss = criterion(outputs, labels)
+        # バックプロパゲーション / Backpropagation
+        loss.backward()
+        # パラメータの更新 / Update parameters
+        optimizer.step()
+        total_loss += loss.item()
+    
+    # 各エポックの損失を表示 / Print loss for each epoch
+    print(f'Epoch {epoch+1}/{n_epochs}, Loss: {total_loss/len(train_loader)}')
+
+# モデルの評価 / Evaluate the model
+model.eval()
+correct = 0
+total = 0
+with torch.no_grad():
+    for images, labels in test_loader:
+        outputs = model(images)
+        _, predicted = torch.max(outputs, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+
+# テストデータに対する精度を表示 / Print accuracy on the test data
+accuracy = correct / total
+print(f'Accuracy on test data: {accuracy * 100:.2f}%')
+
+# サンプル画像の表示と予測 / Display sample images with predictions
+examples = iter(test_loader)
+example_data, example_targets = examples.next()
+
+with torch.no_grad():
+    output = model(example_data)
+
+# 最初の6つの画像を表示 / Show the first 6 images
+for i in range(6):
+    plt.subplot(2, 3, i+1)
+    plt.imshow(example_data[i][0], cmap='gray')
+    plt.title(f'Pred: {torch.argmax(output[i])}, True: {example_targets[i]}')
+    plt.axis('off')
+plt.tight_layout()
+plt.show()
