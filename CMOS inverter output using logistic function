@@ -1,0 +1,30 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 定数の設定 (Setting constants)
+Vdd = 5.0  # 電源電圧 (Supply voltage)
+Vth = Vdd / 2  # しきい値電圧 (Threshold voltage, set at Vdd/2)
+k = 10  # 傾きのパラメータ (Slope parameter)
+
+# ロジスティック関数を使ったCMOSインバーターの出力 (CMOS inverter output using logistic function)
+def logistic_inverter(Vin, Vdd, Vth, k):
+    return Vdd * (1 / (1 + np.exp(-k * (Vth - Vin))))
+
+# 入力電圧の範囲を設定 (Define input voltage range)
+Vin = np.linspace(0, Vdd, 1000)
+
+# 出力電圧の計算 (Calculate output voltage)
+Vout = logistic_inverter(Vin, Vdd, Vth, k)
+
+# 結果のプロット (Plot the results)
+plt.figure(figsize=(8, 6))
+plt.plot(Vin, Vout, label='Vout vs. Vin (Logistic)', color='blue')
+plt.title('CMOS Inverter Transfer Characteristics (Logistic Function)')
+plt.xlabel('Input Voltage (Vin) [V]')
+plt.ylabel('Output Voltage (Vout) [V]')
+plt.grid(True)
+plt.axhline(y=Vdd/2, color='red', linestyle='--', label='Vdd/2')
+plt.axvline(x=Vdd/2, color='green', linestyle='--', label='Vin = Vdd/2')
+plt.legend()
+plt.tight_layout()
+plt.show()
