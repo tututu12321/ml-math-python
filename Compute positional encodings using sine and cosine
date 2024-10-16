@@ -1,0 +1,125 @@
+import torch
+import torch.nn as nn
+import math
+
+# 位置エンコーディング / Positional Encoding
+class PositionalEncoding(nn.Module):
+    def __init__(self, d_model, max_len=5000):
+        super(PositionalEncoding, self).__init__()
+        # 位置エンコーディング行列の初期化 / Initialize positional encoding matrix
+        pe = torch.zeros(max_len, d_model)
+        position = torch.arange(0, max_len).unsqueeze(1).float()
+        div_term = torch.exp(torch.arange(0, d_model, 2).float() * (-math.log(10000.0) / d_model))
+        
+        # サイン波とコサイン波で位置エンコーディングを計算 / Compute positional encodings using sine and cosine
+        pe[:, 0::2] = torch.sin(position * div_term)
+        pe[:, 1::2] = torch.cos(position * div_term)
+        pe = pe.unsqueeze(0)  # バッチサイズを追加 / Add batch size dimension
+        self.register_buffer('pe', pe)
+
+    def forward(self, x):
+        # 入力に位置エンコーディングを加算 / Add positional encoding to input
+        return x + self.pe[:, :x.size(1)]
+
+# 自己注意機構 / Self-Attention Mechanism
+class SelfAttention(nn.Module):
+    def __init__(self, d_model, n_heads):
+        super(SelfAttention, self).__init__()
+        self.n_heads = n_heads
+        self.d_k = d_model // n_heads  # 各ヘッドの次元数 / Dimension of each head
+
+        # クエリ、キー、バリューの線形変換 / Linear layers for query, key, and value
+        self.q_linear = nn.Linear(d_model, d_model)
+        self.k_linear = nn.Linear(d_model, d_model)
+        self.v_linear = nn.Linear(d_model, d_model)
+        self.fc_out = nn.Linear(d_model, d_model)
+
+    def forward(self, q, k, v, mask=None):
+        batch_size = q.size(0)
+        
+        # クエリ、キー、バリューを計算してヘッドに分割 / Calculate Q, K, V and split into heads
+        Q = self.q_linear(q).view(batch_size, -1, self.n_heads, self.d_k).transpose(1, 2)
+        K = self.k_linear(k).view(batch_size, -1, self.n_heads, self.d_k).transpose(1, 2)
+        V = self.v_linear(v).view(batch_size, -1, self.n_heads, self.d_k).transpose(1, 2)
+
+        # スケール付きドットプロダクト注意 / Scaled dot-product attention
+        scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
+        if mask is not None:
+            scores = scores.masked_fill(mask == 0, -1e9)
+        attention = torch.softmax(scores, dim=-1)
+        
+        # 注意重みをバリューに適用 / Apply attention weights to values
+        out = torch.matmul(attention, V)
+        out = out.transpose(1, 2).contiguous().view(batch_size, -1, self.d_k * self.n_heads)
+        out = self.fc_out(out)
+        return out
+
+# Transformerエンコーダーレイヤー / Transformer Encoder Layer
+class TransformerEncoderLayer(nn.Module):
+    def __init__(self, d_model, n_heads, dim_feedforward, dropout=0.1):
+        super(TransformerEncoderLayer, self).__init__()
+        self.self_attention = SelfAttention(d_model, n_heads)
+        self.norm1 = nn.LayerNorm(d_model)
+        self.dropout1 = nn.Dropout(dropout)
+        
+        # フィードフォワード層 / Feedforward layer
+        self.fc = nn.Sequential(
+            nn.Linear(d_model, dim_feedforward),
+            nn.ReLU(),
+            nn.Linear(dim_feedforward, d_model)
+        )
+        self.norm2 = nn.LayerNorm(d_model)
+        self.dropout2 = nn.Dropout(dropout)
+
+    def forward(self, x, mask=None):
+        # 自己注意と正規化の適用 / Apply self-attention and normalization
+        attention_out = self.self_attention(x, x, x, mask)
+        x = self.norm1(x + self.dropout1(attention_out))
+        
+        # フィードフォワードネットワークと正規化の適用 / Apply feedforward network and normalization
+        fc_out = self.fc(x)
+        x = self.norm2(x + self.dropout2(fc_out))
+        return x
+
+# シンプルなTransformerエンコーダーの定義 / Define a simple Transformer encoder
+class TransformerEncoder(nn.Module):
+    def __init__(self, d_model, n_heads, dim_feedforward, n_layers, vocab_size, max_len=5000):
+        super(TransformerEncoder, self).__init__()
+        self.embedding = nn.Embedding(vocab_size, d_model)
+        self.positional_encoding = PositionalEncoding(d_model, max_len)
+        
+        # 複数のエンコーダーレイヤーをスタック / Stack multiple encoder layers
+        self.layers = nn.ModuleList([
+            TransformerEncoderLayer(d_model, n_heads, dim_feedforward)
+            for _ in range(n_layers)
+        ])
+        self.fc_out = nn.Linear(d_model, vocab_size)
+
+    def forward(self, x, mask=None):
+        # 埋め込みと位置エンコーディングの適用 / Apply embedding and positional encoding
+        x = self.embedding(x)
+        x = self.positional_encoding(x)
+        
+        # 各エンコーダーレイヤーを通過 / Pass through each encoder layer
+        for layer in self.layers:
+            x = layer(x, mask)
+        
+        # 出力層で分類 / Classification with output layer
+        x = self.fc_out(x)
+        return x
+
+# ハイパーパラメータの設定 / Set hyperparameters
+d_model = 512  # 埋め込みの次元数 / Dimension of embeddings
+n_heads = 8  # 注意ヘッドの数 / Number of attention heads
+dim_feedforward = 2048  # フィードフォワード層の次元数 / Feedforward layer dimension
+n_layers = 6  # エンコーダーレイヤーの数 / Number of encoder layers
+vocab_size = 10000  # 語彙サイズ / Vocabulary size
+
+# モデルのインスタンス化 / Instantiate the model
+model = TransformerEncoder(d_model, n_heads, dim_feedforward, n_layers, vocab_size)
+
+# ダミーデータを用いた推論 / Perform inference with dummy data
+x = torch.randint(0, vocab_size, (32, 20))  # バッチサイズ32、シーケンス長20 / Batch size 32, sequence length 20
+output = model(x)
+
+print(f"Output shape: {output.shape}")  # 出力の形状を確認 / Check the output shape
