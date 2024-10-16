@@ -1,0 +1,39 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import norm
+from scipy.integrate import quad
+
+# Parameters of the normal distribution (正規分布のパラメータ)
+mu = 0  # Mean (平均)
+sigma = 1  # Standard deviation (標準偏差)
+
+# Define the PDF of the normal distribution (正規分布の確率密度関数)
+def normal_pdf(x, mu, sigma):
+    return (1 / (np.sqrt(2 * np.pi * sigma**2))) * np.exp(-0.5 * ((x - mu) / sigma)**2)
+
+# Calculate the expected value using integration (積分による期待値の計算)
+expected_value, _ = quad(lambda x: x * normal_pdf(x, mu, sigma), -np.inf, np.inf)
+
+# Calculate the variance using integration (積分による分散の計算)
+variance, _ = quad(lambda x: (x - mu)**2 * normal_pdf(x, mu, sigma), -np.inf, np.inf)
+
+# Generate values for plotting (プロット用のx値を生成)
+x_vals = np.linspace(-4, 4, 1000)
+pdf_vals = normal_pdf(x_vals, mu, sigma)
+
+# Plot the PDF of the normal distribution (正規分布の確率密度関数をプロット)
+plt.figure(figsize=(8, 6))
+plt.plot(x_vals, pdf_vals, label=f'Normal Distribution\n$\mu$={mu}, $\sigma$={sigma}', color='blue')
+plt.fill_between(x_vals, pdf_vals, alpha=0.2, color='blue')
+plt.title('Probability Density Function of Normal Distribution')
+plt.xlabel('x')
+plt.ylabel('Density')
+plt.grid(True)
+plt.legend()
+
+# Show the plot
+plt.show()
+
+# Display the calculated expected value and variance (期待値と分散の表示)
+print(f"Expected value (期待値): {expected_value:.2f}")
+print(f"Variance (分散): {variance:.2f}")
