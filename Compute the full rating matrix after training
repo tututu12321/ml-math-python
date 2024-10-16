@@ -1,0 +1,84 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ダミーデータの生成 / Generate dummy data
+np.random.seed(42)
+n_users = 5  # ユーザー数 / Number of users
+n_items = 4  # アイテム数 / Number of items
+n_factors = 2  # 隠れ因子の数 / Number of latent factors
+
+# ユーザーとアイテムの評価行列 / Rating matrix R where rows represent users and columns represent items
+R = np.array([
+    [5, 3, 0, 1],
+    [4, 0, 0, 1],
+    [1, 1, 0, 5],
+    [1, 0, 0, 4],
+    [0, 1, 5, 4]
+])
+
+# 行列因子分解のための初期化 / Initialize matrices for matrix factorization
+P = np.random.rand(n_users, n_factors)
+Q = np.random.rand(n_items, n_factors)
+
+# ユーザーとアイテムのバイアスを初期化 / Initialize user and item biases
+user_bias = np.random.rand(n_users)
+item_bias = np.random.rand(n_items)
+global_bias = np.mean(R[R > 0])  # グローバルバイアス（全体の平均評価）/ Global bias (average rating)
+
+# Qの転置を使用する / Use the transpose of Q for easier calculations
+Q = Q.T
+
+# 行列因子分解の実行 / Perform matrix factorization using gradient descent
+n_epochs = 5000  # エポック数 / Number of epochs
+learning_rate = 0.002  # 学習率 / Learning rate
+regularization = 0.02  # 正則化項 / Regularization term
+
+# 損失の記録リスト / List to record loss over iterations
+loss_history = []
+
+for epoch in range(n_epochs):
+    # R行列の全エントリをループ / Loop through all entries in the R matrix
+    for i in range(n_users):
+        for j in range(n_items):
+            if R[i][j] > 0:  # 観測された評価値のみ考慮 / Consider only observed ratings
+                # 評価の誤差を計算 / Calculate the error of prediction
+                prediction = global_bias + user_bias[i] + item_bias[j] + np.dot(P[i, :], Q[:, j])
+                error = R[i][j] - prediction
+                
+                # P, Q, user_bias, item_biasの更新 / Update P, Q, user_bias, and item_bias
+                user_bias[i] += learning_rate * (error - regularization * user_bias[i])
+                item_bias[j] += learning_rate * (error - regularization * item_bias[j])
+                
+                # PとQの非負制約を持つ更新 / Update P and Q with non-negativity constraint
+                for k in range(n_factors):
+                    P[i][k] = max(0, P[i][k] + learning_rate * (error * Q[k][j] - regularization * P[i][k]))
+                    Q[k][j] = max(0, Q[k][j] + learning_rate * (error * P[i][k] - regularization * Q[k][j]))
+
+    # 全エントリに対する損失の計算 / Calculate the loss over all observed entries
+    loss = 0
+    for i in range(n_users):
+        for j in range(n_items):
+            if R[i][j] > 0:
+                prediction = global_bias + user_bias[i] + item_bias[j] + np.dot(P[i, :], Q[:, j])
+                loss += (R[i][j] - prediction) ** 2
+                for k in range(n_factors):
+                    loss += (regularization / 2) * (P[i][k] ** 2 + Q[k][j] ** 2)
+    loss_history.append(loss)
+    
+    # 一部のエポックごとに損失を表示 / Print loss every few epochs
+    if (epoch + 1) % 500 == 0:
+        print(f'Epoch {epoch + 1}/{n_epochs}, Loss: {loss}')
+
+# 学習後の完全な評価行列を計算 / Compute the full rating matrix after training
+predicted_ratings = global_bias + user_bias[:, np.newaxis] + item_bias[np.newaxis, :] + np.dot(P, Q)
+
+print("\nPredicted Ratings:")
+print(predicted_ratings)
+
+# 学習過程の損失の可視化 / Visualize the loss over training
+plt.plot(loss_history)
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.title('Loss during training')
+plt.grid(True)
+plt.show()
