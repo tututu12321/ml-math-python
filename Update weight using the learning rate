@@ -1,0 +1,48 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Generate sample data
+np.random.seed(42)  # For reproducibility / 再現性のためのシード設定
+X = np.linspace(0, 10, 100)  # Generate 100 data points from 0 to 10 / 0から10の範囲で100データポイントを生成
+y = 2 * X + 1 + np.random.normal(0, 1, size=X.shape)  # y = 2x + 1 + noise / y = 2x + 1にノイズを加える
+
+# Set learning rates
+learning_rates = [0.01, 0.1, 0.5]  # Different learning rates to test / テストするための異なる学習率
+n_epochs = 20  # Number of epochs for training / 学習のエポック数
+
+# Prepare the plot
+plt.figure(figsize=(15, 10))  # Set the figure size / プロットのサイズを設定
+
+for lr in learning_rates:
+    # Initialize weights
+    weight = 0.0  # Initial weight / 初期重み
+    bias = 0.0    # Initial bias / 初期バイアス
+    weight_history = []  # To store the weight history for each epoch / 各エポックの重みの履歴を保存
+
+    for epoch in range(n_epochs):
+        # Calculate predictions
+        y_pred = weight * X + bias  # Predicted values based on the current weight and bias / 現在の重みとバイアスに基づく予測値
+        
+        # Calculate gradients
+        weight_gradient = -2 * np.mean((y - y_pred) * X)  # Gradient for weight / 重みの勾配
+        bias_gradient = -2 * np.mean(y - y_pred)  # Gradient for bias / バイアスの勾配
+        
+        # Update parameters
+        weight -= lr * weight_gradient  # Update weight using the learning rate / 学習率を用いて重みを更新
+        bias -= lr * bias_gradient  # Update bias using the learning rate / 学習率を用いてバイアスを更新
+        
+        # Save weight history
+        weight_history.append(weight)  # Store weight value for later analysis / 後の分析のために重みを保存
+
+    # Plot the results
+    plt.subplot(len(learning_rates), 1, learning_rates.index(lr) + 1)  # Create subplots for each learning rate / 各学習率のサブプロットを作成
+    plt.plot(X, y, 'o', label='Data', alpha=0.5)  # Plot original data points / 元のデータポイントをプロット
+    plt.plot(X, weight * X + bias, label=f'Linear Fit (LR={lr})', color='red')  # Plot the fitted line / フィットした直線をプロット
+    plt.title(f'Linear Regression with Learning Rate = {lr}')  # Title for the subplot / サブプロットのタイトル
+    plt.xlabel('X')  # X-axis label / X軸のラベル
+    plt.ylabel('y')  # Y-axis label / Y軸のラベル
+    plt.legend()  # Show legend / 凡例を表示
+    plt.grid()  # Enable grid for better readability / 読みやすさを向上させるためにグリッドを表示
+
+plt.tight_layout()  # Adjust layout for better spacing / レイアウトを調整して間隔を良くする
+plt.show()  # Display the plots / プロットを表示
