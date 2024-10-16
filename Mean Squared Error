@@ -1,0 +1,76 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import stats
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score
+
+# Sample Data
+data_x = np.array([1, 2, 3, 4, 5])  # Independent variable (独立変数)
+data_y = np.array([2, 4, 5, 4, 5])  # Dependent variable (従属変数)
+
+# Mean
+mean_x = np.mean(data_x)  # 平均 (Mean of X)
+mean_y = np.mean(data_y)  # 平均 (Mean of Y)
+
+# Max and Min
+max_x = np.max(data_x)  # 最大値 (Max of X)
+min_x = np.min(data_x)  # 最小値 (Min of X)
+
+# Mode
+mode_x = stats.mode(data_x)  # 最頻値 (Mode of X)
+mode_y = stats.mode(data_y)  # 最頻値 (Mode of Y)
+
+# Median
+median_x = np.median(data_x)  # 中央値 (Median of X)
+median_y = np.median(data_y)  # 中央値 (Median of Y)
+
+# Quartiles
+quartiles_x = np.percentile(data_x, [25, 50, 75])  # 四分位数 (Quartiles of X)
+
+# Variance and Standard Deviation
+variance_x = np.var(data_x)  # 分散 (Variance of X)
+std_dev_x = np.std(data_x)    # 標準偏差 (Standard Deviation of X)
+
+# Covariance
+covariance = np.cov(data_x, data_y)[0, 1]  # 共分散 (Covariance)
+
+# Correlation Coefficient
+correlation = np.corrcoef(data_x, data_y)[0, 1]  # 相関係数 (Correlation Coefficient)
+
+# Linear Regression and R-squared
+X = data_x.reshape(-1, 1)  # Reshape data for regression (データを適切な形状に変換)
+model = LinearRegression().fit(X, data_y)  # Fit linear regression model (線形回帰モデルをフィット)
+y_pred = model.predict(X)  # Predicted values (予測値)
+r_squared = r2_score(data_y, y_pred)  # 決定係数 (R-squared)
+
+# Sum of Squares
+regression_sum_of_squares = np.sum((y_pred - np.mean(data_y)) ** 2)  # 回帰平方和
+total_sum_of_squares = np.sum((data_y - np.mean(data_y)) ** 2)  # 総平方和
+
+# Calculate Loss Function (Mean Squared Error)
+loss_function = np.mean((data_y - y_pred) ** 2)  # 損失関数 (平均二乗誤差)
+
+# Plotting
+plt.figure(figsize=(10, 6))
+plt.scatter(data_x, data_y, color='blue', label='Data')  # Scatter plot of data (データの散布図)
+plt.plot(data_x, y_pred, color='red', label='Linear Fit')  # Regression line (回帰直線)
+plt.title('Linear Regression and Data')  # Title of the plot (プロットのタイトル)
+plt.xlabel('X-axis')  # X-axis label (X軸のラベル)
+plt.ylabel('Y-axis')  # Y-axis label (Y軸のラベル)
+plt.legend()  # Show legend (凡例の表示)
+plt.grid(True)  # Enable grid (グリッドの表示)
+plt.show()  # Show the plot (プロットの表示)
+
+# Display results
+print(f"Mean of X: {mean_x}, Mean of Y: {mean_y}")  # 平均
+print(f"Max of X: {max_x}, Min of X: {min_x}")  # 最大値・最小値
+print(f"Mode of X: {mode_x.mode[0]}, Mode of Y: {mode_y.mode[0]}")  # 最頻値
+print(f"Median of X: {median_x}, Median of Y: {median_y}")  # 中央値
+print(f"Quartiles of X: {quartiles_x}")  # 四分位数
+print(f"Variance of X: {variance_x}, Std Dev of X: {std_dev_x}")  # 分散、標準偏差
+print(f"Covariance: {covariance}")  # 共分散
+print(f"Correlation Coefficient: {correlation}")  # 相関係数
+print(f"R-squared: {r_squared}")  # 決定係数
+print(f"Regression Sum of Squares: {regression_sum_of_squares}")  # 回帰平方和
+print(f"Total Sum of Squares: {total_sum_of_squares}")  # 総平方和
+print(f"Mean Squared Error (Loss Function): {loss_function:.4f}")  # 損失関数の表示
