@@ -1,0 +1,44 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Define convex function: f(x) = x^2 (凸関数の定義)
+def convex_function(x):
+    return x**2
+
+# Define concave function: f(x) = -x^2 (凹関数の定義)
+def concave_function(x):
+    return -x**2
+
+# Generate x values for plotting (プロット用のx値を生成)
+x_vals = np.linspace(-2, 2, 100)
+convex_vals = convex_function(x_vals)
+concave_vals = concave_function(x_vals)
+
+# Plot convex function (凸関数のプロット)
+plt.figure(figsize=(12, 6))
+
+# Plot convex function
+plt.subplot(1, 2, 1)
+plt.plot(x_vals, convex_vals, label=r'$f(x) = x^2$', color='blue')
+plt.title('Convex Function: $f(x) = x^2$')
+plt.xlabel('x')
+plt.ylabel('f(x)')
+plt.axhline(0, color='black',linewidth=0.5)
+plt.axvline(0, color='black',linewidth=0.5)
+plt.grid(True)
+plt.legend()
+
+# Plot concave function
+plt.subplot(1, 2, 2)
+plt.plot(x_vals, concave_vals, label=r'$f(x) = -x^2$', color='red')
+plt.title('Concave Function: $f(x) = -x^2$')
+plt.xlabel('x')
+plt.ylabel('f(x)')
+plt.axhline(0, color='black',linewidth=0.5)
+plt.axvline(0, color='black',linewidth=0.5)
+plt.grid(True)
+plt.legend()
+
+# Show the plots
+plt.tight_layout()
+plt.show()
