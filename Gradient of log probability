@@ -1,0 +1,81 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ターゲット分布の対数密度関数とその勾配を定義します
+def log_prob(x):
+    """Target distribution: 1D standard normal (標準正規分布)"""
+    return -0.5 * x**2
+
+def grad_log_prob(x):
+    """Gradient of log probability (対数密度関数の勾配)"""
+    return -x
+
+# リープフロッグ法を定義します
+def leapfrog(x, p, grad_log_prob, step_size, n_steps):
+    """Leapfrog method for updating position and momentum (位置と運動量の更新)"""
+    # Momentum update (1/2 step) (運動量の半ステップ更新)
+    p -= 0.5 * step_size * grad_log_prob(x)
+    # Position and momentum update (n_steps times) (位置と運動量をn_steps回更新)
+    for _ in range(n_steps):
+        x += step_size * p  # Position update (位置の更新)
+        if _ < n_steps - 1:  # Avoid double momentum update at the end (最後のステップで重複しないようにする)
+            p -= step_size * grad_log_prob(x)  # Momentum update (運動量の更新)
+    # Final momentum update (1/2 step) (運動量の半ステップ更新)
+    p -= 0.5 * step_size * grad_log_prob(x)
+    # Return the new position and momentum (新しい位置と運動量を返す)
+    return x, p
+
+# ハミルトニアンモンテカルロ法のステップを定義します
+def hmc_step(current_x, step_size, n_steps):
+    """Single HMC step (HMCの単一ステップ)"""
+    # Sample momentum from a standard normal distribution (運動量を標準正規分布からサンプリング)
+    current_p = np.random.normal()
+    # Calculate the current Hamiltonian (現在のハミルトニアン)
+    current_hamiltonian = -log_prob(current_x) + 0.5 * current_p**2
+    
+    # Propose new position and momentum using the leapfrog method (リープフロッグ法を使って新しい位置と運動量を提案)
+    proposed_x, proposed_p = leapfrog(current_x, current_p, grad_log_prob, step_size, n_steps)
+    proposed_hamiltonian = -log_prob(proposed_x) + 0.5 * proposed_p**2
+    
+    # Metropolis acceptance step (メトロポリス法による受容ステップ)
+    acceptance_prob = np.exp(current_hamiltonian - proposed_hamiltonian)
+    if np.random.rand() < acceptance_prob:
+        return proposed_x, True  # Accept the proposal (提案を受け入れる)
+    else:
+        return current_x, False  # Reject the proposal (提案を拒否する)
+
+# HMCによるサンプリング
+def hmc_sampler(initial_x, n_samples, step_size, n_steps):
+    """HMC sampler for generating samples (HMCによるサンプル生成)"""
+    samples = [initial_x]
+    accepted = 0
+    x = initial_x
+    for _ in range(n_samples):
+        x, accept = hmc_step(x, step_size, n_steps)
+        samples.append(x)
+        if accept:
+            accepted += 1
+    acceptance_rate = accepted / n_samples
+    return np.array(samples), acceptance_rate
+
+# パラメータの設定
+initial_x = 0.0  # Initial position (初期位置)
+n_samples = 5000  # Number of samples (サンプル数)
+step_size = 0.1  # Step size for the leapfrog method (リープフロッグ法のステップサイズ)
+n_steps = 10  # Number of leapfrog steps (リープフロッグステップの数)
+
+# HMCを使ってサンプリング
+samples, acceptance_rate = hmc_sampler(initial_x, n_samples, step_size, n_steps)
+
+# 結果を表示
+print(f"Acceptance rate: {acceptance_rate:.2f}")
+
+# サンプルのヒストグラムと理論的な標準正規分布をプロット
+x_values = np.linspace(-4, 4, 100)
+plt.hist(samples, bins=50, density=True, alpha=0.7, label='HMC Samples')
+plt.plot(x_values, np.exp(-0.5 * x_values**2) / np.sqrt(2 * np.pi), 'r', label='True Distribution')
+plt.xlabel('x')
+plt.ylabel('Density')
+plt.title('HMC Sampling of a 1D Standard Normal Distribution')
+plt.legend()
+plt.show()
