@@ -1,0 +1,19 @@
+import numpy as np
+from scipy.stats import norm
+
+# Generate data from a normal distribution (正規分布からデータを生成)
+np.random.seed(42)
+data = np.random.normal(loc=5, scale=2, size=100)  # Mean=5, StdDev=2
+
+# Calculate the sample mean and variance (標本平均と分散を計算)
+sample_mean = np.mean(data)  # This is an unbiased estimator of the true mean (これは真の平均の不偏推定量)
+sample_variance = np.var(data, ddof=1)  # Unbiased variance (不偏分散)
+
+# Maximum Likelihood Estimation (MLE) for the mean and variance (平均と分散の最尤推定法)
+mle_mean = sample_mean  # MLE of mean is the sample mean (平均のMLEは標本平均)
+mle_variance = np.var(data, ddof=0)  # MLE of variance uses ddof=0 (分散のMLEはddof=0を使用)
+
+print(f"Sample Mean (標本平均): {sample_mean}")
+print(f"Sample Variance (不偏分散): {sample_variance}")
+print(f"MLE Mean (平均の最尤推定): {mle_mean}")
+print(f"MLE Variance (分散の最尤推定): {mle_variance}")
