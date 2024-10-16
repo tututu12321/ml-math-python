@@ -1,0 +1,56 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from tensorflow.keras.datasets import mnist
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report, confusion_matrix
+
+# MNISTデータセットのロード / Load the MNIST dataset
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+# データの前処理 / Preprocess the data
+# 画像を28x28のサイズから784のベクトルに変換し、正規化 / Flatten images to 784-dimensional vectors and normalize
+x_train = x_train.reshape(-1, 28 * 28) / 255.0
+x_test = x_test.reshape(-1, 28 * 28) / 255.0
+
+# データの可視化 / Visualize the data
+def plot_sample_images(images, labels, n=10):
+    plt.figure(figsize=(10, 1))
+    for i in range(n):
+        plt.subplot(1, n, i + 1)
+        plt.imshow(images[i].reshape(28, 28), cmap='gray')
+        plt.axis('off')
+        plt.title(labels[i])
+    plt.show()
+
+# トレーニングデータの最初の10画像を表示 / Show first 10 images of the training data
+plot_sample_images(x_train, y_train)
+
+# ロジスティック回帰モデルのインスタンス化 / Instantiate the logistic regression model
+model = LogisticRegression(max_iter=1000)
+
+# モデルのトレーニング / Train the model
+model.fit(x_train, y_train)
+
+# テストデータに対する予測 / Make predictions on the test data
+y_pred = model.predict(x_test)
+
+# 精度評価 / Evaluate the model
+print("Classification Report:\n", classification_report(y_test, y_pred))
+print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
+
+# 混同行列の可視化 / Visualize the confusion matrix
+def plot_confusion_matrix(cm):
+    plt.figure(figsize=(10, 7))
+    plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
+    plt.title('Confusion Matrix')
+    plt.colorbar()
+    tick_marks = np.arange(10)
+    plt.xticks(tick_marks, tick_marks)
+    plt.yticks(tick_marks, tick_marks)
+    plt.ylabel('True label')
+    plt.xlabel('Predicted label')
+    plt.show()
+
+# 混同行列をプロット / Plot the confusion matrix
+cm = confusion_matrix(y_test, y_pred)
+plot_confusion_matrix(cm)
