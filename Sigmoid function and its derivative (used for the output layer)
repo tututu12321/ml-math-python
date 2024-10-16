@@ -1,0 +1,111 @@
+import numpy as np
+
+# 活性化関数とその導関数（ReLUを使用）
+# Activation function and its derivative (using ReLU)
+def relu(x):
+    return np.maximum(0, x)
+
+def relu_derivative(x):
+    return np.where(x > 0, 1, 0)
+
+# シグモイド関数とその導関数（出力層の活性化関数として使用）
+# Sigmoid function and its derivative (used for the output layer)
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+def sigmoid_derivative(x):
+    return sigmoid(x) * (1 - sigmoid(x))
+
+# 損失関数（平均二乗誤差）
+# Loss function (Mean Squared Error)
+def compute_loss(y_true, y_pred):
+    return np.mean((y_true - y_pred) ** 2)
+
+# ニューラルネットワークの初期化
+# Initialize the neural network
+np.random.seed(42)
+input_size = 2
+hidden_size = 3
+output_size = 1
+
+# 重みとバイアスの初期化
+# Initialize weights and biases
+W1 = np.random.randn(input_size, hidden_size)
+b1 = np.random.randn(hidden_size)
+W2 = np.random.randn(hidden_size, output_size)
+b2 = np.random.randn(output_size)
+
+# 順伝播
+# Forward pass
+def forward(x):
+    z1 = x @ W1 + b1  # 入力から隠れ層への線形変換 (Linear transformation from input to hidden layer)
+    a1 = relu(z1)     # 活性化関数（ReLU） (Apply activation function (ReLU))
+    z2 = a1 @ W2 + b2  # 隠れ層から出力層への線形変換 (Linear transformation from hidden to output layer)
+    a2 = sigmoid(z2)   # 出力層の活性化関数（シグモイド） (Activation function (sigmoid) for output)
+    return z1, a1, z2, a2
+
+# 逆伝播
+# Backward pass
+def backward(x, y_true, z1, a1, z2, a2, learning_rate=0.01):
+    global W1, b1, W2, b2
+
+    # 出力層の勾配
+    # Gradient for the output layer
+    dL_da2 = -(y_true - a2)  # 損失関数の導関数（MSEの導関数） (Derivative of the loss function (MSE))
+    da2_dz2 = sigmoid_derivative(z2)  # シグモイドの導関数 (Derivative of sigmoid)
+    dL_dz2 = dL_da2 * da2_dz2
+
+    # 隠れ層から出力層への勾配
+    # Gradient for weights and biases from hidden to output layer
+    dL_dW2 = a1.T @ dL_dz2  # W2に対する勾配 (Gradient with respect to W2)
+    dL_db2 = np.sum(dL_dz2, axis=0)  # b2に対する勾配 (Gradient with respect to b2)
+
+    # 隠れ層の勾配
+    # Gradient for the hidden layer
+    dL_da1 = dL_dz2 @ W2.T
+    da1_dz1 = relu_derivative(z1)
+    dL_dz1 = dL_da1 * da1_dz1
+
+    # 入力層から隠れ層への勾配
+    # Gradient for weights and biases from input to hidden layer
+    dL_dW1 = x.T @ dL_dz1  # W1に対する勾配 (Gradient with respect to W1)
+    dL_db1 = np.sum(dL_dz1, axis=0)  # b1に対する勾配 (Gradient with respect to b1)
+
+    # パラメータの更新
+    # Update the parameters
+    W1 -= learning_rate * dL_dW1
+    b1 -= learning_rate * dL_db1
+    W2 -= learning_rate * dL_dW2
+    b2 -= learning_rate * dL_db2
+
+# サンプルデータ（XOR問題）
+# Sample data (XOR problem)
+x_train = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+y_train = np.array([[0], [1], [1], [0]])  # XORのターゲット (XOR targets)
+
+# トレーニング
+# Training
+n_epochs = 10000
+learning_rate = 0.1
+
+for epoch in range(n_epochs):
+    z1, a1, z2, a2 = forward(x_train)
+    loss = compute_loss(y_train, a2)
+    backward(x_train, y_train, z1, a1, z2, a2, learning_rate)
+
+    if epoch % 1000 == 0:
+        print(f'Epoch {epoch}, Loss: {loss}')
+
+# 学習結果の表示
+# Display trained weights and biases
+print("Trained weights and biases:")
+print(f"W1: {W1}")
+print(f"b1: {b1}")
+print(f"W2: {W2}")
+print(f"b2: {b2}")
+
+# 最終的な予測
+# Final predictions
+_, _, _, y_pred = forward(x_train)
+print("Predictions after training:")
+print(y_pred)
