@@ -1,0 +1,76 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+from sklearn.cross_decomposition import CCA
+
+# サンプルデータの生成（3次元データ）/ Generate sample data (3-dimensional)
+np.random.seed(42)
+mean = [0, 0, 0]
+cov = [[1, 0.8, 0.5], [0.8, 1, 0.3], [0.5, 0.3, 1]]  # 共分散行列 / Covariance matrix
+data = np.random.multivariate_normal(mean, cov, 100)
+
+# PCAの適用と分散共分散行列の表示 / Apply PCA and display covariance matrix
+pca = PCA(n_components=2)
+pca.fit(data)
+data_pca = pca.transform(data)
+cov_matrix = np.cov(data.T)
+
+print("Covariance Matrix:")
+print(cov_matrix)
+
+print("\nPCA Components (Eigenvectors):")
+print(pca.components_)
+
+print("\nExplained Variance Ratio (PCA):")
+print(pca.explained_variance_ratio_)
+
+# 特異値分解（SVD）の適用 / Apply Singular Value Decomposition (SVD)
+U, S, Vt = np.linalg.svd(data)
+print("\nSingular Values (SVD):")
+print(S)
+print("\nLeft Singular Vectors (U):")
+print(U[:5])  # 先頭5個のみ表示 / Display first 5
+print("\nRight Singular Vectors (Vt):")
+print(Vt)
+
+# CCAの適用（例として2次元データセットを生成して適用）/ Apply CCA (Generate 2D datasets as an example)
+X = np.random.rand(100, 2)  # 2つのデータセットを用意 / Prepare two datasets
+Y = X + np.random.normal(0, 0.1, X.shape)  # Xにノイズを加えたデータ / Add noise to X
+cca = CCA(n_components=2)
+X_c, Y_c = cca.fit_transform(X, Y)
+
+print("\nCanonical Correlations (CCA):")
+print(np.corrcoef(X_c.T, Y_c.T))
+
+# 可視化: PCA後のデータのプロット / Visualization: Plot PCA-transformed data
+plt.figure(figsize=(12, 5))
+
+# PCAによる次元削減後のデータプロット / Plot data after dimensionality reduction by PCA
+plt.subplot(1, 3, 1)
+plt.scatter(data_pca[:, 0], data_pca[:, 1], alpha=0.7, label='PCA Projected Data')
+plt.xlabel('PC1')
+plt.ylabel('PC2')
+plt.title('PCA Projection')
+plt.grid(True)
+plt.legend()
+
+# SVDの特異値をプロット / Plot singular values from SVD
+plt.subplot(1, 3, 2)
+plt.bar(range(1, len(S) + 1), S, alpha=0.7)
+plt.xlabel('Component')
+plt.ylabel('Singular Value')
+plt.title('Singular Values (SVD)')
+plt.grid(True)
+
+# CCAによる相関のプロット / Plot correlations from CCA
+plt.subplot(1, 3, 3)
+plt.scatter(X_c[:, 0], Y_c[:, 0], alpha=0.7, label='CCA Component 1')
+plt.scatter(X_c[:, 1], Y_c[:, 1], alpha=0.7, label='CCA Component 2', color='orange')
+plt.xlabel('X_c')
+plt.ylabel('Y_c')
+plt.title('Canonical Correlation Analysis')
+plt.grid(True)
+plt.legend()
+
+plt.tight_layout()
+plt.show()
