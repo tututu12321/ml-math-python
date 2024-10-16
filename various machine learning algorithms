@@ -1,0 +1,157 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris, make_blobs
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
+from sklearn.metrics import classification_report
+
+# ---------------------------------
+# 回帰分析: 線形回帰 (Regression Analysis: Linear Regression)
+# ---------------------------------
+def regression_analysis():
+    X = np.random.rand(100, 1) * 10
+    y = 2.5 * X + np.random.randn(100, 1) * 2
+    model = LinearRegression()
+    model.fit(X, y)
+    y_pred = model.predict(X)
+    plt.scatter(X, y, label='Data', color='blue')
+    plt.plot(X, y_pred, label='Linear Regression', color='red')
+    plt.title('Linear Regression')
+    plt.xlabel('X')
+    plt.ylabel('y')
+    plt.legend()
+    plt.show()
+
+# ---------------------------------
+# サポートベクターマシン (Support Vector Machine)
+# ---------------------------------
+def support_vector_machine():
+    iris = load_iris()
+    X = iris.data[:, :2]
+    y = iris.target
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    svm_model = SVC(kernel='linear')
+    svm_model.fit(X_train, y_train)
+    y_pred = svm_model.predict(X_test)
+    print("Support Vector Machine:")
+    print(classification_report(y_test, y_pred))
+
+# ---------------------------------
+# 決定木 (Decision Tree)
+# ---------------------------------
+def decision_tree():
+    iris = load_iris()
+    X = iris.data
+    y = iris.target
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    tree_model = DecisionTreeClassifier()
+    tree_model.fit(X_train, y_train)
+    y_pred = tree_model.predict(X_test)
+    print("Decision Tree:")
+    print(classification_report(y_test, y_pred))
+
+# ---------------------------------
+# アンサンブル学習 (Ensemble Learning)
+# ---------------------------------
+def ensemble_learning():
+    iris = load_iris()
+    X = iris.data
+    y = iris.target
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    rf_model = RandomForestClassifier(n_estimators=100)
+    rf_model.fit(X_train, y_train)
+    y_pred = rf_model.predict(X_test)
+    print("Ensemble Learning (Random Forest):")
+    print(classification_report(y_test, y_pred))
+
+# ---------------------------------
+# ロジスティック回帰 (Logistic Regression)
+# ---------------------------------
+def logistic_regression():
+    X, y = make_blobs(n_samples=200, centers=2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    log_model = LogisticRegression()
+    log_model.fit(X_train, y_train)
+    y_pred = log_model.predict(X_test)
+    print("Logistic Regression:")
+    print(classification_report(y_test, y_pred))
+
+# ---------------------------------
+# ベイジアンモデル (Bayesian Model)
+# ---------------------------------
+def bayesian_model():
+    from sklearn.datasets import make_classification
+    X, y = make_classification(n_samples=200, n_features=5, n_classes=2, random_state=42)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    from sklearn.gaussian_process import GaussianProcessClassifier
+    gp_model = GaussianProcessClassifier()
+    gp_model.fit(X_train, y_train)
+    y_pred = gp_model.predict(X_test)
+    print("Bayesian Model (Gaussian Process):")
+    print(classification_report(y_test, y_pred))
+
+# ---------------------------------
+# 時系列分析 (Time Series Analysis)
+# ---------------------------------
+def time_series_analysis():
+    time = np.arange(100)
+    series = np.sin(time / 5) + np.random.normal(0, 0.1, size=time.shape)
+    plt.figure(figsize=(8, 4))
+    plt.plot(time, series, label='Time Series Data')
+    plt.title('Time Series Analysis')
+    plt.xlabel('Time')
+    plt.ylabel('Value')
+    plt.legend()
+    plt.show()
+
+# ---------------------------------
+# k近傍(k-NN)法とk平均(k-means)法 (k-NN and k-Means)
+# ---------------------------------
+def knn_and_kmeans():
+    X, y_true = make_blobs(n_samples=300, centers=4, cluster_std=0.60, random_state=0)
+    kmeans = KMeans(n_clusters=4)
+    y_kmeans = kmeans.fit_predict(X)
+    knn_model = KNeighborsClassifier(n_neighbors=3)
+    knn_model.fit(X, y_true)
+    plt.figure(figsize=(8, 5))
+    plt.scatter(X[:, 0], X[:, 1], c=y_kmeans, s=50, cmap='viridis')
+    centers = kmeans.cluster_centers_
+    plt.scatter(centers[:, 0], centers[:, 1], c='red', s=200, alpha=0.75, marker='X')
+    plt.title('K-means Clustering')
+    plt.xlabel('Feature 1')
+    plt.ylabel('Feature 2')
+    plt.show()
+
+# ---------------------------------
+# 次元削減と主成分分析 (Dimensionality Reduction and PCA)
+# ---------------------------------
+def dimensionality_reduction():
+    iris = load_iris()
+    X = iris.data
+    y = iris.target
+    pca = PCA(n_components=2)
+    X_reduced = pca.fit_transform(X)
+    plt.figure(figsize=(8, 5))
+    plt.scatter(X_reduced[:, 0], X_reduced[:, 1], c=y, s=50, cmap='viridis')
+    plt.title('PCA Result')
+    plt.xlabel('Principal Component 1')
+    plt.ylabel('Principal Component 2')
+    plt.show()
+
+# メイン関数 / Main function
+if __name__ == "__main__":
+    regression_analysis()  # 回帰分析の実行 / Run regression analysis
+    support_vector_machine()  # サポートベクターマシンの実行 / Run support vector machine
+    decision_tree()  # 決定木の実行 / Run decision tree
+    ensemble_learning()  # アンサンブル学習の実行 / Run ensemble learning
+    logistic_regression()  # ロジスティック回帰の実行 / Run logistic regression
+    bayesian_model()  # ベイジアンモデルの実行 / Run Bayesian model
+    time_series_analysis()  # 時系列分析の実行 / Run time series analysis
+    knn_and_kmeans()  # k-NNとk-meansの実行 / Run k-NN and k-means
+    dimensionality_reduction()  # 次元削減の実行 / Run dimensionality reduction
