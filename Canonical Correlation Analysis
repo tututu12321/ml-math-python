@@ -1,0 +1,66 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+from sklearn.cross_decomposition import CCA
+import seaborn as sns
+
+# Generate synthetic datasets (サンプルデータセットの生成)
+np.random.seed(42)
+n_samples = 100
+
+# Dataset X with 3 features (3次元のデータセットX)
+X = np.random.rand(n_samples, 3)
+
+# Dataset Y with 2 features (2次元のデータセットY)
+Y = 0.7 * X[:, [0, 1]] + 0.3 * np.random.rand(n_samples, 2)
+
+# Perform Canonical Correlation Analysis (CCA) (正準相関分析の実行)
+cca = CCA(n_components=2)
+X_c, Y_c = cca.fit_transform(X, Y)
+
+# Calculate covariance matrices (共分散行列の計算)
+cov_matrix_X = np.cov(X, rowvar=False)
+cov_matrix_Y = np.cov(Y, rowvar=False)
+
+# Create DataFrames for easier plotting (プロットのためのデータフレーム作成)
+df_X = pd.DataFrame(X, columns=['X1', 'X2', 'X3'])
+df_Y = pd.DataFrame(Y, columns=['Y1', 'Y2'])
+cov_matrix_X_df = pd.DataFrame(cov_matrix_X, index=df_X.columns, columns=df_X.columns)
+cov_matrix_Y_df = pd.DataFrame(cov_matrix_Y, index=df_Y.columns, columns=df_Y.columns)
+
+# Plot covariance matrices using heatmaps (共分散行列のヒートマップをプロット)
+plt.figure(figsize=(12, 5))
+
+# Covariance matrix of X (Xの共分散行列)
+plt.subplot(1, 2, 1)
+sns.heatmap(cov_matrix_X_df, annot=True, fmt=".2f", cmap='coolwarm', center=0)
+plt.title('Covariance Matrix of X')
+plt.xlabel('Features of X')
+plt.ylabel('Features of X')
+
+# Covariance matrix of Y (Yの共分散行列)
+plt.subplot(1, 2, 2)
+sns.heatmap(cov_matrix_Y_df, annot=True, fmt=".2f", cmap='coolwarm', center=0)
+plt.title('Covariance Matrix of Y')
+plt.xlabel('Features of Y')
+plt.ylabel('Features of Y')
+
+plt.tight_layout()
+plt.show()
+
+# Plot the results of CCA (CCAの結果をプロット)
+plt.figure(figsize=(8, 6))
+plt.scatter(X_c[:, 0], Y_c[:, 0], alpha=0.7, label='First canonical variable')
+plt.scatter(X_c[:, 1], Y_c[:, 1], alpha=0.7, label='Second canonical variable', color='r')
+plt.xlabel('Canonical Variable from X')
+plt.ylabel('Canonical Variable from Y')
+plt.title('Canonical Correlation Analysis (CCA)')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Display correlation coefficients between canonical variables (正準変数間の相関係数を表示)
+correlation_1 = np.corrcoef(X_c[:, 0], Y_c[:, 0])[0, 1]
+correlation_2 = np.corrcoef(X_c[:, 1], Y_c[:, 1])[0, 1]
+print(f"Correlation between first pair of canonical variables: {correlation_1:.2f}")
+print(f"Correlation between second pair of canonical variables: {correlation_2:.2f}")
