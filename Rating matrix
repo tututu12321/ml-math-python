@@ -1,0 +1,85 @@
+import numpy as np
+
+class MatrixFactorization:
+    def __init__(self, R, K, alpha, beta, iterations):
+        """
+        R: Rating matrix (user × item) - 評価行列 (ユーザー×アイテム)
+        K: Number of latent factors - 因子の次元数
+        alpha: Learning rate - 学習率
+        beta: Regularization parameter - 正則化パラメータ
+        iterations: Number of iterations - 更新回数
+        """
+        self.R = R
+        self.num_users, self.num_items = R.shape
+        self.K = K
+        self.alpha = alpha
+        self.beta = beta
+        self.iterations = iterations
+
+    def train(self):
+        # Initialize user matrix P and item matrix Q randomly
+        # ユーザー因子行列 P と アイテム因子行列 Q をランダムに初期化
+        self.P = np.random.normal(scale=1./self.K, size=(self.num_users, self.K))
+        self.Q = np.random.normal(scale=1./self.K, size=(self.num_items, self.K))
+
+        # Training process: Iteratively update using gradient descent
+        # 学習プロセス: 勾配降下法による更新を繰り返す
+        for iteration in range(self.iterations):
+            for u in range(self.num_users):
+                for i in range(self.num_items):
+                    if self.R[u, i] > 0:  # Process only where actual ratings exist
+                        # 実際の評価が存在する箇所のみ処理
+                        
+                        # Calculate the error - 誤差の計算
+                        error = self.R[u, i] - self.predict(u, i)
+
+                        # Update P_u and Q_i using gradient descent
+                        # P_u と Q_i の更新 (勾配降下法)
+                        self.P[u, :] += self.alpha * (error * self.Q[i, :] - self.beta * self.P[u, :])
+                        self.Q[i, :] += self.alpha * (error * self.P[u, :] - self.beta * self.Q[i, :])
+
+            # Calculate the loss function - 損失関数の計算
+            loss = self.loss()
+            if (iteration + 1) % 10 == 0:
+                print(f"Iteration: {iteration + 1}; Loss: {loss:.4f}")
+
+    def predict(self, u, i):
+        """Predict rating of user u for item i - ユーザーuがアイテムiに対して予測する評価値"""
+        return np.dot(self.P[u, :], self.Q[i, :].T)
+
+    def loss(self):
+        """Calculate the loss function (residuals + regularization term) - 損失関数 (残差 + 正則化項) の計算"""
+        xs, ys = self.R.nonzero()  # Only consider elements where ratings are provided - 実際に評価が行われている要素のみ対象
+        predicted = self.full_matrix()
+        error = 0
+        for x, y in zip(xs, ys):
+            error += (self.R[x, y] - predicted[x, y]) ** 2
+        # Add regularization term - 正則化項を加える
+        error += self.beta * (np.linalg.norm(self.P) + np.linalg.norm(self.Q))
+        return np.sqrt(error)
+
+    def full_matrix(self):
+        """Generate the complete predicted rating matrix from P and Q - ユーザー因子行列 P と アイテム因子行列 Q から完全な予測評価行列を生成"""
+        return np.dot(self.P, self.Q.T)
+
+# Example rating matrix (user × item) - 0 indicates no rating
+# 評価行列 (ユーザー×アイテム) - 0は評価が行われていない箇所
+R = np.array([[5, 3, 0, 1],
+              [4, 0, 0, 1],
+              [1, 1, 0, 5],
+              [1, 0, 0, 4],
+              [0, 1, 5, 4]])
+
+# Parameter settings - パラメータの設定
+K = 2  # Number of latent factors - 因子の次元数
+alpha = 0.01  # Learning rate - 学習率
+beta = 0.01  # Regularization parameter - 正則化パラメータ
+iterations = 100  # Number of iterations - 学習の反復回数
+
+# Build and train the Matrix Factorization model - Matrix Factorizationのモデルを構築して学習
+mf = MatrixFactorization(R, K, alpha, beta, iterations)
+mf.train()
+
+# Display the predicted rating matrix - 予測結果の評価行列を表示
+print("\nPredicted Rating Matrix (予測評価行列):")
+print(mf.full_matrix())
