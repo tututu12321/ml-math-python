@@ -1,0 +1,34 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sympy import symbols, hessian, Function
+
+# Define the symbols for variables (変数のシンボルを定義)
+x, y = symbols('x y')
+
+# Define the function for which we want to calculate the Hessian (Hessianを計算する関数を定義)
+f = x**2 + 3*x*y + y**2
+
+# Calculate the gradient (偏微分を計算して勾配を求める)
+gradient_f = [f.diff(var) for var in (x, y)]
+print("Gradient of f:")
+print(gradient_f)
+
+# Calculate the Hessian matrix (Hesse行列を計算)
+hessian_f = hessian(f, (x, y))
+print("\nHessian matrix of f:")
+print(hessian_f)
+
+# Visualize the function (関数の視覚化)
+x_vals = np.linspace(-5, 5, 100)
+y_vals = np.linspace(-5, 5, 100)
+X, Y = np.meshgrid(x_vals, y_vals)
+Z = X**2 + 3*X*Y + Y**2
+
+plt.figure(figsize=(8, 6))
+contour = plt.contourf(X, Y, Z, levels=30, cmap='viridis')
+plt.colorbar(contour)
+plt.title('Contour Plot of f(x, y) = x^2 + 3xy + y^2')
+plt.xlabel('x')
+plt.ylabel('y')
+plt.grid(True)
+plt.show()
