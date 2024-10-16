@@ -1,0 +1,48 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+
+# サンプルデータを生成（2次元データ）
+# Generate sample data (2-dimensional data)
+np.random.seed(42)
+n_samples = 100
+mean = [0, 0]
+cov = [[3, 1], [1, 2]]  # 共分散行列 (Covariance matrix)
+data = np.random.multivariate_normal(mean, cov, n_samples)
+
+# PCAを適用して潜在変数を取得
+# Apply PCA to obtain latent variables
+pca = PCA(n_components=1)  # 1次元に削減 (Reduce to 1 dimension)
+latent_variables = pca.fit_transform(data)
+reconstructed_data = pca.inverse_transform(latent_variables)
+
+# 主成分ベクトル（固有ベクトル）を取得
+# Get principal component vectors (eigenvectors)
+principal_components = pca.components_
+
+# 元のデータと主成分方向をプロット
+# Plot the original data and principal component directions
+plt.figure(figsize=(8, 6))
+plt.scatter(data[:, 0], data[:, 1], alpha=0.6, label='Original Data')  # 元データをプロット (Plot original data)
+plt.scatter(reconstructed_data[:, 0], reconstructed_data[:, 1], alpha=0.6, label='Reconstructed Data', color='orange')  # 再構築データをプロット (Plot reconstructed data)
+
+# 主成分の方向をプロット
+# Plot the directions of principal components
+for i, (length, vector) in enumerate(zip(pca.explained_variance_, principal_components)):
+    v = vector * 3 * np.sqrt(length)  # 固有値に基づいてベクトルの長さを調整 (Adjust vector length based on eigenvalues)
+    plt.plot([0, v[0]], [0, v[1]], label=f'Principal Component {i+1}', linewidth=2)
+
+plt.xlabel('X1')
+plt.ylabel('X2')
+plt.title('PCA: Original and Reconstructed Data')
+plt.grid(True)
+plt.legend()
+plt.axis('equal')
+plt.show()
+
+# 主成分方向と潜在変数を表示
+# Display principal component directions and latent variables
+print("Principal Components:")
+print(principal_components)
+print("\nLatent Variables (First 5 samples):")
+print(latent_variables[:5])
