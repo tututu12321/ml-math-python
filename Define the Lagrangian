@@ -1,0 +1,48 @@
+import numpy as np
+import sympy as sp
+import matplotlib.pyplot as plt
+
+# サンプルデータの生成 (Generate sample data)
+np.random.seed(0)
+N = 100
+X = np.random.rand(N, 1) * 10  # 入力データ (Input data)
+true_w = 2.5  # 真の重み (True weight)
+y = true_w * X + np.random.randn(N, 1)  # 目標値 (Target values)
+
+# シンボルの定義 (Define symbols)
+w, lambda_ = sp.symbols('w lambda')
+
+# 損失関数の定義 (Define the loss function)
+L = (1/N) * sp.Sum((y[i] - w * X[i])**2, (i, 0, N-1)).doit()
+
+# 制約条件の定義 (Define the constraint)
+g = w**2 - 1  # L2正則化の制約 (L2 regularization constraint)
+
+# ラグランジュ関数の定義 (Define the Lagrangian)
+lagrangian = L + lambda_ * g
+
+# 偏微分を計算 (Calculate partial derivatives)
+L_w = sp.diff(lagrangian, w)  # dL/dw
+L_lambda = sp.diff(lagrangian, lambda_)  # dL/dlambda
+
+# 方程式を解く (Solve the system of equations)
+solutions = sp.solve([L_w, L_lambda], (w, lambda_))
+
+# 結果を表示 (Display the results)
+print("Optimal weight:")
+print(solutions[w])
+
+# 損失関数の値を計算 (Calculate the loss value at the optimal weight)
+optimal_w = float(solutions[w])
+loss_value = (1/N) * np.sum((y - optimal_w * X)**2)
+print("Loss value at optimal weight:", loss_value)
+
+# 結果のプロット (Plot the results)
+plt.scatter(X, y, label='Data points', color='blue')
+plt.plot(X, optimal_w * X, label='Regression line', color='red')
+plt.title('Linear Regression with L2 Regularization')
+plt.xlabel('X')
+plt.ylabel('y')
+plt.legend()
+plt.grid()
+plt.show()
