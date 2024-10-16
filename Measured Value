@@ -1,0 +1,64 @@
+import math
+
+# Constants
+k = 2  # Coverage factor for expanded uncertainty (k=2 for ~95% confidence level)
+
+# Direct Measurement
+
+# X(Y): Measured value (change this to your value)
+X_Y = 5.0  # Example value (測定値)
+
+# Experimental standard deviation (change this to your value)
+std_dev = 0.1  # Example value (実験標準偏差)
+
+# Instrument resolution (change this to your value)
+resolution = 0.01  # Example value (測定器の分解能)
+
+# Standard uncertainty due to resolution
+u_resolution = resolution / math.sqrt(12)  # 分解能による標準不確かさ
+
+# Other factors' uncertainty (change this to your value)
+u_other = 0.02  # Example value (他の要因による不確かさ)
+
+# Combined standard uncertainty
+u_combined = math.sqrt(std_dev**2 + u_resolution**2 + u_other**2)  # 統合標準不確かさ
+
+# Expanded uncertainty
+u_expanded = k * u_combined  # 拡張不確かさ
+
+print("Direct Measurement:")
+print(f"Measured Value (X(Y)): {X_Y}")  # 測定値の表示
+print(f"Standard Deviation: {std_dev}")  # 標準偏差の表示
+print(f"Standard Uncertainty (Resolution): {u_resolution}")  # 分解能による標準不確かさの表示
+print(f"Other Factors' Uncertainty: {u_other}")  # 他の要因による不確かさの表示
+print(f"Combined Standard Uncertainty: {u_combined}")  # 統合標準不確かさの表示
+print(f"Expanded Uncertainty: {u_expanded}")  # 拡張不確かさの表示
+
+# Indirect Measurement
+
+# Function relating measured quantities (example: Z = X*Y, change this to your relation)
+def indirect_measurement(x, y):
+    return x * y  # 測定量を関連付ける関数
+
+# Measured values for X and Y (change these to your values)
+X = 2.0  # Example value (例の値)
+Y = 3.0  # Example value (例の値)
+
+# Standard uncertainties for X and Y (change these to your values)
+u_X = 0.05  # Example value (Xの標準不確かさ)
+u_Y = 0.07  # Example value (Yの標準不確かさ)
+
+# Partial derivatives (change to match your function)
+partial_X = Y  # Xに関する偏微分
+partial_Y = X  # Yに関する偏微分
+
+# Combined standard uncertainty for indirect measurement (propagation of uncertainty)
+u_combined_indirect = math.sqrt((partial_X * u_X)**2 + (partial_Y * u_Y)**2)  # 間接測定の統合標準不確かさ
+
+# Expanded uncertainty for indirect measurement
+u_expanded_indirect = k * u_combined_indirect  # 間接測定の拡張不確かさ
+
+print("\nIndirect Measurement:")
+print(f"Measured Value (Z): {indirect_measurement(X, Y)}")  # 測定値の表示
+print(f"Combined Standard Uncertainty (Indirect): {u_combined_indirect}")  # 間接測定の統合標準不確かさの表示
+print(f"Expanded Uncertainty (Indirect): {u_expanded_indirect}")  # 間接測定の拡張不確かさの表示
