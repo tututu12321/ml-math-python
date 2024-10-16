@@ -1,0 +1,49 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import make_circles
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score
+
+# Create a synthetic dataset (合成データセットを作成)
+X, y = make_circles(n_samples=100, factor=0.3, noise=0.1, random_state=42)
+# Convert labels to -1 and 1 for SVM (SVMのラベルを-1と1に変換)
+y = np.where(y == 0, -1, 1)
+
+# Split the data into training and testing sets (訓練データとテストデータに分割)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Create an SVM model with RBF kernel (RBFカーネルを使用したSVMモデルを作成)
+svm = SVC(kernel='rbf', C=1.0, gamma='scale')
+
+# Train the SVM model (SVMモデルを訓練)
+svm.fit(X_train, y_train)
+
+# Predict on the test set (テストデータで予測)
+y_pred = svm.predict(X_test)
+
+# Calculate accuracy (精度を計算)
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Test accuracy: {accuracy:.2f}")
+
+# Visualize the decision boundary (決定境界の可視化)
+def plot_decision_boundary(model, X, y):
+    # Create a grid of points (x, y) (グリッドポイントを作成)
+    x_min, x_max = X[:, 0].min() - 0.5, X[:, 0].max() + 0.5
+    y_min, y_max = X[:, 1].min() - 0.5, X[:, 1].max() + 0.5
+    xx, yy = np.meshgrid(np.linspace(x_min, x_max, 500),
+                         np.linspace(y_min, y_max, 500))
+    # Predict the class for each point in the grid (グリッドの各点に対してクラスを予測)
+    Z = model.predict(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+
+    # Plot the decision boundary and the data points (決定境界とデータポイントをプロット)
+    plt.contourf(xx, yy, Z, alpha=0.8, cmap=plt.cm.coolwarm)
+    plt.scatter(X[:, 0], X[:, 1], c=y, edgecolors='k', cmap=plt.cm.coolwarm)
+    plt.xlabel('Feature 1')
+    plt.ylabel('Feature 2')
+    plt.title('SVM Decision Boundary with RBF Kernel')
+    plt.show()
+
+# Plot the decision boundary (決定境界をプロット)
+plot_decision_boundary(svm, X, y)
