@@ -1,0 +1,74 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Define the potential energy function U(x)
+# ポテンシャルエネルギー関数 U(x) の定義 (例: 2次関数)
+def potential_energy(x):
+    return 0.5 * x**2  # Simple harmonic potential (単純な調和ポテンシャル)
+
+# Define the gradient of the potential energy function
+# ポテンシャルエネルギー関数の勾配 (U(x) の微分)
+def grad_potential_energy(x):
+    return x  # Derivative of 0.5 * x^2
+
+# Leapfrog method for updating position and momentum
+# リープフロッグ法で位置と運動量を更新
+def leapfrog(x, p, step_size, n_steps):
+    for _ in range(n_steps):
+        p -= 0.5 * step_size * grad_potential_energy(x)  # Half step for momentum
+        x += step_size * p  # Full step for position
+        p -= 0.5 * step_size * grad_potential_energy(x)  # Half step for momentum
+    return x, p
+
+# HMC sampling function
+# ハミルトニアンモンテカルロ法によるサンプリング
+def hmc_sampling(n_samples, initial_x, step_size, n_steps):
+    samples = []
+    x = initial_x
+
+    for _ in range(n_samples):
+        p = np.random.randn()  # Sample momentum from standard normal distribution
+        current_x = x
+        current_p = p
+
+        # Perform Leapfrog updates
+        # リープフロッグ法で位置と運動量を更新
+        proposed_x, proposed_p = leapfrog(current_x, current_p, step_size, n_steps)
+
+        # Calculate current and proposed Hamiltonian
+        # 現在と提案されたハミルトニアンの計算
+        current_hamiltonian = potential_energy(current_x) + 0.5 * current_p**2
+        proposed_hamiltonian = potential_energy(proposed_x) + 0.5 * proposed_p**2
+
+        # Acceptance probability (受容確率)
+        acceptance_prob = np.exp(current_hamiltonian - proposed_hamiltonian)
+
+        # Accept or reject the new state based on the acceptance probability
+        # 受容確率に基づいて新しい状態を受け入れるか拒否する
+        if np.random.rand() < acceptance_prob:
+            x = proposed_x  # Accept the proposal
+        samples.append(x)
+
+    return np.array(samples)
+
+# Parameters for HMC
+n_samples = 1000  # Number of samples (サンプル数)
+initial_x = 0.0  # Initial position (初期位置)
+step_size = 0.1  # Step size (ステップサイズ)
+n_steps = 20  # Number of leapfrog steps (リープフロッグのステップ数)
+
+# Perform HMC sampling
+samples = hmc_sampling(n_samples, initial_x, step_size, n_steps)
+
+# Plot the histogram of samples and the potential energy
+# サンプルのヒストグラムとポテンシャルエネルギーのプロット
+x_vals = np.linspace(-3, 3, 100)
+plt.figure(figsize=(10, 6))
+plt.hist(samples, bins=50, density=True, alpha=0.7, label='HMC Samples')
+plt.plot(x_vals, np.exp(-potential_energy(x_vals)), label='True Distribution', color='red')
+plt.title('HMC Sampling with Leapfrog Method')
+plt.xlabel('x')
+plt.ylabel('Density')
+plt.grid(True)
+plt.legend()
+plt.show()
