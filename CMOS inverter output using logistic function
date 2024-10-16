@@ -10,14 +10,23 @@ k = 10  # 傾きのパラメータ (Slope parameter)
 def logistic_inverter(Vin, Vdd, Vth, k):
     return Vdd * (1 / (1 + np.exp(-k * (Vth - Vin))))
 
+# ロジスティック関数の微分 (Derivative of the logistic function)
+def logistic_inverter_derivative(Vin, Vdd, Vth, k):
+    sigmoid = 1 / (1 + np.exp(-k * (Vth - Vin)))
+    return Vdd * k * sigmoid * (1 - sigmoid)
+
 # 入力電圧の範囲を設定 (Define input voltage range)
 Vin = np.linspace(0, Vdd, 1000)
 
-# 出力電圧の計算 (Calculate output voltage)
+# 出力電圧とその微分の計算 (Calculate output voltage and its derivative)
 Vout = logistic_inverter(Vin, Vdd, Vth, k)
+Vout_derivative = logistic_inverter_derivative(Vin, Vdd, Vth, k)
 
 # 結果のプロット (Plot the results)
-plt.figure(figsize=(8, 6))
+plt.figure(figsize=(12, 6))
+
+# ロジスティック関数のプロット (Plot the logistic function)
+plt.subplot(1, 2, 1)
 plt.plot(Vin, Vout, label='Vout vs. Vin (Logistic)', color='blue')
 plt.title('CMOS Inverter Transfer Characteristics (Logistic Function)')
 plt.xlabel('Input Voltage (Vin) [V]')
@@ -26,5 +35,16 @@ plt.grid(True)
 plt.axhline(y=Vdd/2, color='red', linestyle='--', label='Vdd/2')
 plt.axvline(x=Vdd/2, color='green', linestyle='--', label='Vin = Vdd/2')
 plt.legend()
+
+# 微分のプロット (Plot the derivative)
+plt.subplot(1, 2, 2)
+plt.plot(Vin, Vout_derivative, label='dVout/dVin', color='orange')
+plt.title('Derivative of CMOS Inverter Transfer Characteristics')
+plt.xlabel('Input Voltage (Vin) [V]')
+plt.ylabel('dVout/dVin [V/V]')
+plt.grid(True)
+plt.axvline(x=Vdd/2, color='green', linestyle='--', label='Vin = Vdd/2')
+plt.legend()
+
 plt.tight_layout()
 plt.show()
