@@ -1,0 +1,91 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import random
+
+# 環境の設定 (Setting up the environment)
+grid_size = (5, 5)
+goal_state = (4, 4)  # ゴールの位置 (Goal position)
+num_actions = 4  # 上、下、左、右 (Up, Down, Left, Right)
+actions = ['up', 'down', 'left', 'right']
+
+# Qテーブルの初期化 (Initialize the Q-table)
+Q = np.zeros(grid_size + (num_actions,))
+
+# 学習パラメータ (Learning parameters)
+alpha = 0.1  # 学習率 (Learning rate)
+gamma = 0.9  # 割引率 (Discount factor)
+epsilon = 0.2  # ε-greedy のε (Exploration rate)
+num_episodes = 1000  # エピソード数 (Number of episodes)
+
+# 行動の選択 (Choose an action)
+def choose_action(state):
+    if random.uniform(0, 1) < epsilon:
+        return random.randint(0, num_actions - 1)  # ランダムな行動 (Random action)
+    else:
+        return np.argmax(Q[state])  # Q値に基づく行動 (Action with max Q-value)
+
+# 次の状態を取得 (Get the next state)
+def get_next_state(state, action):
+    i, j = state
+    if action == 0 and i > 0:  # 上 (Up)
+        return (i - 1, j)
+    elif action == 1 and i < grid_size[0] - 1:  # 下 (Down)
+        return (i + 1, j)
+    elif action == 2 and j > 0:  # 左 (Left)
+        return (i, j - 1)
+    elif action == 3 and j < grid_size[1] - 1:  # 右 (Right)
+        return (i, j + 1)
+    return state
+
+# 報酬の設定 (Set the reward)
+def get_reward(state):
+    return 1 if state == goal_state else -0.1
+
+# Q学習の実行 (Q-learning)
+for episode in range(num_episodes):
+    state = (0, 0)  # エージェントの初期位置 (Agent's starting position)
+    total_reward = 0
+    while state != goal_state:
+        action = choose_action(state)
+        next_state = get_next_state(state, action)
+        reward = get_reward(next_state)
+        total_reward += reward
+
+        # Q値の更新 (Update Q-value)
+        Q[state][action] += alpha * (reward + gamma * np.max(Q[next_state]) - Q[state][action])
+        state = next_state
+
+    if (episode + 1) % 100 == 0:
+        print(f'Episode {episode + 1}, Total Reward: {total_reward}')
+
+# 最適経路の可視化 (Visualize the optimal path)
+optimal_path = []
+state = (0, 0)
+optimal_path.append(state)
+while state != goal_state:
+    action = np.argmax(Q[state])
+    state = get_next_state(state, action)
+    optimal_path.append(state)
+
+# グリッドワールドの表示 (Plot the Grid World and Optimal Path)
+plt.figure(figsize=(6, 6))
+for i in range(grid_size[0]):
+    for j in range(grid_size[1]):
+        plt.text(j, grid_size[0] - 1 - i, f'{np.max(Q[(i, j)]):.2f}', ha='center', va='center')
+
+# エージェントの経路をプロット (Plot the agent's path)
+path_x = [p[1] for p in optimal_path]
+path_y = [grid_size[0] - 1 - p[0] for p in optimal_path]
+plt.plot(path_x, path_y, 'ro-', label='Optimal Path')
+
+# グリッドの設定 (Grid settings)
+plt.xlim(-0.5, grid_size[1] - 0.5)
+plt.ylim(-0.5, grid_size[0] - 0.5)
+plt.xticks(np.arange(0, grid_size[1]))
+plt.yticks(np.arange(0, grid_size[0]))
+plt.grid(True)
+plt.title('Q-learning Optimal Path')
+plt.legend()
+plt.gca().invert_yaxis()
+plt.tight_layout()
+plt.show()
