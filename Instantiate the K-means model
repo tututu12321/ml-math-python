@@ -1,0 +1,22 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import make_blobs
+from sklearn.cluster import KMeans
+
+# サンプルデータの生成 / Generate sample data
+X, y_true = make_blobs(n_samples=300, centers=4, cluster_std=0.60, random_state=0)
+
+# K-meansモデルのインスタンス化 / Instantiate the K-means model
+kmeans = KMeans(n_clusters=4)
+
+# モデルのフィッティング / Fit the model
+y_kmeans = kmeans.fit_predict(X)
+
+# クラスタリング結果の可視化 / Visualize the clustering results
+plt.scatter(X[:, 0], X[:, 1], c=y_kmeans, s=50, cmap='viridis')
+centers = kmeans.cluster_centers_
+plt.scatter(centers[:, 0], centers[:, 1], c='red', s=200, alpha=0.75, marker='X')  # セントロイドのプロット
+plt.title('K-means Clustering')
+plt.xlabel('Feature 1')
+plt.ylabel('Feature 2')
+plt.show()
