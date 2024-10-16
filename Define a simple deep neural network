@@ -1,0 +1,64 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import torch
+import torch.nn as nn
+
+# シードの設定 / Set random seed for reproducibility
+np.random.seed(42)
+torch.manual_seed(42)
+
+# シンプルな多層ネットワークの定義 / Define a simple deep neural network
+class SimpleDeepNN(nn.Module):
+    def __init__(self, input_dim, hidden_dim, n_layers):
+        super(SimpleDeepNN, self).__init__()
+        self.layers = nn.ModuleList([
+            nn.Linear(hidden_dim, hidden_dim) for _ in range(n_layers)
+        ])
+        self.input_layer = nn.Linear(input_dim, hidden_dim)
+        self.output_layer = nn.Linear(hidden_dim, 1)
+
+    def forward(self, x):
+        # 入力層の適用 / Apply input layer
+        x = self.input_layer(x)
+        x = torch.relu(x)
+        # 隠れ層を繰り返し適用 / Apply hidden layers
+        for layer in self.layers:
+            x = layer(x)
+            x = torch.relu(x)
+        # 出力層の適用 / Apply output layer
+        x = self.output_layer(x)
+        return x
+
+# パラメータの設定 / Set parameters
+input_dim = 1  # 入力次元 / Input dimension
+hidden_dim = 10  # 隠れ層の次元数 / Hidden layer dimension
+n_layers = 50  # 隠れ層の数 / Number of hidden layers
+
+# モデルのインスタンス化 / Instantiate the model
+model = SimpleDeepNN(input_dim, hidden_dim, n_layers)
+
+# 入力テンソルの生成 / Generate input tensor
+x = torch.randn(1, input_dim)
+
+# 勾配の追跡の有効化 / Enable gradient tracking
+x.requires_grad = True
+
+# フォワードパスの実行 / Perform forward pass
+output = model(x)
+
+# 勾配の計算 / Compute gradients
+output.backward()
+
+# 各層の重みの勾配の大きさを記録 / Record the gradient magnitudes of each layer
+grad_magnitudes = []
+for layer in model.layers:
+    grad_magnitudes.append(layer.weight.grad.norm().item())
+
+# 勾配の大きさのプロット / Plot the gradient magnitudes
+plt.plot(grad_magnitudes, label='Gradient Magnitude')
+plt.xlabel('Layer')
+plt.ylabel('Gradient Magnitude')
+plt.title('Vanishing and Exploding Gradients in a Deep Network')
+plt.grid(True)
+plt.legend()
+plt.show()
