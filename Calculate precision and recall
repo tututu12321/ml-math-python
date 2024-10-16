@@ -1,0 +1,39 @@
+import numpy as np
+from sklearn.metrics import precision_score, recall_score
+from sklearn.model_selection import train_test_split
+from sklearn.datasets import make_classification
+from sklearn.linear_model import LogisticRegression
+import matplotlib.pyplot as plt
+
+# ダミーデータの生成 / Generate synthetic data
+np.random.seed(42)
+X, y = make_classification(n_samples=1000, n_features=10, n_classes=2, random_state=42)
+
+# データの分割 / Split the data into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# ロジスティック回帰モデルのインスタンス化とトレーニング / Train a logistic regression model
+model = LogisticRegression()
+model.fit(X_train, y_train)
+
+# テストデータに対する予測 / Predict on the test data
+y_pred = model.predict(X_test)
+
+# 適合率と再現率の計算 / Calculate precision and recall
+precision = precision_score(y_test, y_pred)
+recall = recall_score(y_test, y_pred)
+
+print(f"Precision: {precision:.2f}")
+print(f"Recall: {recall:.2f}")
+
+# 適合率と再現率のプロット / Plotting the results
+metrics = ['Precision', 'Recall']
+values = [precision, recall]
+
+plt.figure(figsize=(8, 5))
+plt.bar(metrics, values, color=['blue', 'green'])
+plt.ylim(0, 1)
+plt.ylabel('Score')
+plt.title('Precision and Recall')
+plt.grid(True)
+plt.show()
