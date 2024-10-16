@@ -1,0 +1,35 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+# サンプルの文書 (Sample documents)
+documents = [
+    "The cat sat on the mat.",
+    "The dog barked loudly.",
+    "The cat and the dog are friends.",
+    "The mat is soft and warm.",
+    "The dog is very friendly."
+]
+
+# TF-IDFベクトライザの設定 (Setting up TF-IDF Vectorizer)
+vectorizer = TfidfVectorizer()
+tfidf_matrix = vectorizer.fit_transform(documents)
+
+# 語彙とIDF値の取得 (Retrieve vocabulary and IDF values)
+idf_values = vectorizer.idf_
+vocab = vectorizer.get_feature_names_out()
+
+# 語彙とそのIDF値を表示 (Display vocabulary with their IDF values)
+print("Vocabulary and their IDF values:")
+for word, idf in zip(vocab, idf_values):
+    print(f"{word}: {idf:.4f}")
+
+# IDF値のプロット (Plotting IDF values)
+plt.figure(figsize=(10, 6))
+plt.bar(vocab, idf_values, color='skyblue')
+plt.xlabel('Words')
+plt.ylabel('IDF Values')
+plt.title('IDF Values of Words in the Corpus')
+plt.xticks(rotation=45, ha='right')
+plt.tight_layout()
+plt.show()
