@@ -1,0 +1,55 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ネットワークの層数と各層のサイズ
+# Number of layers in the network and size of each layer
+n_layers = 50
+layer_size = 100
+
+# 初期化方法の設定（小さな乱数を用いる）
+# Initialization of weights (using small random values)
+np.random.seed(42)
+weights = [np.random.randn(layer_size, layer_size) * 0.01 for _ in range(n_layers)]
+
+# 入力ベクトルの初期化
+# Initialize the input vector
+x = np.random.randn(layer_size)
+
+# 勾配の初期化
+# Initialize a list to store gradient magnitudes
+gradients = []
+
+# 順伝播と逆伝播のシミュレーション
+# Simulation of forward and backward propagation
+for i, W in enumerate(weights):
+    # 順伝播：シンプルに線形変換を行います
+    # Forward propagation: apply a simple linear transformation
+    x = W @ x  # 重みWを使って次の層へ (Move to the next layer using weight W)
+
+    # 活性化関数を適用（例: ReLU）
+    # Apply an activation function (e.g., ReLU)
+    x = np.maximum(0, x)
+
+    # 勾配の計算（バックプロパゲーションのシミュレーション）
+    # Compute the gradient (simulate backpropagation)
+    grad = np.random.randn(layer_size)  # 出力側からのランダムな勾配を設定 (Set random gradients from the output side)
+
+    for j in range(i, -1, -1):
+        # 重みの勾配を計算（ランダムな方向の影響を模倣）
+        # Compute gradient through each layer (simulate random direction effect)
+        grad = weights[j].T @ grad
+
+    # 勾配の大きさを記録
+    # Record the magnitude of the gradient
+    gradients.append(np.linalg.norm(grad))
+
+# 勾配の大きさをプロット
+# Plot the gradient magnitudes
+plt.plot(gradients, label="Gradient Norm")
+plt.yscale('log')
+plt.xlabel('Layer')
+plt.ylabel('Gradient Magnitude (log scale)')
+plt.title('Vanishing and Exploding Gradient in Deep Network')
+plt.legend()
+plt.grid(True)
+plt.show()
