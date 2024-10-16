@@ -1,0 +1,101 @@
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, Dataset
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+
+# Dummy dataset for text classification (ダミーデータセットを使ったテキスト分類)
+# Example texts and labels (例文とラベル)
+texts = ["I love PyTorch", "PyTorch is great", "I hate bugs", "Debugging is fun"]
+labels = ["positive", "positive", "negative", "positive"]
+
+# Encode the labels (ラベルをエンコード)
+label_encoder = LabelEncoder()
+encoded_labels = label_encoder.fit_transform(labels)
+
+# Create a simple dataset class (シンプルなデータセットクラスを作成)
+class TextDataset(Dataset):
+    def __init__(self, texts, labels):
+        self.texts = texts
+        self.labels = labels
+    
+    def __len__(self):
+        return len(self.texts)
+    
+    def __getitem__(self, idx):
+        text = self.texts[idx]
+        label = self.labels[idx]
+        return torch.tensor(self.encode_text(text), dtype=torch.float32), torch.tensor(label, dtype=torch.long)
+    
+    def encode_text(self, text):
+        # Convert text into a fixed-size vector (テキストを固定長のベクトルに変換)
+        # Here, each character is encoded by its ASCII value (各文字をASCII値でエンコード)
+        max_len = 20  # Maximum length of input vector (入力ベクトルの最大長)
+        encoded = [ord(c) for c in text][:max_len]
+        # Pad with zeros if text is shorter than max_len (max_lenより短い場合は0で埋める)
+        if len(encoded) < max_len:
+            encoded += [0] * (max_len - len(encoded))
+        return encoded
+
+# Split data into training and testing sets (データを訓練用とテスト用に分割)
+X_train, X_test, y_train, y_test = train_test_split(texts, encoded_labels, test_size=0.2, random_state=42)
+
+# Create datasets and dataloaders (データセットとデータローダーを作成)
+train_dataset = TextDataset(X_train, y_train)
+test_dataset = TextDataset(X_test, y_test)
+train_loader = DataLoader(train_dataset, batch_size=2, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=2, shuffle=False)
+
+# Define a simple RNN model for classification (分類用のシンプルなRNNモデルを定義)
+class RNNClassifier(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size):
+        super(RNNClassifier, self).__init__()
+        self.rnn = nn.RNN(input_size, hidden_size, batch_first=True)
+        self.fc = nn.Linear(hidden_size, output_size)
+    
+    def forward(self, x):
+        _, hidden = self.rnn(x)
+        output = self.fc(hidden.squeeze(0))
+        return output
+
+# Hyperparameters (ハイパーパラメータ)
+input_size = 1  # Each character is a single feature (各文字が1つの特徴量)
+hidden_size = 16  # Hidden state size (隠れ層のサイズ)
+output_size = len(label_encoder.classes_)  # Number of classes (クラス数)
+
+# Instantiate the model, loss function, and optimizer (モデル、損失関数、最適化アルゴリズムをインスタンス化)
+model = RNNClassifier(input_size, hidden_size, output_size)
+criterion = nn.CrossEntropyLoss()  # Loss function for classification (分類用の損失関数)
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+# Train the model (モデルの訓練)
+num_epochs = 10
+for epoch in range(num_epochs):
+    model.train()
+    for inputs, labels in train_loader:
+        inputs = inputs.unsqueeze(2)  # Reshape for RNN input (RNNの入力に合わせて形状を変更)
+        outputs = model(inputs)
+        loss = criterion(outputs, labels)
+        
+        optimizer.zero_grad()  # Zero the parameter gradients (勾配をゼロにリセット)
+        loss.backward()  # Backpropagation (逆伝播)
+        optimizer.step()  # Update the weights (重みを更新)
+    
+    print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}")
+
+# Evaluate the model (モデルを評価)
+model.eval()
+correct = 0
+total = 0
+with torch.no_grad():
+    for inputs, labels in test_loader:
+        inputs = inputs.unsqueeze(2)  # Reshape for RNN input (RNNの入力に合わせて形状を変更)
+        outputs = model(inputs)
+        _, predicted = torch.max(outputs, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+
+accuracy = correct / total
+print(f"Test Accuracy: {accuracy * 100:.2f}%")
