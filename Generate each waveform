@@ -1,0 +1,81 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import sounddevice as sd
+
+# サンプルレートと周波数の設定 (Sampling rate and frequency settings)
+fs = 44100  # サンプリング周波数 (Sampling rate in Hz)
+duration = 1.0  # 波形の長さ (Duration in seconds)
+f = 440  # 音の周波数 (Frequency of the sound in Hz)
+
+# 時間軸の作成 (Time axis)
+t = np.linspace(0, duration, int(fs * duration), endpoint=False)
+
+# 各波形の生成 (Generate each waveform)
+# 正弦波 (Sine wave)
+sine_wave = np.sin(2 * np.pi * f * t)
+
+# 三角波 (Triangle wave)
+triangle_wave = 2 * np.abs(2 * (t * f - np.floor(t * f + 0.5))) - 1
+
+# 矩形波 (Square wave)
+square_wave = np.sign(np.sin(2 * np.pi * f * t))
+
+# ノコギリ波 (Sawtooth wave)
+sawtooth_wave = 2 * (t * f - np.floor(0.5 + t * f))
+
+# 各波形の再生関数 (Function to play a waveform)
+def play_waveform(waveform, fs):
+    sd.play(waveform, fs)
+    sd.wait()
+
+# 各波形のプロット (Plot each waveform)
+plt.figure(figsize=(12, 8))
+
+# 正弦波のプロット (Plot Sine wave)
+plt.subplot(4, 1, 1)
+plt.plot(t[:1000], sine_wave[:1000], label='Sine Wave', color='blue')
+plt.title('Sine Wave')
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude')
+plt.grid(True)
+
+# 三角波のプロット (Plot Triangle wave)
+plt.subplot(4, 1, 2)
+plt.plot(t[:1000], triangle_wave[:1000], label='Triangle Wave', color='green')
+plt.title('Triangle Wave')
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude')
+plt.grid(True)
+
+# 矩形波のプロット (Plot Square wave)
+plt.subplot(4, 1, 3)
+plt.plot(t[:1000], square_wave[:1000], label='Square Wave', color='red')
+plt.title('Square Wave')
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude')
+plt.grid(True)
+
+# ノコギリ波のプロット (Plot Sawtooth wave)
+plt.subplot(4, 1, 4)
+plt.plot(t[:1000], sawtooth_wave[:1000], label='Sawtooth Wave', color='orange')
+plt.title('Sawtooth Wave')
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude')
+plt.grid(True)
+
+# プロットの表示 (Show the plot)
+plt.tight_layout()
+plt.show()
+
+# 各波形の音を再生 (Play each waveform sound)
+print("Playing Sine Wave...")
+play_waveform(sine_wave, fs)
+
+print("Playing Triangle Wave...")
+play_waveform(triangle_wave, fs)
+
+print("Playing Square Wave...")
+play_waveform(square_wave, fs)
+
+print("Playing Sawtooth Wave...")
+play_waveform(sawtooth_wave, fs)
