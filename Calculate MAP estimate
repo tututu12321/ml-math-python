@@ -1,0 +1,53 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import norm
+
+# データの生成（正規分布に従う） / Generate synthetic data
+np.random.seed(42)
+mu_true = 5  # 真の平均 / True mean
+sigma_true = 2  # 真の標準偏差 / True standard deviation
+data = np.random.normal(mu_true, sigma_true, 100)  # 100サンプル / 100 samples
+
+# 尤度と事前分布の定義 / Define the likelihood and prior
+def likelihood(mu, sigma, data):
+    # 尤度: データ点ごとの正規分布の積 / Likelihood: Product of normal pdfs for each data point
+    return np.prod(norm.pdf(data, mu, sigma))
+
+# 事前分布（正規分布） / Prior distribution (Gaussian)
+mu_prior_mean = 0  # 事前分布の平均 / Prior mean
+mu_prior_std = 1  # 事前分布の標準偏差 / Prior standard deviation
+
+def prior(mu):
+    # 事前分布: 平均mu_prior_mean, 標準偏差mu_prior_stdの正規分布 / Gaussian prior
+    return norm.pdf(mu, mu_prior_mean, mu_prior_std)
+
+# MAP推定の計算 / Calculate MAP estimate
+mu_values = np.linspace(mu_true - 5, mu_true + 5, 1000)  # 探索範囲 / Search range for mu
+sigma = sigma_true  # 標準偏差は既知と仮定 / Assume known standard deviation for simplicity
+
+# 尤度と事前確率を計算 / Calculate likelihood and prior for each mu
+likelihoods = np.array([likelihood(mu, sigma, data) for mu in mu_values])
+priors = prior(mu_values)
+
+# 事後確率の計算（正規化前） / Calculate unnormalized posterior
+posteriors = likelihoods * priors
+
+# MAP推定値を取得 / Get MAP estimate (the mu that maximizes the posterior)
+mu_map = mu_values[np.argmax(posteriors)]
+
+print(f"True mean (mu): {mu_true}")
+print(f"MAP estimate of mean: {mu_map}")
+
+# 可視化 / Visualization
+plt.figure(figsize=(10, 6))
+plt.plot(mu_values, likelihoods, label='Likelihood', color='blue', linestyle='--')
+plt.plot(mu_values, priors, label='Prior', color='green', linestyle='-.')
+plt.plot(mu_values, posteriors, label='Posterior', color='red')
+plt.axvline(mu_true, color='black', linestyle='-', label='True mean')
+plt.axvline(mu_map, color='red', linestyle='--', label='MAP estimate')
+plt.xlabel('Mu (mean)')
+plt.ylabel('Probability')
+plt.title('MAP Estimation of the Mean')
+plt.legend()
+plt.grid(True)
+plt.show()
