@@ -1,0 +1,67 @@
+import random
+from deap import base, creator, tools, algorithms
+
+# Set the random seed for reproducibility (再現性のために乱数シードを固定)
+random.seed(42)
+
+# Define the problem as a minimization problem (最小化問題として定義)
+# -1.0 indicates minimization (1.0 would indicate maximization)
+creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
+# Define individuals as a list with a fitness attribute (リスト型の個体を定義)
+creator.create("Individual", list, fitness=creator.FitnessMin)
+
+# Define the objective function (目的関数の定義)
+def obfunc(individual):
+    x = individual[0]
+    y = individual[1]
+    # Calculate the value of the objective function (目的関数の値を計算)
+    # The function is minimized at (x, y) = (1, 2)
+    return (x - 1)**2 + (y - 2)**2,
+
+# Set up the DEAP toolbox (DEAPのツールボックスを設定)
+toolbox = base.Toolbox()
+# Define how to initialize individual genes using random.uniform (遺伝子の初期化方法を定義)
+toolbox.register("attribute", random.uniform, -50, 50)
+# Define how to create an individual (2 genes) (2つの遺伝子を持つ個体を作成)
+toolbox.register("individual", tools.initRepeat, creator.Individual, toolbox.attribute, 2)
+# Define how to create a population of individuals (個体集団を作成)
+toolbox.register("population", tools.initRepeat, list, toolbox.individual)
+
+# Define the selection method (選択方法の定義)
+toolbox.register("select", tools.selTournament, tournsize=3)
+# Define the crossover method (交叉方法の定義)
+toolbox.register("mate", tools.cxBlend, alpha=0.5)
+# Define the mutation method (突然変異方法の定義)
+toolbox.register("mutate", tools.mutGaussian, mu=0, sigma=1, indpb=0.2)
+
+# Define the evaluation method (評価方法の定義)
+toolbox.register("evaluate", obfunc)
+
+# Parameters for the genetic algorithm (遺伝的アルゴリズムのパラメータ設定)
+population_size = 100  # Population size (集団サイズ)
+num_generations = 50  # Number of generations (世代数)
+crossover_probability = 0.8  # Crossover probability (交叉確率)
+mutation_probability = 0.2  # Mutation probability (突然変異確率)
+
+# Create the initial population (初期集団を生成)
+population = toolbox.population(n=population_size)
+
+# Apply the genetic algorithm (遺伝的アルゴリズムを適用)
+# Store the best individuals (最も良い個体を保存)
+hall_of_fame = tools.HallOfFame(1)
+
+# Use the simple evolutionary algorithm provided by DEAP (DEAPのシンプルな進化アルゴリズムを使用)
+algorithms.eaSimple(
+    population,
+    toolbox,
+    cxpb=crossover_probability,
+    mutpb=mutation_probability,
+    ngen=num_generations,
+    halloffame=hall_of_fame,
+    verbose=True
+)
+
+# Output the best individual found and its fitness (最も良い個体とその適応度を出力)
+best_individual = hall_of_fame[0]
+print(f"\nBest individual: {best_individual}")
+print(f"Best fitness: {best_individual.fitness.values[0]}")
