@@ -1,0 +1,50 @@
+import pandas as pd
+import numpy as np
+
+# Create a sample DataFrame (サンプルのデータフレームを作成)
+data = {
+    "Name": ["Alice", "Bob", "Charlie", np.nan, "Eve"],
+    "Age": [25, 30, 35, np.nan, 29],
+    "City": ["New York", "Los Angeles", "Chicago", "New York", np.nan],
+    "Salary": [70000, 80000, 120000, 95000, 60000]
+}
+
+# Convert to a pandas DataFrame (pandasのデータフレームに変換)
+df = pd.DataFrame(data)
+
+# Display the original data (元のデータを表示)
+print("Original Data (元のデータ):")
+print(df)
+
+# Data Cleaning: Handle missing values (データクリーニング: 欠損値の処理)
+# Fill missing 'Name' with 'Unknown' (欠損している'Name'を'Unknown'で埋める)
+df["Name"].fillna("Unknown", inplace=True)
+
+# Drop rows with missing values in 'Age' or 'City' (欠損している'Age'や'City'を含む行を削除)
+df.dropna(subset=["Age", "City"], inplace=True)
+
+# Display the cleaned data (クリーニング後のデータを表示)
+print("\nCleaned Data (クリーニング後のデータ):")
+print(df)
+
+# Filtering: Select rows where Age > 28 (フィルタリング: 'Age'が28以上の行を選択)
+filtered_df = df[df["Age"] > 28]
+
+# Display the filtered data (フィルタリングされたデータを表示)
+print("\nFiltered Data (フィルタリングされたデータ):")
+print(filtered_df)
+
+# Aggregation: Calculate average salary by city (集計: 都市ごとの平均給与を計算)
+average_salary_by_city = df.groupby("City")["Salary"].mean()
+
+# Display the aggregated data (集計結果を表示)
+print("\nAverage Salary by City (都市ごとの平均給与):")
+print(average_salary_by_city)
+
+# Add a new column 'Age Group' (新しい列 'Age Group' を追加)
+# Categorize ages into groups (年齢をグループに分類)
+df["Age Group"] = pd.cut(df["Age"], bins=[0, 25, 30, 35, 40], labels=["Young", "Mid-20s", "Mid-30s", "Late-30s"])
+
+# Display the DataFrame with the new 'Age Group' column (新しい 'Age Group' 列を含むデータフレームを表示)
+print("\nData with Age Group (年齢グループを含むデータ):")
+print(df)
