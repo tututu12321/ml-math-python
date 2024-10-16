@@ -1,0 +1,32 @@
+import numpy as np
+
+# 行列の定義 / Define a matrix
+A = np.array([[4, 2, -2],
+              [2, 3, 1],
+              [-2, 1, 5]])
+
+print("Matrix A:")
+print(A)
+
+# 1. 正方行列の確認 / Check if A is a square matrix
+is_square = A.shape[0] == A.shape[1]
+print(f"\nIs A a square matrix? {is_square}")
+
+# 2. 対称行列の確認 / Check if A is a symmetric matrix
+is_symmetric = np.allclose(A, A.T)
+print(f"Is A a symmetric matrix? {is_symmetric}")
+
+# 3. 正定値行列の確認 / Check if A is positive definite
+# 正定値行列の場合、すべての固有値が正です / A matrix is positive definite if all eigenvalues are positive
+eigenvalues = np.linalg.eigvals(A)
+is_positive_definite = np.all(eigenvalues > 0)
+print(f"Is A a positive definite matrix? {is_positive_definite}")
+
+# 4. 半正定値行列の確認 / Check if A is positive semi-definite
+# 半正定値行列の場合、すべての固有値が0以上です / A matrix is positive semi-definite if all eigenvalues are non-negative
+is_positive_semi_definite = np.all(eigenvalues >= 0)
+print(f"Is A a positive semi-definite matrix? {is_positive_semi_definite}")
+
+# 固有値を表示 / Display the eigenvalues
+print("\nEigenvalues of A:")
+print(eigenvalues)
