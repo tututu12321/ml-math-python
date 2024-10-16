@@ -1,0 +1,34 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
+
+# Generate a sample dataset (サンプルデータセットの生成)
+np.random.seed(42)
+data = np.random.multivariate_normal(
+    mean=[0, 0],  # Mean of each feature (各特徴量の平均)
+    cov=[[1, 0.8], [0.8, 1]],  # Covariance matrix (共分散行列)
+    size=100  # Number of samples (サンプル数)
+)
+# Convert to DataFrame for easier handling (データフレームに変換して扱いやすくする)
+df = pd.DataFrame(data, columns=['Feature1', 'Feature2'])
+
+# Calculate the covariance matrix (共分散行列の計算)
+cov_matrix = df.cov()
+print("Covariance matrix:")
+print(cov_matrix)
+
+# Plot the covariance matrix using a heatmap (共分散行列のヒートマップをプロット)
+plt.figure(figsize=(8, 6))
+sns.heatmap(cov_matrix, annot=True, fmt=".2f", cmap='coolwarm', center=0)
+plt.title('Covariance Matrix')
+plt.show()
+
+# Scatter plot of the dataset (データセットの散布図)
+plt.figure(figsize=(8, 6))
+plt.scatter(df['Feature1'], df['Feature2'], alpha=0.7, edgecolors='k')
+plt.title('Scatter Plot of Feature1 vs Feature2')
+plt.xlabel('Feature1')
+plt.ylabel('Feature2')
+plt.grid(True)
+plt.show()
