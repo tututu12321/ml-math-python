@@ -1,0 +1,87 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# サンプル数と時間軸の設定 (Number of samples and time axis)
+fs = 1000  # サンプリング周波数 (Sampling frequency)
+t = np.linspace(0, 1, fs, endpoint=False)  # 1秒間のサンプル (1 second of samples)
+
+# 1. ガウスノイズ (Gaussian Noise)
+mean = 0
+std_dev = 0.1
+gaussian_noise = np.random.normal(mean, std_dev, fs)
+
+# 2. ホワイトノイズ (White Noise)
+white_noise = np.random.uniform(-0.5, 0.5, fs)
+
+# 3. ショットノイズ (Shot Noise)
+shot_noise = np.random.poisson(5, fs) - 5  # 平均を0に調整
+
+# 4. 1/fノイズ (Flicker Noise)
+def generate_flicker_noise(size):
+    flicker_noise = np.random.normal(size=size)
+    freqs = np.fft.fftfreq(size)
+    freqs[0] = 1  # 周波数0の値を避ける (Avoid division by zero)
+    flicker_spectrum = flicker_noise / np.abs(freqs)
+    flicker_noise = np.fft.ifft(flicker_spectrum).real
+    return flicker_noise
+
+flicker_noise = generate_flicker_noise(fs)
+
+# 5. インパルスノイズ (Impulse Noise)
+impulse_noise = np.zeros(fs)
+impulse_positions = np.random.randint(0, fs, size=20)  # ランダムな位置にインパルスを配置
+impulse_noise[impulse_positions] = np.random.choice([-1, 1], size=20)
+
+# 6. 熱ノイズ (Thermal Noise)
+k = 1.38e-23  # ボルツマン定数 (Boltzmann constant)
+T = 300  # 温度 (Temperature in Kelvin)
+R = 1000  # 抵抗値 (Resistance in Ohms)
+thermal_noise = np.random.normal(0, np.sqrt(4 * k * T * R * fs), fs)
+
+# 各ノイズのプロット (Plot each noise)
+plt.figure(figsize=(15, 10))
+
+# ガウスノイズのプロット (Plot Gaussian Noise)
+plt.subplot(3, 2, 1)
+plt.plot(t, gaussian_noise)
+plt.title('Gaussian Noise')
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude')
+
+# ホワイトノイズのプロット (Plot White Noise)
+plt.subplot(3, 2, 2)
+plt.plot(t, white_noise)
+plt.title('White Noise')
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude')
+
+# ショットノイズのプロット (Plot Shot Noise)
+plt.subplot(3, 2, 3)
+plt.plot(t, shot_noise)
+plt.title('Shot Noise')
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude')
+
+# 1/fノイズのプロット (Plot 1/f Noise)
+plt.subplot(3, 2, 4)
+plt.plot(t, flicker_noise)
+plt.title('1/f Noise (Flicker Noise)')
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude')
+
+# インパルスノイズのプロット (Plot Impulse Noise)
+plt.subplot(3, 2, 5)
+plt.plot(t, impulse_noise)
+plt.title('Impulse Noise')
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude')
+
+# 熱ノイズのプロット (Plot Thermal Noise)
+plt.subplot(3, 2, 6)
+plt.plot(t, thermal_noise)
+plt.title('Thermal Noise')
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude')
+
+plt.tight_layout()
+plt.show()
