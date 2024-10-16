@@ -1,0 +1,65 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# テイラー展開によるsin(x)の近似 (Approximate sin(x) using Taylor series)
+def taylor_sin(x, n_terms=5):
+    """
+    Calculate the Taylor series approximation of sin(x) around x=0.
+    :param x: The point at which to approximate sin(x).
+    :param n_terms: The number of terms in the Taylor series.
+    :return: The approximate value of sin(x).
+    """
+    approximation = 0
+    for n in range(n_terms):
+        term = ((-1)**n * x**(2 * n + 1)) / np.math.factorial(2 * n + 1)
+        approximation += term
+    return approximation
+
+# ルックアップテーブルを用いたsin(x)の近似 (Approximate sin(x) using a lookup table)
+def create_sin_lut(size=1000):
+    """
+    Create a lookup table for sin(x) values from 0 to 2*pi.
+    :param size: Number of samples in the table.
+    :return: A numpy array of sin values.
+    """
+    x_vals = np.linspace(0, 2 * np.pi, size)
+    sin_vals = np.sin(x_vals)
+    return x_vals, sin_vals
+
+def lookup_sin(x, x_vals, sin_vals):
+    """
+    Approximate sin(x) using a lookup table.
+    :param x: The point at which to approximate sin(x).
+    :param x_vals: Array of x values in the lookup table.
+    :param sin_vals: Array of corresponding sin(x) values.
+    :return: The approximate value of sin(x).
+    """
+    # Wrap x to the range [0, 2*pi] (周期性の考慮)
+    x = x % (2 * np.pi)
+    # Find the closest index in the lookup table
+    index = np.searchsorted(x_vals, x) % len(x_vals)
+    return sin_vals[index]
+
+# サンプルのx範囲 (Define the range of x values for testing)
+x_test = np.linspace(0, 2 * np.pi, 100)
+
+# テイラー展開とルックアップテーブルの準備 (Prepare Taylor approximation and LUT)
+taylor_approx = [taylor_sin(x, n_terms=5) for x in x_test]
+x_vals, sin_lut_vals = create_sin_lut(size=1000)
+lut_approx = [lookup_sin(x, x_vals, sin_lut_vals) for x in x_test]
+
+# 正確なsin(x)の値 (Calculate the true values of sin(x))
+true_sin = np.sin(x_test)
+
+# プロット (Plot the results)
+plt.figure(figsize=(10, 6))
+plt.plot(x_test, true_sin, label='True sin(x)', color='black', linewidth=2)
+plt.plot(x_test, taylor_approx, label='Taylor Approximation (5 terms)', linestyle='--', color='blue')
+plt.plot(x_test, lut_approx, label='Lookup Table Approximation', linestyle='-.', color='red')
+plt.xlabel('x')
+plt.ylabel('sin(x)')
+plt.title('Approximation of sin(x) using Taylor Series and Lookup Table')
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.show()
