@@ -1,0 +1,56 @@
+
+
+
+import numpy as np
+from sklearn.feature_extraction.text import CountVectorizer
+from numpy.linalg import norm
+
+# サンプルテキストデータ (Sample text data)
+documents = [
+    "the cat sat on the mat",
+    "the dog barked at the cat",
+    "the cat chased the mouse",
+    "the dog chased the ball"
+]
+
+# BoWベクトルの生成 (Generating BoW vectors)
+vectorizer = CountVectorizer()
+bow_matrix = vectorizer.fit_transform(documents).toarray()
+
+# 単語のリストとBoW行列の表示 (Display the vocabulary and BoW matrix)
+print("Vocabulary:", vectorizer.get_feature_names_out())
+print("\nBoW Matrix:")
+print(bow_matrix)
+
+# 2つの文書間の内積とコサイン類似度を計算する関数
+# Function to compute dot product and cosine similarity between two documents
+def cosine_similarity(vec1, vec2):
+    dot_product = np.dot(vec1, vec2)  # 内積の計算 (Calculate dot product)
+    norm1 = norm(vec1)  # ベクトル1のノルム (Norm of vector 1)
+    norm2 = norm(vec2)  # ベクトル2のノルム (Norm of vector 2)
+    cosine_sim = dot_product / (norm1 * norm2)  # コサイン類似度の計算 (Calculate cosine similarity)
+    return dot_product, cosine_sim
+
+# 文書1と文書2のBoWベクトルを取り出す (Extract BoW vectors for doc1 and doc2)
+vec1 = bow_matrix[0]  # "the cat sat on the mat"
+vec2 = bow_matrix[1]  # "the dog barked at the cat"
+
+# 内積とコサイン類似度の計算 (Calculate dot product and cosine similarity)
+dot_product, cosine_sim = cosine_similarity(vec1, vec2)
+
+print(f"\nDot product between doc1 and doc2: {dot_product}")
+print(f"Cosine similarity between doc1 and doc2: {cosine_sim}")
+
+# 複数の文書間のコサイン類似度行列を計算
+# Function to compute a cosine similarity matrix for multiple documents
+def cosine_similarity_matrix(matrix):
+    similarity_matrix = np.dot(matrix, matrix.T) / (norm(matrix, axis=1).reshape(-1, 1) * norm(matrix, axis=1))
+    return similarity_matrix
+
+# コサイン類似度行列の計算と表示 (Calculate and display the cosine similarity matrix)
+cosine_sim_matrix = cosine_similarity_matrix(bow_matrix)
+print("\nCosine Similarity Matrix:")
+print(cosine_sim_matrix)
+
+
+
