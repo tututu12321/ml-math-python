@@ -1,0 +1,58 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# データ生成 / Generate synthetic data
+np.random.seed(42)
+X = 2 * np.random.rand(100, 1)  # 入力データ (100サンプル) / Input data (100 samples)
+y = 4 + 3 * X + np.random.randn(100, 1)  # 真の関係式 y = 4 + 3x + ノイズ / True relation with noise
+
+# 初期化 / Initialize parameters
+theta = np.random.randn(2, 1)  # 初期の重みとバイアス / Initial weights and bias
+X_b = np.c_[np.ones((100, 1)), X]  # バイアス項のための列を追加 / Add a column for bias term
+
+# 学習率とエポック数の設定 / Set learning rate and number of epochs
+learning_rate = 0.1
+n_epochs = 1000
+m = len(X_b)
+
+# 損失関数の定義 (MSE) / Define the loss function (MSE)
+def compute_mse(X_b, y, theta):
+    predictions = X_b.dot(theta)
+    mse = (1 / (2 * m)) * np.sum((predictions - y) ** 2)
+    return mse
+
+# 経験損失最小化 (SGD) / Empirical Risk Minimization using SGD
+loss_history = []
+
+for epoch in range(n_epochs):
+    gradients = (1 / m) * X_b.T.dot(X_b.dot(theta) - y)  # 勾配の計算 / Compute gradients
+    theta -= learning_rate * gradients  # パラメータの更新 / Update parameters
+    loss = compute_mse(X_b, y, theta)
+    loss_history.append(loss)
+
+    if epoch % 100 == 0:
+        print(f"Epoch {epoch}, MSE: {loss}")
+
+# 訓練済みのパラメータ / Trained parameters
+print("\nTrained parameters (theta):")
+print(theta)
+
+# 損失のプロット / Plot the loss over epochs
+plt.figure(figsize=(8, 4))
+plt.plot(loss_history)
+plt.xlabel("Epochs")
+plt.ylabel("MSE Loss")
+plt.title("Loss over epochs")
+plt.grid(True)
+plt.show()
+
+# 学習データと回帰直線のプロット / Plot the training data and regression line
+plt.figure(figsize=(8, 4))
+plt.scatter(X, y, color='blue', alpha=0.5, label='Training data')
+plt.plot(X, X_b.dot(theta), color='red', label='Regression line')
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Linear Regression using ERM")
+plt.legend()
+plt.grid(True)
+plt.show()
