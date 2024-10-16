@@ -1,0 +1,65 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# シグモイド関数 / Sigmoid Function
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))  # 入力を0から1の範囲に変換 / Converts input to the range [0, 1]
+
+# ハイパボリックタンジェント関数 / Hyperbolic Tangent Function
+def tanh(x):
+    return np.tanh(x)  # 入力を-1から1の範囲に変換 / Converts input to the range [-1, 1]
+
+# ReLU関数 / ReLU Function
+def relu(x):
+    return np.maximum(0, x)  # 0より小さい値を0に置き換え / Replaces values less than 0 with 0
+
+# Leaky ReLU関数 / Leaky ReLU Function
+def leaky_relu(x, alpha=0.01):
+    return np.where(x > 0, x, alpha * x)  # 0以下の値には小さな勾配を持たせる / Gives a small gradient to values less than or equal to 0
+
+# Softmax関数 / Softmax Function
+def softmax(x):
+    e_x = np.exp(x - np.max(x))  # オーバーフローを防ぐために最大値を引く / Subtracts the max value to prevent overflow
+    return e_x / e_x.sum(axis=0)  # 出力の合計が1になるように正規化 / Normalizes to ensure the output sums to 1
+
+# Swish関数 / Swish Function
+def swish(x):
+    return x * sigmoid(x)  # 入力にシグモイド関数を掛ける / Multiplies the input by the sigmoid of the input
+
+# 活性化関数のプロット / Plot Activation Functions
+x = np.linspace(-10, 10, 400)  # -10から10の範囲で400点のデータを生成 / Generates 400 points in the range from -10 to 10
+
+plt.figure(figsize=(12, 8))  # プロットのサイズを設定 / Set the size of the plot
+
+# シグモイド関数のプロット / Plot for Sigmoid Function
+plt.subplot(2, 3, 1)
+plt.plot(x, sigmoid(x), label='Sigmoid')
+plt.title('Sigmoid Function')  # タイトルを設定 / Set the title
+plt.grid()  # グリッドを表示 / Show grid
+
+# ハイパボリックタンジェント関数のプロット / Plot for Tanh Function
+plt.subplot(2, 3, 2)
+plt.plot(x, tanh(x), label='Tanh', color='orange')
+plt.title('Tanh Function')  # タイトルを設定 / Set the title
+plt.grid()  # グリッドを表示 / Show grid
+
+# ReLU関数のプロット / Plot for ReLU Function
+plt.subplot(2, 3, 3)
+plt.plot(x, relu(x), label='ReLU', color='green')
+plt.title('ReLU Function')  # タイトルを設定 / Set the title
+plt.grid()  # グリッドを表示 / Show grid
+
+# Leaky ReLU関数のプロット / Plot for Leaky ReLU Function
+plt.subplot(2, 3, 4)
+plt.plot(x, leaky_relu(x), label='Leaky ReLU', color='red')
+plt.title('Leaky ReLU Function')  # タイトルを設定 / Set the title
+plt.grid()  # グリッドを表示 / Show grid
+
+# Swish関数のプロット / Plot for Swish Function
+plt.subplot(2, 3, 5)
+plt.plot(x, swish(x), label='Swish', color='purple')
+plt.title('Swish Function')  # タイトルを設定 / Set the title
+plt.grid()  # グリッドを表示 / Show grid
+
+plt.tight_layout()  # レイアウトを整える / Adjust layout
+plt.show()  # プロットを表示 / Show the plot
