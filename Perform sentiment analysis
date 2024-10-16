@@ -1,0 +1,59 @@
+import torch
+from transformers import BertTokenizer, BertModel, pipeline
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
+import matplotlib.pyplot as plt
+
+# デバイスの設定 (Setting device)
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+# BERTトークナイザとモデルの読み込み (Load BERT tokenizer and model)
+tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+model = BertModel.from_pretrained('bert-base-uncased').to(device)
+
+# 感情分析のためのパイプラインの設定 (Setup sentiment analysis pipeline)
+sentiment_analyzer = pipeline('sentiment-analysis', model='nlptown/bert-base-multilingual-uncased-sentiment')
+
+# テキストデータの例 (Example text data)
+texts = [
+    "I love this product, it's amazing!",
+    "This is the worst experience I've ever had.",
+    "The service was okay, nothing special.",
+    "Absolutely fantastic! Highly recommend it.",
+    "I wouldn't buy this again. It was disappointing."
+]
+
+# 感情分析の実行 (Perform sentiment analysis)
+sentiments = sentiment_analyzer(texts)
+print("Sentiment Analysis Results:")
+for text, sentiment in zip(texts, sentiments):
+    print(f"Text: {text}\nSentiment: {sentiment}\n")
+
+# BERTでテキストを埋め込む関数 (Function to embed text using BERT)
+def embed_text(text):
+    inputs = tokenizer(text, return_tensors='pt', truncation=True, padding=True, max_length=128).to(device)
+    with torch.no_grad():
+        outputs = model(**inputs)
+    # BERTの最終隠れ状態の平均を埋め込みとして使用 (Use the mean of the last hidden states as the embedding)
+    embeddings = outputs.last_hidden_state.mean(dim=1)
+    return embeddings.cpu().numpy()
+
+# テキストを埋め込む (Embed the texts)
+embeddings = np.array([embed_text(text) for text in texts]).squeeze()
+
+# コサイン類似度を計算 (Calculate cosine similarity)
+cosine_sim_matrix = cosine_similarity(embeddings)
+
+# コサイン類似度の行列を表示 (Display cosine similarity matrix)
+print("\nCosine Similarity Matrix:")
+print(cosine_sim_matrix)
+
+# コサイン類似度のプロット (Plot cosine similarity matrix)
+plt.figure(figsize=(8, 6))
+plt.imshow(cosine_sim_matrix, interpolation='nearest', cmap='viridis')
+plt.colorbar()
+plt.title('Cosine Similarity between Texts')
+plt.xticks(ticks=np.arange(len(texts)), labels=[f"Text {i+1}" for i in range(len(texts))], rotation=45, ha='right')
+plt.yticks(ticks=np.arange(len(texts)), labels=[f"Text {i+1}" for i in range(len(texts))])
+plt.tight_layout()
+plt.show()
