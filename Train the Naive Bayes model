@@ -1,0 +1,49 @@
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.metrics import accuracy_score, classification_report
+
+# サンプルデータの作成 / Create sample data
+# テキストデータ（メール本文）とラベル（0: ハム、1: スパム）
+# Text data (email body) and labels (0: ham, 1: spam)
+emails = [
+    "Win money now", "Claim your prize", "Earn cash fast",
+    "Hello friend, let's catch up soon", "Meeting at 10 AM", "Your order has been shipped",
+    "Get free tickets now", "Win a free iPhone", "Congratulations, you have won",
+    "Hi mom, how are you?", "Please find the attached report", "Let's meet tomorrow",
+    "Free cash offer", "Click here to claim your gift", "Important notice for you"
+]
+labels = [1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1]  # 1: スパム / 0: ハム
+
+# データの分割 / Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(emails, labels, test_size=0.2, random_state=42)
+
+# テキストデータを数値ベクトルに変換 / Convert text data into numerical vectors
+vectorizer = CountVectorizer()  # BoW（Bag of Words）を使用 / Using Bag of Words
+X_train_vec = vectorizer.fit_transform(X_train)
+X_test_vec = vectorizer.transform(X_test)
+
+# ナイーブベイズモデルの訓練 / Train the Naive Bayes model
+model = MultinomialNB()
+model.fit(X_train_vec, y_train)
+
+# テストデータでの予測 / Make predictions on the test data
+y_pred = model.predict(X_test_vec)
+
+# モデルの精度を表示 / Print the accuracy of the model
+accuracy = accuracy_score(y_test, y_pred)
+print(f'Accuracy: {accuracy * 100:.2f}%')
+
+# 詳細な評価レポートの表示 / Display detailed evaluation report
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred, target_names=["Ham", "Spam"]))
+
+# サンプルのスパム予測 / Sample spam prediction
+sample_emails = ["Win a free car now", "Let's catch up over lunch", "Your account is at risk"]
+sample_emails_vec = vectorizer.transform(sample_emails)
+sample_predictions = model.predict(sample_emails_vec)
+
+print("\nSample Predictions:")
+for email, pred in zip(sample_emails, sample_predictions):
+    print(f'"{email}" => {"Spam" if pred == 1 else "Ham"}')
