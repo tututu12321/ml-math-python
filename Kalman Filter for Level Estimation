@@ -1,0 +1,56 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 1. Generate Data
+np.random.seed(42)
+n = 100  # Number of data points (データの数)
+true_level = np.zeros(n)  # True level values (真のレベル)
+observed_data = np.zeros(n)  # Observed data (観測データ)
+
+# Parameters for the local level model
+sigma_level = 0.5   # Level variation (standard deviation of system noise) (レベルの変動)
+sigma_obs = 1.0     # Observation noise standard deviation (観測ノイズの標準偏差)
+
+# Initial values
+true_level[0] = 10  # Initial level value (レベルの初期値)
+observed_data[0] = true_level[0] + np.random.normal(0, sigma_obs)  # Initial observation
+
+# Generate data using state and observation equations
+for t in range(1, n):
+    true_level[t] = true_level[t-1] + np.random.normal(0, sigma_level)  # Update true level
+    observed_data[t] = true_level[t] + np.random.normal(0, sigma_obs)  # Update observed data
+
+# 2. Kalman Filter for Level Estimation
+# Initialization
+mu_est = np.zeros(n)  # To store estimated levels (推定されたレベルの保存用)
+P_est = np.zeros(n)   # To store estimated covariances (推定された共分散の保存用)
+
+mu_est[0] = observed_data[0]  # Set initial level to the first observation (初期レベルを観測値の初期値に設定)
+P_est[0] = 1.0               # Initial covariance (arbitrary value) (初期共分散)
+
+# Kalman filter parameters
+Q = sigma_level ** 2   # System noise variance (システムノイズの分散)
+R = sigma_obs ** 2     # Observation noise variance (観測ノイズの分散)
+
+# Implementation of the Kalman filter
+for t in range(1, n):
+    # Prediction step
+    mu_pred = mu_est[t-1]       # Predicted level value (レベルの予測値)
+    P_pred = P_est[t-1] + Q     # Predicted covariance (共分散の予測)
+
+    # Update step
+    K = P_pred / (P_pred + R)  # Calculate Kalman gain (カルマンゲインの計算)
+    mu_est[t] = mu_pred + K * (observed_data[t] - mu_pred)  # Update level estimate (レベルの更新)
+    P_est[t] = (1 - K) * P_pred  # Update covariance (共分散の更新)
+
+# 3. Plotting the results
+plt.figure(figsize=(10, 6))
+plt.plot(true_level, label='True Level', linestyle='--', marker='o')  # True level plot (真のレベルのプロット)
+plt.plot(observed_data, label='Observed Data', linestyle=':', marker='x')  # Observed data plot (観測データのプロット)
+plt.plot(mu_est, label='Kalman Filter Estimate', linestyle='-', marker='s')  # Kalman filter estimate plot (カルマンフィルタ推定のプロット)
+plt.xlabel('Time')  # X-axis label (X軸のラベル)
+plt.ylabel('Level')  # Y-axis label (Y軸のラベル)
+plt.legend()  # Show legend (凡例の表示)
+plt.title('Local Level Model with Kalman Filter')  # Title of the plot (プロットのタイトル)
+plt.grid(True)  # Enable grid (グリッドの表示)
+plt.show()  # Show the plot (プロットの表示)
