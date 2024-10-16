@@ -1,0 +1,70 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import stft
+from scipy.fftpack import dct
+import pywt
+
+# Generate a sample signal: 5 Hz sine wave + 50 Hz sine wave + noise
+# サンプル信号を生成: 5 Hzのサイン波 + 50 Hzのサイン波 + ノイズ
+Fs = 500  # Sampling frequency (サンプリング周波数)
+t = np.linspace(0, 2, Fs * 2, endpoint=False)  # 2 seconds duration (2秒間の信号)
+signal = np.sin(2 * np.pi * 5 * t) + 0.5 * np.sin(2 * np.pi * 50 * t) + 0.1 * np.random.randn(len(t))
+
+# Short-Time Fourier Transform (STFT)
+# 短時間フーリエ変換 (STFT)
+f, time_stft, Zxx = stft(signal, Fs, nperseg=128)
+
+# Discrete Cosine Transform (DCT)
+# 離散コサイン変換 (DCT)
+dct_coefficients = dct(signal, type=2, norm='ortho')
+
+# Wavelet Transform using the 'db4' wavelet
+# ウェーブレット変換 (db4を使用)
+coeffs = pywt.wavedec(signal, 'db4', level=5)
+wavelet_coeffs = coeffs[0]  # Use approximation coefficients at the coarsest level
+wavelet_time = np.linspace(0, 2, len(wavelet_coeffs))
+
+# Plotting the results (結果のプロット)
+plt.figure(figsize=(14, 10))
+
+# Original Signal
+# 元の信号
+plt.subplot(4, 1, 1)
+plt.plot(t, signal, label='Original Signal')
+plt.title('Original Signal')
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude')
+plt.grid(True)
+plt.legend()
+
+# STFT Magnitude
+# STFTの振幅スペクトル
+plt.subplot(4, 1, 2)
+plt.pcolormesh(time_stft, f, np.abs(Zxx), shading='gouraud')
+plt.title('Short-Time Fourier Transform (STFT)')
+plt.xlabel('Time [s]')
+plt.ylabel('Frequency [Hz]')
+plt.colorbar(label='Magnitude')
+
+# DCT Coefficients
+# DCTの係数
+plt.subplot(4, 1, 3)
+plt.plot(dct_coefficients)
+plt.title('Discrete Cosine Transform (DCT)')
+plt.xlabel('Coefficient Index')
+plt.ylabel('Magnitude')
+plt.grid(True)
+
+# Wavelet Transform Coefficients
+# ウェーブレット変換の係数
+plt.subplot(4, 1, 4)
+plt.plot(wavelet_time, wavelet_coeffs)
+plt.title('Wavelet Transform (db4)')
+plt.xlabel('Time [s]')
+plt.ylabel('Coefficient')
+plt.grid(True)
+
+# Display the plots
+# プロットを表示
+plt.tight_layout()
+plt.show()
