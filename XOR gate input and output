@@ -1,0 +1,51 @@
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+# XORゲートの入力と出力データ (XOR gate input and output)
+x_data = torch.tensor([[0, 0], [0, 1], [1, 0], [1, 1]], dtype=torch.float32)
+y_data = torch.tensor([[0], [1], [1], [0]], dtype=torch.float32)
+
+# シンプルなニューラルネットワークモデルの定義 (Define a simple neural network model)
+class XORModel(nn.Module):
+    def __init__(self):
+        super(XORModel, self).__init__()
+        self.fc1 = nn.Linear(2, 4)  # 入力層から隠れ層 (2 inputs -> 4 hidden units)
+        self.fc2 = nn.Linear(4, 1)  # 隠れ層から出力層 (4 hidden units -> 1 output)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        x = torch.relu(self.fc1(x))
+        x = self.sigmoid(self.fc2(x))
+        return x
+
+# モデルの初期化 (Initialize the model)
+model = XORModel()
+criterion = nn.MSELoss()
+optimizer = optim.SGD(model.parameters(), lr=0.1)
+
+# 訓練プロセス (Training process)
+n_epochs = 10000
+for epoch in range(n_epochs):
+    model.train()
+    optimizer.zero_grad()
+
+    # 前向き計算と損失の計算 (Forward pass and loss computation)
+    outputs = model(x_data)
+    loss = criterion(outputs, y_data)
+
+    # バックプロパゲーションとパラメータの更新 (Backward pass and optimization)
+    loss.backward()
+    optimizer.step()
+
+    # 1000エポックごとに損失を表示 (Print loss every 1000 epochs)
+    if (epoch + 1) % 1000 == 0:
+        print(f'Epoch [{epoch+1}/{n_epochs}], Loss: {loss.item():.4f}')
+
+# モデルの評価 (Model evaluation)
+model.eval()
+with torch.no_grad():
+    predictions = model(x_data)
+    predicted_labels = (predictions > 0.5).float()
+    print("\nPredictions:")
+    print(predicted_labels)
