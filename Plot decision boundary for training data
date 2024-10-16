@@ -1,0 +1,119 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import make_moons
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score
+
+# シグモイド関数とその導関数 / Sigmoid function and its derivative
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+
+def sigmoid_derivative(z):
+    return z * (1 - z)
+
+# 多層ニューラルネットワークのクラス定義 / Define a class for the multi-layer neural network
+class NeuralNetwork:
+    def __init__(self, input_size, hidden_size, output_size, learning_rate=0.1):
+        # 重みとバイアスの初期化 / Initialize weights and biases
+        self.W1 = np.random.randn(input_size, hidden_size)
+        self.b1 = np.zeros((1, hidden_size))
+        self.W2 = np.random.randn(hidden_size, output_size)
+        self.b2 = np.zeros((1, output_size))
+        self.learning_rate = learning_rate
+
+    def forward(self, X):
+        # 順伝播 / Forward propagation
+        self.z1 = X @ self.W1 + self.b1
+        self.a1 = sigmoid(self.z1)
+        self.z2 = self.a1 @ self.W2 + self.b2
+        self.a2 = sigmoid(self.z2)
+        return self.a2
+
+    def backward(self, X, y, output):
+        # 逆伝播 / Backpropagation
+        m = y.shape[0]  # サンプル数 / Number of samples
+
+        # 出力層の誤差と勾配 / Error and gradient for output layer
+        d_z2 = (output - y) * sigmoid_derivative(output)
+        d_W2 = self.a1.T @ d_z2 / m
+        d_b2 = np.sum(d_z2, axis=0, keepdims=True) / m
+
+        # 隠れ層の誤差と勾配 / Error and gradient for hidden layer
+        d_a1 = d_z2 @ self.W2.T
+        d_z1 = d_a1 * sigmoid_derivative(self.a1)
+        d_W1 = X.T @ d_z1 / m
+        d_b1 = np.sum(d_z1, axis=0, keepdims=True) / m
+
+        # パラメータの更新 / Update parameters
+        self.W1 -= self.learning_rate * d_W1
+        self.b1 -= self.learning_rate * d_b1
+        self.W2 -= self.learning_rate * d_W2
+        self.b2 -= self.learning_rate * d_b2
+
+    def train(self, X, y, epochs=1000):
+        # トレーニングループ / Training loop
+        loss_history = []
+        for epoch in range(epochs):
+            output = self.forward(X)
+            loss = np.mean((y - output) ** 2)
+            loss_history.append(loss)
+            self.backward(X, y, output)
+            if epoch % 100 == 0:
+                print(f'Epoch {epoch}, Loss: {loss}')
+        return loss_history
+
+    def predict(self, X):
+        # 予測 / Predict
+        output = self.forward(X)
+        return (output > 0.5).astype(int)
+
+# データの生成 / Generate synthetic data
+np.random.seed(42)
+X, y = make_moons(n_samples=1000, noise=0.2, random_state=42)
+y = y.reshape(-1, 1)  # ラベルを列ベクトルに変換 / Reshape labels to a column vector
+
+# データの分割 / Split the data into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# データの標準化 / Standardize the data
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# モデルのインスタンス化とトレーニング / Instantiate and train the model
+nn = NeuralNetwork(input_size=2, hidden_size=5, output_size=1, learning_rate=0.1)
+loss_history = nn.train(X_train, y_train, epochs=2000)
+
+# トレーニング損失のプロット / Plot training loss
+plt.figure(figsize=(8, 5))
+plt.plot(loss_history)
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.title('Training Loss over Epochs')
+plt.grid(True)
+plt.show()
+
+# テストデータに対する予測と精度の計算 / Predictions and accuracy on the test set
+y_pred = nn.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Test Accuracy: {accuracy * 100:.2f}%")
+
+# 分類結果の可視化 / Visualize the classification results
+def plot_decision_boundary(X, y, model):
+    x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+    y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.1),
+                         np.arange(y_min, y_max, 0.1))
+    Z = model.predict(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+    plt.contourf(xx, yy, Z, alpha=0.5, cmap='coolwarm')
+    plt.scatter(X[:, 0], X[:, 1], c=y.flatten(), edgecolors='k', marker='o', cmap='coolwarm')
+    plt.xlabel('Feature 1')
+    plt.ylabel('Feature 2')
+    plt.title('Decision Boundary')
+    plt.grid(True)
+    plt.show()
+
+# トレーニングデータの分類境界をプロット / Plot decision boundary for training data
+plot_decision_boundary(X_train, y_train, nn)
