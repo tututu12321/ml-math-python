@@ -1,0 +1,71 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import control
+
+# Define the state-space model (状態空間モデルの定義)
+# A: System matrix, B: Input matrix, C: Output matrix, D: Direct transmission matrix
+A = np.array([[0, 1],
+              [-2, -3]])
+B = np.array([[0],
+              [1]])
+C = np.array([[1, 0]])
+D = np.array([[0]])
+
+# Create the state-space system (状態空間システムの作成)
+system = control.StateSpace(A, B, C, D)
+
+# Compute the eigenvalues (poles) of the system (システムの固有値（極）の計算)
+eigenvalues = np.linalg.eigvals(A)
+print(f"Eigenvalues of the system: {eigenvalues}")
+
+# Plot the step response (ステップ応答のプロット)
+plt.figure(figsize=(10, 6))
+time, response = control.step_response(system)
+plt.plot(time, response, label='Step Response')
+plt.title('Step Response of the System')
+plt.xlabel('Time (seconds)')
+plt.ylabel('Output')
+plt.grid(True)
+plt.legend()
+plt.show()
+
+# Plot the pole-zero map (ポール・ゼロ・プロットのプロット)
+plt.figure(figsize=(8, 6))
+control.pzmap(system, Plot=True, title='Pole-Zero Map of the System')
+plt.grid(True)
+plt.show()
+
+# Design a state feedback controller (状態フィードバック制御器の設計)
+# Desired closed-loop eigenvalues (目標閉ループ固有値)
+desired_eigenvalues = np.array([-1, -2])
+
+# Compute the state feedback gain K (状態フィードバックゲインKの計算)
+K = control.place(A, B, desired_eigenvalues)
+print(f"State feedback gain K: {K}")
+
+# Compute the new A matrix for the closed-loop system (新しいA行列（閉ループシステム）を計算)
+A_cl = A - B @ K
+
+# Create the closed-loop state-space system (閉ループシステムの状態空間モデルを作成)
+system_cl = control.StateSpace(A_cl, B, C, D)
+
+# Compute the eigenvalues (poles) of the closed-loop system (閉ループシステムの固有値（極）の計算)
+eigenvalues_cl = np.linalg.eigvals(A_cl)
+print(f"Eigenvalues of the closed-loop system: {eigenvalues_cl}")
+
+# Plot the step response of the closed-loop system (閉ループシステムのステップ応答のプロット)
+plt.figure(figsize=(10, 6))
+time_cl, response_cl = control.step_response(system_cl)
+plt.plot(time_cl, response_cl, label='Closed-loop Step Response')
+plt.title('Closed-loop Step Response')
+plt.xlabel('Time (seconds)')
+plt.ylabel('Output')
+plt.grid(True)
+plt.legend()
+plt.show()
+
+# Plot the pole-zero map of the closed-loop system (閉ループシステムのポール・ゼロ・プロットのプロット)
+plt.figure(figsize=(8, 6))
+control.pzmap(system_cl, Plot=True, title='Pole-Zero Map of the Closed-loop System')
+plt.grid(True)
+plt.show()
