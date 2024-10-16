@@ -1,0 +1,51 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.linalg import lu, qr, eigvals
+
+# Define a matrix A (行列Aの定義)
+A = np.array([[4, 2], [2, 3]])
+
+# LU decomposition (LU分解)
+P, L, U = lu(A)
+print("Matrix A:")
+print(A)
+print("\nLU Decomposition:")
+print("P (Permutation Matrix):")
+print(P)
+print("L (Lower Triangular Matrix):")
+print(L)
+print("U (Upper Triangular Matrix):")
+print(U)
+
+# QR decomposition (QR分解)
+Q, R = qr(A)
+print("\nQR Decomposition:")
+print("Q (Orthogonal Matrix):")
+print(Q)
+print("R (Upper Triangular Matrix):")
+print(R)
+
+# Check if A is regular (正則行列のチェック)
+is_invertible = np.linalg.det(A) != 0
+print("\nIs A invertible? (A is regular):", is_invertible)
+
+# Check if A is symmetric (対称行列のチェック)
+is_symmetric = np.allclose(A, A.T)
+print("Is A symmetric?:", is_symmetric)
+
+# Check if A is positive semi-definite (半正定値行列のチェック)
+eigenvalues = eigvals(A)
+is_positive_semi_definite = np.all(eigenvalues >= 0)
+print("Is A positive semi-definite?:", is_positive_semi_definite)
+print("Eigenvalues of A:", eigenvalues)
+
+# Plot eigenvalues to visualize semi-definiteness (固有値をプロットして半正定値性を視覚化)
+plt.figure(figsize=(8, 6))
+plt.plot(eigenvalues.real, np.zeros_like(eigenvalues), 'o', label='Eigenvalues', color='blue')
+plt.axhline(0, color='red', linestyle='--', label='Zero Line')
+plt.title('Eigenvalues of Matrix A')
+plt.xlabel('Real Part')
+plt.ylabel('Imaginary Part (0 for real values)')
+plt.grid(True)
+plt.legend()
+plt.show()
