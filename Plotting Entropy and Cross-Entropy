@@ -1,0 +1,49 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# サンプルの確率分布 p と q (Sample probability distributions)
+p = np.array([0.1, 0.4, 0.2, 0.3])  # 実際の分布 (True distribution)
+q = np.array([0.3, 0.3, 0.2, 0.2])  # 予測分布 (Predicted distribution)
+
+# エントロピーの計算 (Calculate Entropy)
+entropy_p = -np.sum(p * np.log(p))
+print(f"Entropy of p: {entropy_p:.4f}")
+
+# クロスエントロピーの計算 (Calculate Cross-Entropy)
+cross_entropy = -np.sum(p * np.log(q))
+print(f"Cross-Entropy between p and q: {cross_entropy:.4f}")
+
+# KLダイバージェンスの計算 (Calculate KL Divergence)
+kl_divergence = cross_entropy - entropy_p
+print(f"KL Divergence between p and q: {kl_divergence:.4f}")
+
+# プロットの準備 (Prepare for plotting)
+x_labels = ['x1', 'x2', 'x3', 'x4']
+x = np.arange(len(p))
+
+# エントロピーとクロスエントロピーのプロット (Plotting Entropy and Cross-Entropy)
+plt.figure(figsize=(10, 6))
+width = 0.4
+
+# 実際の分布 p と予測分布 q の棒グラフ (Bar plot for p and q)
+plt.bar(x - width/2, p, width, label='p (True distribution)', color='blue', alpha=0.6)
+plt.bar(x + width/2, q, width, label='q (Predicted distribution)', color='red', alpha=0.6)
+
+# プロットの設定 (Plot settings)
+plt.xlabel('Events')
+plt.ylabel('Probability')
+plt.title('Probability Distributions p and q')
+plt.xticks(x, x_labels)
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+# エントロピーとクロスエントロピーの値を棒グラフで表示 (Display entropy and cross-entropy)
+plt.figure(figsize=(8, 4))
+values = [entropy_p, cross_entropy, kl_divergence]
+labels = ['Entropy (H(p))', 'Cross-Entropy (H(p, q))', 'KL Divergence (D_KL(p || q))']
+plt.bar(labels, values, color=['blue', 'orange', 'green'])
+plt.ylabel('Value')
+plt.title('Entropy, Cross-Entropy, and KL Divergence')
+plt.tight_layout()
+plt.show()
