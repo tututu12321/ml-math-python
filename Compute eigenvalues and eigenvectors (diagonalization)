@@ -1,0 +1,55 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# サンプルデータの生成 / Generate sample data
+np.random.seed(42)
+X = np.random.multivariate_normal([2, 3], [[1, 0.8], [0.8, 1]], size=100)
+
+# 分散共分散行列の計算 / Compute covariance matrix
+cov_matrix = np.cov(X.T)  # 行ごとの共分散を計算するために転置 / Transpose to calculate row-wise covariance
+print("Covariance Matrix:")
+print(cov_matrix)
+
+# 分散共分散行列の固有値と固有ベクトルを求める（対角化）/ Compute eigenvalues and eigenvectors (diagonalization)
+eigenvalues, eigenvectors = np.linalg.eigh(cov_matrix)
+
+print("\nEigenvalues:")
+print(eigenvalues)
+print("\nEigenvectors (Orthogonal Matrix):")
+print(eigenvectors)
+
+# 固有ベクトル行列（直交行列）の確認：Q^T * Q = I / Check the orthogonality of eigenvectors: Q^T * Q = I
+Q = eigenvectors
+Q_T_Q = Q.T @ Q
+print("\nQ^T * Q:")
+print(Q_T_Q)  # 単位行列に近ければ、直交性が確認できる / Should be close to identity matrix for orthogonality
+
+# データを新しい基底（固有ベクトル）に射影 / Project data onto new basis (eigenvectors)
+X_projected = X @ Q
+
+# 射影されたデータの分散共分散行列の対角成分のみが残ることを確認 / Confirm that only diagonal components remain in the projected covariance matrix
+projected_cov_matrix = np.cov(X_projected.T)
+print("\nCovariance Matrix of Projected Data:")
+print(projected_cov_matrix)
+
+# 可視化 / Visualization
+plt.figure(figsize=(8, 6))
+
+# 元のデータのプロット / Plot original data
+plt.scatter(X[:, 0], X[:, 1], alpha=0.5, label='Original Data', color='blue')
+
+# 固有ベクトルの方向をプロット / Plot directions of eigenvectors
+origin = np.mean(X, axis=0)
+for eigenvalue, eigenvector in zip(eigenvalues, eigenvectors.T):
+    plt.quiver(*origin, *(eigenvector * 2), scale=5, color='red', label='Eigenvector', angles='xy', scale_units='xy')
+
+# 射影されたデータのプロット / Plot projected data
+plt.scatter(X_projected[:, 0], X_projected[:, 1], alpha=0.5, label='Projected Data', color='green')
+
+plt.title('Data Projection Using Eigenvectors (Principal Axes)')
+plt.xlabel('X1')
+plt.ylabel('X2')
+plt.legend()
+plt.grid(True)
+plt.axis('equal')
+plt.show()
