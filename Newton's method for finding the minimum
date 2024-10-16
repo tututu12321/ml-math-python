@@ -1,0 +1,60 @@
+import autograd.numpy as np
+from autograd import grad, hessian
+import matplotlib.pyplot as plt
+
+# 目的関数の定義
+# Define the objective function
+def function(x):
+    return x**2 - 4*x + 4
+
+# 一階および二階導関数の計算
+# Compute the first-order and second-order derivatives
+gradient = grad(function)
+hessian_function = hessian(function)
+
+# ニュートン法による最小値探索
+# Newton's method for finding the minimum
+def newton_method(f, grad_f, hessian_f, x_init, tol=1e-6, max_iter=100):
+    x = x_init
+    for i in range(max_iter):
+        grad_val = grad_f(x)  # 勾配の計算 (Calculate the gradient)
+        hessian_val = hessian_f(x)  # ヘッセ行列の計算 (Calculate the Hessian)
+        
+        # 更新式：x_{n+1} = x_n - f'(x) / f''(x)
+        # Update formula: x_{n+1} = x_n - f'(x) / f''(x)
+        step = grad_val / hessian_val
+        
+        # xの更新 (Update x)
+        x_new = x - step
+        
+        # 収束条件 (Convergence condition)
+        if np.abs(x_new - x) < tol:
+            print(f"Converged after {i+1} iterations.")
+            break
+        
+        x = x_new
+    
+    return x
+
+# 初期値の設定
+# Set the initial value
+x_init = 0.0
+
+# ニュートン法で最小値を探す
+# Find the minimum using Newton's method
+min_x = newton_method(function, gradient, hessian_function, x_init)
+
+print(f"The minimum value is found at x = {min_x}")
+
+# 関数のプロット (Plot the function)
+x_vals = np.linspace(-2, 6, 400)
+y_vals = function(x_vals)
+
+plt.plot(x_vals, y_vals, label='f(x) = x^2 - 4x + 4')  # 関数のグラフ (Graph of the function)
+plt.scatter(min_x, function(min_x), color='red', label=f'Minimum at x = {min_x}', zorder=5)  # 最小値のプロット (Plot the minimum)
+plt.xlabel('x')
+plt.ylabel('f(x)')
+plt.title('Newton\'s Method for Minimization')  # タイトル (Title)
+plt.legend()
+plt.grid(True)
+plt.show()
