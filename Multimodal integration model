@@ -1,0 +1,96 @@
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+# シンプルなテキストエンコーダー（BoWエンコーダーとして実装）/ Simple text encoder (implemented as a BoW encoder)
+class TextEncoder(nn.Module):
+    def __init__(self, vocab_size, embedding_dim):
+        super(TextEncoder, self).__init__()
+        self.embedding = nn.Embedding(vocab_size, embedding_dim)
+        self.fc = nn.Linear(embedding_dim, 32)
+
+    def forward(self, x):
+        # 各単語の埋め込みの平均を取る / Take the mean of each word embedding
+        embedded = self.embedding(x).mean(dim=1)
+        encoded = torch.relu(self.fc(embedded))
+        return encoded
+
+# 数値データエンコーダー / Numeric data encoder
+class NumericEncoder(nn.Module):
+    def __init__(self, input_dim):
+        super(NumericEncoder, self).__init__()
+        self.fc = nn.Linear(input_dim, 32)
+
+    def forward(self, x):
+        encoded = torch.relu(self.fc(x))
+        return encoded
+
+# マルチモーダル統合モデル / Multimodal integration model
+class MultimodalModel(nn.Module):
+    def __init__(self, vocab_size, embedding_dim, numeric_input_dim):
+        super(MultimodalModel, self).__init__()
+        self.text_encoder = TextEncoder(vocab_size, embedding_dim)
+        self.numeric_encoder = NumericEncoder(numeric_input_dim)
+        self.fc = nn.Linear(64, 2)  # テキストと数値の統合後の分類 / Classification after integrating text and numeric data
+
+    def forward(self, text_input, numeric_input):
+        text_features = self.text_encoder(text_input)
+        numeric_features = self.numeric_encoder(numeric_input)
+        # テキストと数値特徴の結合 / Combine text and numeric features
+        combined = torch.cat((text_features, numeric_features), dim=1)
+        output = self.fc(combined)
+        return output
+
+# ダミーデータの生成 / Generate dummy data
+np.random.seed(42)
+vocab_size = 100
+embedding_dim = 50
+numeric_input_dim = 10
+
+# テキストデータ（語彙サイズが100までのインデックスのダミーデータ）/ Text data (dummy data with indices up to vocab size of 100)
+text_data = np.random.randint(0, vocab_size, (1000, 10))
+numeric_data = np.random.randn(1000, numeric_input_dim)
+labels = np.random.randint(0, 2, 1000)  # 2クラスのラベル / 2-class labels
+
+# データの前処理 / Data preprocessing
+scaler = StandardScaler()
+numeric_data = scaler.fit_transform(numeric_data)
+text_data = torch.tensor(text_data, dtype=torch.long)
+numeric_data = torch.tensor(numeric_data, dtype=torch.float32)
+labels = torch.tensor(labels, dtype=torch.long)
+
+# データの分割 / Split data
+text_train, text_test, num_train, num_test, y_train, y_test = train_test_split(
+    text_data, numeric_data, labels, test_size=0.2, random_state=42)
+
+# モデルのインスタンス化 / Instantiate the model
+model = MultimodalModel(vocab_size, embedding_dim, numeric_input_dim)
+
+# 損失関数とオプティマイザの定義 / Define loss function and optimizer
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+# トレーニングループ / Training loop
+n_epochs = 10
+for epoch in range(n_epochs):
+    model.train()
+    optimizer.zero_grad()
+    outputs = model(text_train, num_train)
+    loss = criterion(outputs, y_train)
+    loss.backward()
+    optimizer.step()
+
+    # 精度の計算 / Calculate accuracy
+    model.eval()
+    with torch.no_grad():
+        test_outputs = model(text_test, num_test)
+        test_preds = torch.argmax(test_outputs, dim=1)
+        accuracy = accuracy_score(y_test.numpy(), test_preds.numpy())
+    
+    print(f'Epoch {epoch+1}/{n_epochs}, Loss: {loss.item()}, Test Accuracy: {accuracy}')
+
+print("Training complete.")  # トレーニング完了
