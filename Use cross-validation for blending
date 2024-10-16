@@ -1,0 +1,58 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.svm import SVC
+from sklearn.ensemble import StackingClassifier
+from sklearn.metrics import accuracy_score
+
+# データの生成 / Generate synthetic data
+np.random.seed(42)
+X, y = make_classification(n_samples=1000, n_features=20, n_informative=15, n_classes=2, random_state=42)
+
+# データの分割 / Split the data into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# ベースモデルの定義 / Define base models
+base_models = [
+    ('log_reg', LogisticRegression(max_iter=1000)),
+    ('decision_tree', DecisionTreeClassifier(max_depth=5, random_state=42)),
+    ('svm', SVC(probability=True, kernel='linear', random_state=42))
+]
+
+# スタッキングモデルの定義 / Define the stacking classifier
+stacking_model = StackingClassifier(
+    estimators=base_models,
+    final_estimator=LogisticRegression(),
+    cv=5  # クロスバリデーションでの平均を使用 / Use cross-validation for blending
+)
+
+# モデルのトレーニング / Train the stacking model
+stacking_model.fit(X_train, y_train)
+
+# テストデータに対する予測 / Predict on the test data
+y_pred = stacking_model.predict(X_test)
+
+# 精度の計算 / Calculate accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Stacking Model Accuracy: {accuracy * 100:.2f}%")
+
+# 各モデルの精度の比較 / Compare accuracy of individual models
+for name, model in base_models:
+    model.fit(X_train, y_train)
+    y_pred_base = model.predict(X_test)
+    base_accuracy = accuracy_score(y_test, y_pred_base)
+    print(f"{name} Accuracy: {base_accuracy * 100:.2f}%")
+
+# 精度をプロット / Plot the accuracies
+model_names = [name for name, _ in base_models] + ['Stacking']
+accuracies = [accuracy_score(y_test, model.predict(X_test)) for _, model in base_models] + [accuracy]
+
+plt.figure(figsize=(8, 5))
+plt.barh(model_names, [acc * 100 for acc in accuracies], color=['blue', 'green', 'orange', 'red'])
+plt.xlabel('Accuracy (%)')
+plt.title('Model Accuracies Comparison')
+plt.grid(True)
+plt.show()
