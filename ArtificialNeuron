@@ -1,0 +1,35 @@
+import numpy as np
+
+# シグモイド関数
+def sigmoid(z):
+    # シグモイド関数を計算
+    return 1 / (1 + np.exp(-z))  # 出力を返す / Return the output
+
+# ReLU関数
+def relu(z):
+    # ReLU関数を計算
+    return np.maximum(0, z)  # 出力を返す / Return the output
+
+# 人工ニューロンのクラス
+class ArtificialNeuron:
+    def __init__(self, weights, bias):
+        self.weights = weights  # 重みを初期化 / Initialize weights
+        self.bias = bias        # バイアスを初期化 / Initialize bias
+
+    def forward(self, inputs, activation_function):
+        # 総入力を計算 / Calculate the total input
+        z = np.dot(self.weights, inputs) + self.bias  # 総入力を計算 / Calculate total input
+        # 指定された活性化関数を適用 / Apply the specified activation function
+        return activation_function(z)  # 出力を返す / Return the output
+
+# 使用例
+weights = np.array([0.5, -0.6])  # 重みの定義 / Define weights
+bias = 0.1                        # バイアスの定義 / Define bias
+neuron = ArtificialNeuron(weights, bias)  # 人工ニューロンのインスタンス化 / Instantiate the artificial neuron
+
+inputs = np.array([1.0, 2.0])  # 入力の定義 / Define inputs
+output_sigmoid = neuron.forward(inputs, sigmoid)  # シグモイド関数で出力を計算 / Calculate output with sigmoid function
+output_relu = neuron.forward(inputs, relu)        # ReLU関数で出力を計算 / Calculate output with ReLU function
+
+print("Sigmoid Output:", output_sigmoid)  # シグモイド出力を表示 / Display sigmoid output
+print("ReLU Output:", output_relu)          # ReLU出力を表示 / Display ReLU output
