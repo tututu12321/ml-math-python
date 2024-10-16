@@ -1,0 +1,55 @@
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, classification_report
+import matplotlib.pyplot as plt
+
+# サンプルデータの作成 / Create a sample dataset (for demonstration purposes)
+data = {
+    'text': [
+        'I love this movie, it was fantastic!', 'This film was terrible, I hated it.',
+        'Amazing storyline, really enjoyed it.', 'Not my type of movie, quite boring.',
+        'I had a great time watching this!', 'Worst movie ever, complete waste of time.',
+        'The acting was superb, loved every moment.', 'Poor plot and dull characters.'
+    ],
+    'sentiment': ['positive', 'negative', 'positive', 'negative', 'positive', 'negative', 'positive', 'negative']
+}
+df = pd.DataFrame(data)
+
+# テキストデータとラベルの取得 / Extract text and labels
+X = df['text']
+y = df['sentiment'].apply(lambda x: 1 if x == 'positive' else 0)  # positive: 1, negative: 0
+
+# データの分割 / Split the data into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# TF-IDFベクトライザの適用 / Apply TF-IDF vectorizer
+vectorizer = TfidfVectorizer(max_features=1000)
+X_train_tfidf = vectorizer.fit_transform(X_train)
+X_test_tfidf = vectorizer.transform(X_test)
+
+# ロジスティック回帰モデルのインスタンス化とトレーニング / Train a logistic regression model
+model = LogisticRegression()
+model.fit(X_train_tfidf, y_train)
+
+# テストデータに対する予測 / Predict on the test data
+y_pred = model.predict(X_test_tfidf)
+
+# 精度の計算と分類レポートの表示 / Calculate accuracy and show classification report
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy * 100:.2f}%")
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred, target_names=['negative', 'positive']))
+
+# 可視化: ポジティブ vs ネガティブの分類結果 / Visualization: Positive vs Negative classification results
+labels = ['Negative', 'Positive']
+values = [np.sum(y_pred == 0), np.sum(y_pred == 1)]
+
+plt.figure(figsize=(6, 4))
+plt.bar(labels, values, color=['red', 'green'])
+plt.title('Sentiment Analysis Results')
+plt.ylabel('Number of Reviews')
+plt.grid(True)
+plt.show()
