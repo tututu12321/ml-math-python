@@ -1,0 +1,51 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import Ridge, Lasso
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+from sklearn.preprocessing import StandardScaler
+
+# データの生成 / Generate synthetic data
+np.random.seed(42)
+n_samples, n_features = 100, 10
+X = np.random.randn(n_samples, n_features)
+true_coef = np.array([5, -2, 0, 0, 0, 1.5, 0, 0, 3, 0])  # いくつかの特徴量の係数は0 / Some coefficients are set to zero
+y = X @ true_coef + np.random.randn(n_samples) * 0.5  # ノイズ付きの線形データ / Linear data with noise
+
+# トレーニングデータとテストデータの分割 / Split the data into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# データの標準化 / Standardize the data
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# リッジ回帰とラッソ回帰のインスタンス化とトレーニング / Train Ridge and Lasso regression models
+alpha = 1.0  # 正則化の強さ / Regularization strength
+ridge = Ridge(alpha=alpha)
+lasso = Lasso(alpha=alpha)
+
+ridge.fit(X_train, y_train)
+lasso.fit(X_train, y_train)
+
+# 予測とMSEの計算 / Make predictions and calculate MSE
+y_pred_ridge = ridge.predict(X_test)
+y_pred_lasso = lasso.predict(X_test)
+mse_ridge = mean_squared_error(y_test, y_pred_ridge)
+mse_lasso = mean_squared_error(y_test, y_pred_lasso)
+
+print(f"Ridge Regression MSE: {mse_ridge:.2f}")
+print(f"Lasso Regression MSE: {mse_lasso:.2f}")
+
+# リッジ回帰とラッソ回帰の係数の比較 / Compare coefficients of Ridge and Lasso
+plt.figure(figsize=(10, 5))
+plt.plot(ridge.coef_, 'o-', label='Ridge coefficients', color='blue')
+plt.plot(lasso.coef_, 'o-', label='Lasso coefficients', color='red')
+plt.plot(true_coef, 'o-', label='True coefficients', color='green', alpha=0.6)
+plt.xlabel('Feature index')
+plt.ylabel('Coefficient value')
+plt.title('Ridge vs Lasso Regression Coefficients')
+plt.axhline(0, color='black', linestyle='--', linewidth=0.7)
+plt.legend()
+plt.grid(True)
+plt.show()
