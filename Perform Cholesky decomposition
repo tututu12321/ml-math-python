@@ -1,0 +1,15 @@
+import numpy as np
+
+# 正定値行列の定義 / Define a positive definite matrix
+A = np.array([[4, 2],
+              [2, 3]])
+
+# コレスキー分解の計算 / Perform Cholesky decomposition
+L = np.linalg.cholesky(A)
+
+print("Original Matrix A:")
+print(A)
+print("\nLower Triangular Matrix L (Cholesky Factor):")
+print(L)
+print("\nVerification (L * L^T):")
+print(L @ L.T)  # Lとその転置を掛けて元の行列を再現 / Reconstruct the original matrix
