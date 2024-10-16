@@ -1,0 +1,60 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Data: Measured values and associated uncertainties
+# Example data for 5 measurements
+measurements = np.array([5.2, 5.5, 5.3, 5.4, 5.6])  # Measured values (測定値)
+uncertainties = np.array([0.1, 0.15, 0.12, 0.1, 0.14])  # Uncertainties (不確かさ)
+
+# Weighted Average Method
+weights = 1 / uncertainties**2  # Weights based on uncertainty (不確かさに基づく重み)
+weighted_avg = np.sum(weights * measurements) / np.sum(weights)  # Weighted average calculation (重み付き平均の計算)
+combined_uncertainty_weighted = np.sqrt(1 / np.sum(weights))  # Combined uncertainty for weighted average (重み付き平均のための統合不確かさ)
+
+# Equal Interval Averaging Method
+equal_interval_avg = np.mean(measurements)  # Equal interval average calculation (等間隔平均の計算)
+combined_uncertainty_equal = np.sqrt(np.sum((uncertainties**2)) / len(measurements))  # Combined uncertainty for equal interval average (等間隔平均のための統合不確かさ)
+
+# Least Squares Method (Linear Fit: y = ax + b)
+x_values = np.arange(len(measurements))  # Example x-values (e.g., time intervals) (例のx値)
+coefficients, covariance_matrix = np.polyfit(x_values, measurements, 1, cov=True)  # Linear fit (線形フィット)
+slope, intercept = coefficients  # Slope and intercept (傾きと切片)
+slope_uncertainty, intercept_uncertainty = np.sqrt(np.diag(covariance_matrix))  # Uncertainties for slope and intercept (傾きと切片の不確かさ)
+
+# Sum of Squared Residuals
+residuals = measurements - (slope * x_values + intercept)  # Residuals calculation (残差の計算)
+sum_squared_residuals = np.sum(residuals**2)  # Sum of squared residuals (残差の二乗和)
+
+# Best Estimate from Linear Fit
+best_estimate = slope * x_values + intercept  # Best estimate from linear fit (線形フィットによる最良推定)
+
+# Plotting the results
+plt.figure(figsize=(10, 6))
+
+# Plot measured values with uncertainties
+plt.errorbar(x_values, measurements, yerr=uncertainties, fmt='o', label='Measured Values')  # Plotting measured values (測定値のプロット)
+
+# Plot weighted average
+plt.axhline(weighted_avg, color='red', linestyle='--', label=f'Weighted Average: {weighted_avg:.2f}')  # Plotting weighted average (重み付き平均のプロット)
+
+# Plot equal interval average
+plt.axhline(equal_interval_avg, color='green', linestyle=':', label=f'Equal Interval Avg: {equal_interval_avg:.2f}')  # Plotting equal interval average (等間隔平均のプロット)
+
+# Plot least squares fit line
+plt.plot(x_values, best_estimate, label=f'Linear Fit: y = {slope:.2f}x + {intercept:.2f}', color='blue')  # Plotting linear fit line (線形フィットラインのプロット)
+
+# Labels and legend
+plt.xlabel('Measurement Index')  # X-axis label (X軸のラベル)
+plt.ylabel('Measured Value')  # Y-axis label (Y軸のラベル)
+plt.title('Analysis of Measurements and Uncertainties')  # Title of the plot (プロットのタイトル)
+plt.legend()  # Show legend (凡例の表示)
+plt.grid(True)  # Enable grid (グリッドの表示)
+plt.show()  # Show the plot (プロットの表示)
+
+# Output results
+print("Results:")
+print(f"Weighted Average: {weighted_avg} ± {combined_uncertainty_weighted}")  # Print weighted average (重み付き平均の表示)
+print(f"Equal Interval Average: {equal_interval_avg} ± {combined_uncertainty_equal}")  # Print equal interval average (等間隔平均の表示)
+print(f"Linear Fit Slope: {slope} ± {slope_uncertainty}")  # Print slope of the linear fit (線形フィットの傾きの表示)
+print(f"Linear Fit Intercept: {intercept} ± {intercept_uncertainty}")  # Print intercept of the linear fit (線形フィットの切片の表示)
+print(f"Sum of Squared Residuals: {sum_squared_residuals}")  # Print sum of squared residuals (残差の二乗和の表示)
