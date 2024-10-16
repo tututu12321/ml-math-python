@@ -1,0 +1,117 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.fft import fft
+
+# Parameter settings (パラメータ設定)
+Fs = 1000  # Sampling frequency (サンプリング周波数) in Hz
+Fin = 50   # Input signal frequency (入力信号の周波数) in Hz
+duration = 1  # Duration (期間) in seconds
+t = np.linspace(0, duration, int(Fs*duration), endpoint=False)  # Time axis (時間軸)
+
+# Generate a sine wave (サイン波生成)
+amplitude = 1
+signal = amplitude * np.sin(2 * np.pi * Fin * t)
+
+# 8-bit AD conversion (8ビットAD変換)
+def adc_8bit(signal):
+    # Quantize the signal to 8-bit (信号を8ビットに量子化)
+    quantized_signal = np.round((signal + 1) * (2**7)) / (2**7) - 1
+    return quantized_signal
+
+# 10-bit AD conversion (10ビットAD変換)
+def adc_10bit(signal):
+    # Quantize the signal to 10-bit (信号を10ビットに量子化)
+    quantized_signal = np.round((signal + 1) * (2**9)) / (2**9) - 1
+    return quantized_signal
+
+# Calculate the power spectrum using FFT (FFTによるパワースペクトル計算)
+def calculate_power_spectrum(signal, Fs):
+    N = len(signal)
+    yf = fft(signal)
+    xf = np.fft.fftfreq(N, 1/Fs)[:N//2]
+    power_spectrum = 2.0/N * np.abs(yf[:N//2])**2
+    return xf, power_spectrum
+
+# Calculate SNR (SNR計算)
+def calculate_snr(signal, Fs):
+    xf, power_spectrum = calculate_power_spectrum(signal, Fs)
+    # Sum the power around the signal frequency to find the signal power (信号の周波数付近のパワーを合計して信号のパワーを求める)
+    signal_power = np.sum(power_spectrum[(xf >= Fin-1) & (xf <= Fin+1)])
+    noise_power = np.sum(power_spectrum) - signal_power  # Noise power (ノイズパワー)
+    snr = 10 * np.log10(signal_power / noise_power)  # SNR calculation (SNRをdBで計算)
+    return snr
+
+# Calculate SQNR (SQNR計算)
+def calculate_sqnr(signal, quantized_signal):
+    signal_power = np.mean(signal**2)  # Original signal power (オリジナル信号のパワー)
+    quantization_noise_power = np.mean((signal - quantized_signal)**2)  # Quantization noise power (量子化ノイズのパワー)
+    sqnr = 10 * np.log10(signal_power / quantization_noise_power)  # SQNR calculation (SQNRをdBで計算)
+    return sqnr
+
+# Calculate SNDR (SNDR計算)
+def calculate_sndr(signal, Fs):
+    xf, power_spectrum = calculate_power_spectrum(signal, Fs)
+    signal_power = np.sum(power_spectrum[(xf >= Fin-1) & (xf <= Fin+1)])
+    total_noise_power = np.sum(power_spectrum) - signal_power  # Total noise and distortion power (総ノイズと歪のパワー)
+    sndr = 10 * np.log10(signal_power / total_noise_power)  # SNDR calculation (SNDRをdBで計算)
+    return sndr
+
+# Perform AD conversion for 8-bit and 10-bit (8ビットと10ビットでAD変換を実行)
+adc_8bit_signal = adc_8bit(signal)
+adc_10bit_signal = adc_10bit(signal)
+
+# Calculate power spectra (パワースペクトルを計算)
+xf, power_spectrum_8bit = calculate_power_spectrum(adc_8bit_signal, Fs)
+_, power_spectrum_10bit = calculate_power_spectrum(adc_10bit_signal, Fs)
+
+# Calculate SNR (SNRを計算)
+snr_8bit = calculate_snr(adc_8bit_signal, Fs)
+snr_10bit = calculate_snr(adc_10bit_signal, Fs)
+
+# Calculate SQNR (SQNRを計算)
+sqnr_8bit = calculate_sqnr(signal, adc_8bit_signal)
+sqnr_10bit = calculate_sqnr(signal, adc_10bit_signal)
+
+# Calculate SNDR (SNDRを計算)
+sndr_8bit = calculate_sndr(adc_8bit_signal, Fs)
+sndr_10bit = calculate_sndr(adc_10bit_signal, Fs)
+
+# Display results in the console (結果をコンソールに表示)
+print(f"8-bit ADC SNR: {snr_8bit:.2f} dB")
+print(f"10-bit ADC SNR: {snr_10bit:.2f} dB")
+print(f"8-bit ADC SQNR: {sqnr_8bit:.2f} dB")
+print(f"10-bit ADC SQNR: {sqnr_10bit:.2f} dB")
+print(f"8-bit ADC SNDR: {sndr_8bit:.2f} dB")
+print(f"10-bit ADC SNDR: {sndr_10bit:.2f} dB")
+
+# Plot results (結果を表示)
+plt.figure(figsize=(14, 10))
+
+# Plot the original and ADC converted signals (オリジナル信号とAD変換信号のプロット)
+plt.subplot(3, 1, 1)
+plt.plot(t, signal, label='Original Signal')
+plt.plot(t, adc_8bit_signal, label='8-bit ADC Signal', linestyle='--')
+plt.plot(t, adc_10bit_signal, label='10-bit ADC Signal', linestyle='-.')
+plt.legend()
+plt.title('Original and ADC Converted Signals')
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude')
+
+# Power spectrum of the 8-bit ADC signal (8ビットAD変換信号のパワースペクトル)
+plt.subplot(3, 1, 2)
+plt.plot(xf, power_spectrum_8bit)
+plt.title(f'Power Spectrum of 8-bit ADC Signal\n'
+          f'SNR: {snr_8bit:.2f} dB, SQNR: {sqnr_8bit:.2f} dB, SNDR: {sndr_8bit:.2f} dB')
+plt.xlabel('Frequency [Hz]')
+plt.ylabel('Power')
+
+# Power spectrum of the 10-bit ADC signal (10ビットAD変換信号のパワースペクトル)
+plt.subplot(3, 1, 3)
+plt.plot(xf, power_spectrum_10bit)
+plt.title(f'Power Spectrum of 10-bit ADC Signal\n'
+          f'SNR: {snr_10bit:.2f} dB, SQNR: {sqnr_10bit:.2f} dB, SNDR: {sndr_10bit:.2f} dB')
+plt.xlabel('Frequency [Hz]')
+plt.ylabel('Power')
+
+plt.tight_layout()
+plt.show()
