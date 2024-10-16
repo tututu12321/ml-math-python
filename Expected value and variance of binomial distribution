@@ -1,0 +1,55 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.stats as stats
+
+# 1. 二項分布: スマホのガチャの例
+n_trials = 100  # ガチャを引く回数 (Number of trials)
+p_success = 0.05  # ガチャが当たる確率 (Probability of success)
+
+# 二項分布のサンプル生成 (Generate sample from a binomial distribution)
+binomial_data = np.random.binomial(n_trials, p_success, size=1000)
+
+# 二項分布の期待値と分散 (Expected value and variance of binomial distribution)
+binomial_mean = n_trials * p_success  # 期待値 E[X] = np
+binomial_variance = n_trials * p_success * (1 - p_success)  # 分散 Var(X) = np(1-p)
+
+print(f"Binomial Distribution - Mean (期待値): {binomial_mean}")
+print(f"Binomial Distribution - Variance (分散): {binomial_variance}")
+
+# 2. ベルヌーイ分布: 0と1の分布
+p_bernoulli = 0.3  # 成功確率
+bernoulli_data = np.random.binomial(1, p_bernoulli, size=1000)  # ベルヌーイ試行のデータ生成 (Generate Bernoulli trials)
+
+# ベルヌーイ分布の期待値と分散 (Expected value and variance of Bernoulli distribution)
+bernoulli_mean = np.mean(bernoulli_data)
+bernoulli_variance = np.var(bernoulli_data, ddof=1)  # 不偏分散 (Sample variance)
+
+print(f"Bernoulli Distribution - Mean (期待値): {bernoulli_mean}")
+print(f"Bernoulli Distribution - Variance (分散): {bernoulli_variance}")
+
+# 3. 中心極限定理と正規分布 (Central Limit Theorem and Normal Distribution)
+sample_size = 100  # サンプルサイズ (Sample size)
+samples = np.random.binomial(n_trials, p_success, size=(1000, sample_size))  # 二項分布からサンプルを取得
+
+# 各サンプルの平均を計算 (Calculate means of each sample)
+sample_means = np.mean(samples, axis=1)
+
+# 正規分布の理論的な平均と標準偏差 (Theoretical mean and std of normal distribution)
+normal_mean = binomial_mean  # 中心極限定理により、正規分布の平均は二項分布の平均と同じ
+normal_std_dev = np.sqrt(binomial_variance / sample_size)  # 標準誤差 (Standard error)
+
+# ヒストグラムのプロット (Plot histogram of sample means)
+plt.figure(figsize=(10, 6))
+plt.hist(sample_means, bins=30, density=True, alpha=0.6, color='g', label='Sample Means (from Binomial)')
+xmin, xmax = plt.xlim()
+
+# 理論的な正規分布をプロット (Plot theoretical normal distribution)
+x = np.linspace(xmin, xmax, 100)
+pdf_normal = stats.norm.pdf(x, normal_mean, normal_std_dev)
+plt.plot(x, pdf_normal, 'r', label='Normal Distribution (CLT)')
+plt.title("Central Limit Theorem - Binomial to Normal Distribution")
+plt.xlabel("Sample Mean")
+plt.ylabel("Density")
+plt.legend()
+plt.grid(True)
+plt.show()
