@@ -1,0 +1,20 @@
+import numpy as np
+from scipy.linalg import eig
+
+# 正方行列の定義 / Define a square matrix
+A = np.array([[5, 4, 2],
+              [0, 1, -1],
+              [0, 0, 3]])
+
+# 固有値と固有ベクトルの計算 / Compute eigenvalues and eigenvectors
+eigenvalues, eigenvectors = eig(A)
+
+# ジョルダン標準形の近似計算 / Approximate the Jordan form
+J = np.diag(eigenvalues)
+
+print("\nEigenvalues:")
+print(eigenvalues)
+print("\nEigenvectors:")
+print(eigenvectors)
+print("\nApproximate Jordan Form J:")
+print(J)
