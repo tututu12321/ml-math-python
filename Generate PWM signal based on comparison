@@ -1,0 +1,55 @@
+import numpy as np  # Import NumPy library
+import matplotlib.pyplot as plt  # Import Matplotlib for plotting
+
+# Parameters
+frequency = 1  # Frequency of the sine wave in Hz (サイン波の周波数)
+sampling_rate = 100  # Sampling rate in Hz (サンプリングレート)
+duration = 2  # Duration of the signal in seconds (信号の持続時間)
+
+# Time array
+t = np.linspace(0, duration, int(sampling_rate * duration))  # Time array
+
+# Generate sine wave
+sine_wave = 0.5 * (1 + np.sin(2 * np.pi * frequency * t))  # Normalize to 0-1 range (0-1の範囲に正規化)
+
+# Generate triangle wave for comparison
+triangle_wave = 0.5 * (1 + np.abs(2 * (t * frequency - np.floor(t * frequency + 0.5))))  # Triangle wave
+
+# Generate PWM signal based on comparison
+pwm_signal = (sine_wave > triangle_wave).astype(float)  # Compare sine wave with triangle wave
+
+# Plotting
+plt.figure(figsize=(12, 8))
+
+# Plot Sine Wave
+plt.subplot(3, 1, 1)
+plt.plot(t, sine_wave, label='Sine Wave', color='blue')
+plt.title('Sine Wave')
+plt.xlabel('Time (s)')
+plt.ylabel('Amplitude')
+plt.ylim(-0.1, 1.1)
+plt.grid(True)
+plt.legend()
+
+# Plot Triangle Wave
+plt.subplot(3, 1, 2)
+plt.plot(t, triangle_wave, label='Triangle Wave', color='orange')
+plt.title('Triangle Wave (Comparator Reference)')
+plt.xlabel('Time (s)')
+plt.ylabel('Amplitude')
+plt.ylim(-0.1, 1.1)
+plt.grid(True)
+plt.legend()
+
+# Plot PWM Signal
+plt.subplot(3, 1, 3)
+plt.plot(t, pwm_signal, label='PWM Signal', color='green')
+plt.title('PWM Signal')
+plt.xlabel('Time (s)')
+plt.ylabel('Amplitude')
+plt.ylim(-0.1, 1.1)
+plt.grid(True)
+plt.legend()
+
+plt.tight_layout()  # Adjust layout
+plt.show()  # Display the plot
