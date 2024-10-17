@@ -1,0 +1,63 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Generate a complex signal
+# 複素数信号を生成
+def generate_complex_signal(frequency1, frequency2, sampling_rate, duration):
+    t = np.linspace(0, duration, int(sampling_rate * duration), endpoint=False)  # Time vector
+    signal1 = np.sin(2 * np.pi * frequency1 * t)  # First sine wave
+    signal2 = np.cos(2 * np.pi * frequency2 * t)  # Second cosine wave
+    complex_signal = signal1 + 1j * signal2  # Combine into a complex signal
+    return t, complex_signal
+
+# Perform FFT on the complex signal
+# 複素数信号にFFTを適用
+def perform_fft(signal):
+    fft_result = np.fft.fft(signal)  # Compute FFT
+    return fft_result
+
+# Parameters
+# パラメータ設定
+frequency1 = 5  # First signal frequency (Hz)
+frequency2 = 10  # Second signal frequency (Hz)
+sampling_rate = 100  # Sampling rate (Hz)
+duration = 2  # Signal duration (seconds)
+
+# Generate the complex signal
+# 複素数信号を生成
+t, complex_signal = generate_complex_signal(frequency1, frequency2, sampling_rate, duration)
+
+# Perform FFT
+# FFTを実行
+fft_result = perform_fft(complex_signal)
+
+# Frequency axis for plotting
+# プロット用の周波数軸
+n = len(complex_signal)
+freq = np.fft.fftfreq(n, d=1/sampling_rate)  # Frequency vector
+fft_magnitude = np.abs(fft_result)  # Magnitude of FFT result
+
+# Plot the original complex signal
+# 元の複素数信号をプロット
+plt.figure(figsize=(12, 6))
+plt.subplot(1, 2, 1)
+plt.title('Original Complex Signal')
+plt.plot(t, complex_signal.real, label='Real Part')  # Real part
+plt.plot(t, complex_signal.imag, label='Imaginary Part')  # Imaginary part
+plt.xlabel('Time (s)')  # 時間（秒）
+plt.ylabel('Amplitude')  # 振幅
+plt.legend()
+plt.grid()
+
+# Plot the FFT result
+# FFTの結果をプロット
+plt.subplot(1, 2, 2)
+plt.title('FFT Result')
+plt.plot(freq[:n // 2], fft_magnitude[:n // 2])  # Plot only the positive frequencies
+plt.xlabel('Frequency (Hz)')  # 周波数（Hz）
+plt.ylabel('Magnitude')  # 大きさ
+plt.xlim(0, sampling_rate / 2)  # Nyquist Frequency
+plt.grid()
+
+plt.tight_layout()
+plt.show()
