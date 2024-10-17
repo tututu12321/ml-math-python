@@ -1,0 +1,87 @@
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import numpy as np
+import matplotlib.pyplot as plt
+
+# デバイスの設定 (Setting device)
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+# ノイズ予測ネットワークの定義 (Define a noise prediction network)
+class NoisePredictor(nn.Module):
+    def __init__(self):
+        super(NoisePredictor, self).__init__()
+        self.net = nn.Sequential(
+            nn.Linear(2, 64),
+            nn.ReLU(),
+            nn.Linear(64, 64),
+            nn.ReLU(),
+            nn.Linear(64, 2)
+        )
+
+    def forward(self, x, t):
+        return self.net(x)
+
+# ノイズ予測ネットワークの初期化 (Initialize the network)
+model = NoisePredictor().to(device)
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+criterion = nn.MSELoss()
+
+# サンプルデータの生成 (Generate sample data)
+np.random.seed(42)
+n_samples = 1000
+x0 = np.random.rand(n_samples, 2) * 2 - 1  # 初期データ (Data in range [-1, 1])
+x0 = torch.tensor(x0, dtype=torch.float32).to(device)
+
+# 拡散プロセスの定義 (Define the diffusion process)
+timesteps = 100
+betas = np.linspace(0.0001, 0.02, timesteps)
+alphas = 1 - betas
+alpha_bars = np.cumprod(alphas)
+
+def q_sample(x0, t):
+    """Add noise to x0 at time step t."""
+    sqrt_alpha_bar = torch.sqrt(torch.tensor(alpha_bars[t], dtype=torch.float32)).to(device)
+    sqrt_one_minus_alpha_bar = torch.sqrt(1 - torch.tensor(alpha_bars[t], dtype=torch.float32)).to(device)
+    epsilon = torch.randn_like(x0).to(device)
+    xt = sqrt_alpha_bar * x0 + sqrt_one_minus_alpha_bar * epsilon
+    return xt, epsilon
+
+# 学習の実行 (Training loop)
+n_epochs = 1000
+for epoch in range(n_epochs):
+    t = np.random.randint(0, timesteps)
+    xt, epsilon = q_sample(x0, t)
+
+    # モデルの予測 (Predict noise with the model)
+    epsilon_pred = model(xt, t)
+
+    # 損失関数の計算 (Calculate loss)
+    loss = criterion(epsilon_pred, epsilon)
+
+    # 最適化のステップ (Optimization step)
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+
+    if epoch % 100 == 0:
+        print(f'Epoch {epoch}, Loss: {loss.item():.4f}')
+
+# 学習したノイズ除去プロセスのテスト (Test the denoising process)
+xt_test, _ = q_sample(x0, timesteps - 1)
+for t in reversed(range(timesteps)):
+    epsilon_pred = model(xt_test, t)
+    alpha_bar = torch.tensor(alpha_bars[t], dtype=torch.float32).to(device)
+    xt_test = (xt_test - torch.sqrt(1 - alpha_bar) * epsilon_pred) / torch.sqrt(alpha_bar)
+
+# 結果のプロット (Plot the denoised results)
+xt_test = xt_test.cpu().detach().numpy()
+plt.figure(figsize=(8, 6))
+plt.scatter(x0[:, 0].cpu(), x0[:, 1].cpu(), label='Original Data', alpha=0.3)
+plt.scatter(xt_test[:, 0], xt_test[:, 1], label='Denoised Data', alpha=0.3)
+plt.title('Denoising using Diffusion Model')
+plt.xlabel('Feature 1')
+plt.ylabel('Feature 2')
+plt.legend()
+plt.grid()
+plt.show()
