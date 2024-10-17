@@ -1,0 +1,86 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# コヒーレントサンプリングされた波形を1周期に並び替える (Sort coherent sampled waveforms into one period)
+def wave_sort(data, fs, f_signal):
+    data_num = len(data)  # データの長さを取得します。
+    t_signal = 1 / f_signal  # 信号の周期を計算します。
+    Ts = 1 / fs  # サンプリング周期を計算します。
+    dx_list = []  # 各サンプルの時間のリストを初期化します。
+    
+    for n in range(data_num):
+        i = int((Ts * n) / t_signal)  # 現在のサンプルがどの周期に属するかを計算します。
+        dx_list.append((Ts * n) - (t_signal * i))  # サンプル時間を周期の相対的な時間に変換します。
+    
+    # dx_list を基にインデックスを並び替えます。
+    sorted_indices = sorted(range(len(dx_list)), key=lambda k: dx_list[k])
+    sort = [data[i] for i in sorted_indices]  # データを並び替えます。
+    return sort
+
+# 入力信号にノイズを追加 (Add noise to the input signal)
+def add_noise(signal, noise_level):
+    noise = np.random.normal(0, noise_level, size=signal.shape)  # 正規分布に従うノイズを生成します。
+    return signal + noise  # 信号にノイズを加えます。
+
+# FFTとSNDR計算 (Calculate FFT and SNDR)
+def analyze_signal(signal, dt):
+    F = np.fft.fft(signal)  # フーリエ変換を計算します。
+    F[np.abs(F) < 1E-9] = 1E-9  # 非常に小さな値をクリアします。
+    freq = np.fft.fftfreq(len(signal), dt)  # 周波数を計算します。
+    freq_norm = freq / (1 / dt)  # 正規化された周波数を計算します。
+    Power = np.abs(F) ** 2  # パワースペクトルを計算します。
+    
+    max_index = np.argmax(Power[1:int(len(signal) / 2)]) + 1  # 最大パワーのインデックスを取得します。
+    Signal = Power[max_index]  # 信号成分のパワーを取得します。
+    Noise = np.sum(Power[1:int(len(signal) / 2)]) - Signal  # ノイズ成分のパワーを計算します。
+
+    if Noise == 0:
+        SNDR = np.inf  # ノイズがゼロの場合はSNDRを無限大に設定します。
+    else:
+        SNDR = 10 * np.log10(Signal / Noise)  # SNDRを計算します。
+
+    ENOB = (SNDR - 1.76) / 6.02  # 有効ビット数を計算します。
+    Pow_dB = 10 * np.log10(Power / Signal)  # パワースペクトルをデシベルに変換します。
+    return freq_norm, Power, Pow_dB, SNDR, ENOB
+
+# パラメータ設定 (Parameter settings)
+N = 64  # サンプル数を設定します。
+dt = 1e-6  # サンプリング時間を設定します。
+f_signal = 109.375e3  # 信号の周波数を設定します。
+t = np.arange(0, N * dt, dt)  # 時間の配列を生成します。
+
+# サンプルデータ（CSVがない場合の仮のデータ）(Sample data; substitute for actual data if CSV is unavailable)
+f = np.random.randint(0, 2**12, size=N)  # 仮のサンプルデータを生成します。
+
+# ノイズ追加 (Add noise)
+noise_level = 0.1  # ノイズレベルの設定
+f_noisy = add_noise(f, noise_level)  # ノイズを追加した信号を生成します。
+
+# 波形並び替え (Sort the waveform)
+f_sorted = wave_sort(f_noisy, 1/dt, f_signal)  # ノイズ付き信号を並び替えます。
+
+# 信号解析 (Analyze the signal)
+freq_norm, Power, Pow_dB, SNDR, ENOB = analyze_signal(f_sorted, dt)  # 信号を解析します。
+
+# グラフ表示 (Display graphs)
+plt.figure(figsize=(16, 8))
+
+# 時間領域のプロット (Plot in the time domain)
+plt.subplot(121)
+plt.plot(t, f_sorted, marker='.', markersize=5, label='f(n)')  # 並び替えた信号をプロットします。
+plt.xlabel("Time [sec]")
+plt.ylabel("Signal")
+plt.title("Time Domain Signal")
+plt.grid()
+
+# 周波数領域のプロット (Plot in the frequency domain)
+plt.subplot(122)
+plt.plot(freq_norm[1:int(N / 2)], Pow_dB[1:int(N / 2)], label='|F(k)|')  # パワースペクトルをプロットします。
+plt.xlabel('f/fs')
+plt.ylabel('Power [dB]')
+plt.title("Frequency Domain Signal")
+plt.text(0.4, -5.3, f"SNDR = {SNDR:.2f} dB")  # SNDRを表示します。
+plt.text(0.4, -10.3, f"ENOB = {ENOB:.2f} bit")  # ENOBを表示します。
+plt.grid()
+
+plt.show()  # グラフを表示します。
