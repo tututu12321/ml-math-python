@@ -1,0 +1,31 @@
+# Import necessary libraries / 必要なライブラリをインポート
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.pipeline import Pipeline
+from sklearn.metrics import accuracy_score
+
+# Load the Iris dataset / Irisデータセットをロード
+data = load_iris()
+X, y = data.data, data.target
+
+# Split the data into training and test sets / データを訓練用とテスト用に分割
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Create a pipeline with standard scaling and logistic regression
+# 標準化とロジスティック回帰を含むパイプラインを作成
+pipeline = Pipeline([
+    ('scaler', StandardScaler()),             # Step 1: Standardize the features / 特徴量の標準化
+    ('classifier', LogisticRegression())      # Step 2: Apply logistic regression / ロジスティック回帰の適用
+])
+
+# Train the model using the training data / 訓練データを使ってモデルを学習
+pipeline.fit(X_train, y_train)
+
+# Make predictions using the test data / テストデータで予測を行う
+y_pred = pipeline.predict(X_test)
+
+# Calculate and print the accuracy / 精度を計算して表示
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Model accuracy: {accuracy * 100:.2f}%")
