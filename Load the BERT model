@@ -1,0 +1,23 @@
+# Import necessary libraries / 必要なライブラリをインポート
+from transformers import BertTokenizer, BertModel
+
+# Load the BERT tokenizer / BERTのトークナイザをロード
+tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased')
+
+# Define an example sentence in English and Japanese / 英語と日本語の例文を定義
+text = "Natural Language Processing with BERT is fascinating. BERTを使った自然言語処理は面白い。"
+
+# Tokenize the input text / 入力テキストをトークナイズ
+inputs = tokenizer(text, return_tensors='pt', padding=True, truncation=True)
+
+# Load the BERT model / BERTモデルをロード
+model = BertModel.from_pretrained('bert-base-multilingual-cased')
+
+# Perform a forward pass to get the output embeddings / 順伝播で出力埋め込みを取得
+outputs = model(**inputs)
+
+# Extract the last hidden states / 最後の隠れ状態を抽出
+last_hidden_states = outputs.last_hidden_state
+
+# Print the shape of the output / 出力の形状を表示
+print("Shape of output embeddings:", last_hidden_states.shape)
