@@ -1,0 +1,33 @@
+import sympy as sp
+
+# Define the symbols
+t, s = sp.symbols('t s')
+
+# Define a function for which we want to perform Laplace transform
+# ラプラス変換を行いたい関数を定義します。
+f = sp.exp(-t) * sp.sin(t)  # Example function: e^(-t) * sin(t)
+
+# Perform the Laplace transform
+# ラプラス変換を実行します。
+F_s = sp.laplace_transform(f, t, s)
+
+# Display the result
+print("Laplace Transform:")
+print("F(s):", F_s[0])  # F(s) is the first element of the result
+# ラプラス変換の結果を表示します。
+
+# Perform the Inverse Laplace transform
+# 逆ラプラス変換を実行します。
+f_recovered = sp.inverse_laplace_transform(F_s[0], s, t)
+
+# Display the recovered function
+print("\nInverse Laplace Transform:")
+print("f(t):", f_recovered)
+# 逆ラプラス変換で復元した関数を表示します。
+
+# Verify the results by checking if the recovered function matches the original
+# 復元した関数が元の関数と一致するか確認します。
+if sp.simplify(f - f_recovered) == 0:
+    print("\nThe recovered function matches the original function.")
+else:
+    print("\nThe recovered function does not match the original function.")
