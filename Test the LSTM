@@ -1,0 +1,81 @@
+import torch
+import torch.nn as nn
+import numpy as np
+import matplotlib.pyplot as plt
+
+# LSTMの定義 (Define LSTM)
+class SimpleLSTM(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size):
+        super(SimpleLSTM, self).__init__()
+        self.hidden_size = hidden_size
+        self.lstm = nn.LSTM(input_size, hidden_size, batch_first=True)
+        self.fc = nn.Linear(hidden_size, output_size)
+    
+    def forward(self, x):
+        # 初期の隠れ状態とセル状態 (Initialize hidden state and cell state)
+        h_0 = torch.zeros(1, x.size(0), self.hidden_size).to(x.device)  # (num_layers, batch_size, hidden_size)
+        c_0 = torch.zeros(1, x.size(0), self.hidden_size).to(x.device)
+        
+        # LSTMの出力を取得 (Get LSTM outputs)
+        lstm_out, (h_n, c_n) = self.lstm(x, (h_0, c_0))
+        
+        # 最後の時刻の出力を全結合層に通して予測を行う (Pass the output of the last time step to the fully connected layer)
+        output = self.fc(lstm_out[:, -1, :])
+        return output
+
+# パラメータ設定 (Set parameters)
+input_size = 1    # 入力サイズ (Input size)
+hidden_size = 50  # 隠れ層のサイズ (Hidden size)
+output_size = 1   # 出力サイズ (Output size)
+seq_length = 10   # 入力シーケンスの長さ (Input sequence length)
+
+# モデルの初期化 (Initialize the model)
+model = SimpleLSTM(input_size, hidden_size, output_size)
+criterion = nn.MSELoss()  # 損失関数 (Loss function)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+
+# サンプルデータの生成 (Generate sample data)
+np.random.seed(42)
+t = np.linspace(0, 2 * np.pi, 100)  # 時間軸 (Time axis)
+x = np.sin(t)  # サイン波の入力 (Input: sine wave)
+x = x.reshape(-1, 1)
+y = np.cos(t)  # コサイン波の目標値 (Target: cosine wave)
+y = y.reshape(-1, 1)
+
+# データの変換 (Transform data)
+x_tensor = torch.tensor(x, dtype=torch.float32).view(-1, seq_length, input_size)
+y_tensor = torch.tensor(y, dtype=torch.float32).view(-1, seq_length, output_size)
+
+# モデルの訓練 (Train the model)
+n_epochs = 200
+for epoch in range(n_epochs):
+    model.train()
+    optimizer.zero_grad()
+    
+    # 順伝播 (Forward pass)
+    output = model(x_tensor)
+    loss = criterion(output, y_tensor[:, -1, :])
+    
+    # 逆伝播とパラメータ更新 (Backward pass and optimization)
+    loss.backward()
+    optimizer.step()
+    
+    if (epoch + 1) % 20 == 0:
+        print(f'Epoch [{epoch + 1}/{n_epochs}], Loss: {loss.item():.4f}')
+
+# LSTMのテスト (Test the LSTM)
+model.eval()
+with torch.no_grad():
+    test_input = torch.tensor(x, dtype=torch.float32).view(-1, seq_length, input_size)
+    test_output = model(test_input).numpy()
+
+# 結果のプロット (Plot the results)
+plt.figure(figsize=(10, 5))
+plt.plot(t, y, label='True Cosine Wave', color='blue')
+plt.plot(t[-len(test_output):], test_output, label='LSTM Prediction', color='red', linestyle='--')
+plt.title('LSTM Prediction of a Cosine Wave')
+plt.xlabel('Time')
+plt.ylabel('Value')
+plt.legend()
+plt.grid()
+plt.show()
