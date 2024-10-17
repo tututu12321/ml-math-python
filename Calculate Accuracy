@@ -1,0 +1,27 @@
+# 混同行列の要素 (Elements of the confusion matrix)
+A = 50  # 真陽性 (True Positive)
+B = 10  # 偽陽性 (False Positive)
+C = 5   # 偽陰性 (False Negative)
+D = 35  # 真陰性 (True Negative)
+
+# 正解率の計算 (Calculate Accuracy)
+accuracy = (A + D) / (A + B + C + D)
+print(f"Accuracy: {accuracy:.2f}")
+
+# 再現率の計算 (Calculate Recall)
+recall_positive = A / (A + B)
+recall_negative = D / (C + D)
+print(f"Recall (Positive): {recall_positive:.2f}")
+print(f"Recall (Negative): {recall_negative:.2f}")
+
+# 適合率の計算 (Calculate Precision)
+precision_positive = A / (A + C)
+precision_negative = D / (B + D)
+print(f"Precision (Positive): {precision_positive:.2f}")
+print(f"Precision (Negative): {precision_negative:.2f}")
+
+# F値の計算 (Calculate F-Measure)
+f_measure_positive = (2 * recall_positive * precision_positive) / (recall_positive + precision_positive)
+f_measure_negative = (2 * recall_negative * precision_negative) / (recall_negative + precision_negative)
+print(f"F-Measure (Positive): {f_measure_positive:.2f}")
+print(f"F-Measure (Negative): {f_measure_negative:.2f}")
