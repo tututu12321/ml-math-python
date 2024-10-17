@@ -1,0 +1,49 @@
+import numpy as np
+
+# One-hotエンコーディング関数 (One-hot encoding function)
+def one_hot_encode(label, num_classes):
+    """
+    Convert a label into a one-hot encoded vector.
+    :param label: The index of the label (0-indexed).
+    :param num_classes: Total number of classes.
+    :return: A one-hot encoded numpy array.
+    """
+    one_hot = np.zeros(num_classes)
+    one_hot[label] = 1
+    return one_hot
+
+# ラベルの例とOne-hotエンコーディングの適用 (Example of labels and one-hot encoding)
+num_classes = 5  # ラベル数 (Number of labels)
+label = 2  # ラベル (0-indexed, e.g., 2 means the 3rd class)
+one_hot_vector = one_hot_encode(label, num_classes)
+
+print(f"Label: {label} (3rd class)")
+print("One-hot vector:", one_hot_vector)
+
+# Softmax関数の定義 (Define the softmax function)
+def softmax(logits):
+    """
+    Compute the softmax of a vector.
+    :param logits: The input vector (logits).
+    :return: A probability distribution as a numpy array.
+    """
+    exp_logits = np.exp(logits - np.max(logits))  # For numerical stability
+    return exp_logits / np.sum(exp_logits)
+
+# モデルの出力（ランダムなロジット） (Model output - random logits)
+logits = np.array([2.0, 1.0, 0.1, -1.0, 0.5])  # 仮の出力 (Example output logits)
+
+# Softmax関数を適用して確率を計算 (Calculate probabilities using softmax)
+probabilities = softmax(logits)
+
+print("\nLogits:", logits)
+print("Softmax Probabilities:", probabilities)
+print("Predicted class:", np.argmax(probabilities))
+
+# 教師データのOne-hotベクトルと確率の計算例 (Example of using one-hot vector for training)
+true_label = 2  # 正解ラベル (True label)
+one_hot_target = one_hot_encode(true_label, num_classes)
+loss = -np.sum(one_hot_target * np.log(probabilities + 1e-9))  # クロスエントロピー損失 (Cross-entropy loss)
+
+print("\nOne-hot target:", one_hot_target)
+print("Cross-entropy loss:", loss)
