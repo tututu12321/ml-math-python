@@ -1,0 +1,26 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 窓関数の定義とリスト (Define window functions)
+N = 128  # 窓のサイズ (Window size)
+
+windows = {
+    "Rectangular": np.ones(N),  # 矩形窓 (Rectangular window)
+    "Hanning": np.hanning(N),   # ハニング窓 (Hanning window)
+    "Hamming": np.hamming(N),   # ハミング窓 (Hamming window)
+    "Blackman": np.blackman(N), # ブラックマン窓 (Blackman window)
+    "Bartlett": np.bartlett(N), # バートレット窓 (Bartlett window)
+}
+
+# 窓関数のプロット (Plot window functions)
+plt.figure(figsize=(12, 8))
+for i, (name, window) in enumerate(windows.items(), 1):
+    plt.subplot(3, 2, i)
+    plt.plot(window)
+    plt.title(f'{name} Window')
+    plt.xlabel('Sample')
+    plt.ylabel('Amplitude')
+    plt.grid(True)
+
+plt.tight_layout()
+plt.show()
