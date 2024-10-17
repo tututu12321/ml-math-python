@@ -1,0 +1,26 @@
+# 必要なライブラリのインストール (Install required library)
+# pip install spacy
+# pip install spacy[en_core_web_sm]
+
+import spacy
+
+# 英語モデルの読み込み (Load the English language model)
+nlp = spacy.load("en_core_web_sm")
+
+# テキストの入力 (Input text)
+text = "The quick brown fox jumps over the lazy dog."
+
+# 構文解析の実行 (Perform syntax parsing)
+doc = nlp(text)
+
+# 結果の表示 (Display the results)
+print("Token \t POS \t Dependency \t Lemma")
+print("=" * 40)
+for token in doc:
+    print(f"{token.text:10} {token.pos_:10} {token.dep_:15} {token.lemma_}")
+
+# グラフィカルな依存関係の表示 (Visualize the dependency structure)
+# Jupyter Notebookの場合のみ可視化が可能 (This visualization works in Jupyter Notebook)
+from spacy import displacy
+
+displacy.render(doc, style="dep", jupyter=True)
