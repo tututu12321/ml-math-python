@@ -1,0 +1,34 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import signal
+
+# Parameters for the Fourier series / フーリエ級数のパラメータ
+L = np.pi  # Period (周期)
+x = np.linspace(-L, L, 1000)  # x-axis values / x軸の値
+N = 10  # Number of Fourier terms to use / フーリエ項の数
+
+# Function to compute the Fourier series for a triangle wave / 三角波のフーリエ級数を計算する関数
+def triangle_wave_fourier(x, N, L):
+    result = np.zeros_like(x)
+    for n in range(1, N + 1):
+        # Fourier coefficients for the triangle wave / 三角波のフーリエ係数
+        term = ((-1) ** (n - 1)) * (8 / (np.pi ** 2)) * (1 / (2 * n - 1) ** 2) * np.cos((2 * n - 1) * np.pi * x / L)
+        result += term
+    return result
+
+# Compute the Fourier series for the triangle wave / 三角波のフーリエ級数を計算
+y_fourier = triangle_wave_fourier(x, N, L)
+
+# Generate a triangle wave using scipy's signal library / scipyライブラリから三角波を生成
+y_scipy = signal.sawtooth(2 * np.pi * x / (2 * L), 0.5)  # 0.5 makes it a triangle wave / デューティサイクル0.5で三角波
+
+# Plot both the Fourier series approximation and the triangle wave from scipy / 両方の三角波をプロット
+plt.figure(figsize=(10, 6))
+plt.plot(x, y_fourier, label=f'Fourier Series Approximation (N={N})', color='blue', linestyle='--')
+plt.plot(x, y_scipy, label='Triangle Wave from Scipy', color='green')
+plt.title('Comparison of Fourier Series Approximation and Scipy Triangle Wave')
+plt.xlabel('x')
+plt.ylabel('Amplitude')
+plt.grid(True)
+plt.legend()
+plt.show()
