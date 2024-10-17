@@ -1,0 +1,60 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.fft import fft, fftfreq
+
+# 定義域 (Define the domain)
+x = np.linspace(-2, 2, 400)  # -2から2までの400ポイントを生成します。
+
+# 矩形関数 f(x) (Define the rectangular function f(x))
+def rect_function(x):
+    return np.where(np.abs(x) <= 1, 1, 0)  # |x| <= 1 のとき 1 を返し、それ以外は 0 を返します。
+
+# フーリエ変換 (Define the Fourier transform)
+def fourier_transform(xi):
+    if xi == 0:
+        return 2  # xi が 0 の場合の処理 (Handle case when xi is 0)
+    else:
+        return 2 * np.sin(xi) / xi  # Fourier transform の公式を適用します。
+
+# 矩形関数のプロット (Plot the rectangular function)
+f_x = rect_function(x)  # 矩形関数を計算します。
+plt.figure(figsize=(12, 6))
+plt.subplot(2, 1, 1)  # 2行1列のサブプロットの1つ目
+plt.plot(x, f_x, label='$f(x)$')
+plt.title('Rectangular Function $f(x)$')
+plt.xlabel('$x$')
+plt.ylabel('$f(x)$')
+plt.legend()
+plt.grid()
+
+# フーリエ変換のプロット (Plot the Fourier transform)
+xi = np.linspace(-10, 10, 400)  # -10から10までの400ポイントを生成します。
+f_hat = np.array([fourier_transform(xi_i) for xi_i in xi])  # フーリエ変換を計算します。
+plt.subplot(2, 1, 2)  # 2行1列のサブプロットの2つ目
+plt.plot(xi, f_hat, label='$\\hat{f}(\\xi)$')
+plt.title('Fourier Transform $\\hat{f}(\\xi)$')
+plt.xlabel('$\\xi$')
+plt.ylabel('$\\hat{f}(\\xi)$')
+plt.legend()
+plt.grid()
+
+plt.tight_layout()  # プロットのレイアウトを整えます。
+plt.show()
+
+# FFT の計算 (Compute the FFT)
+N = 400  # サンプル数 (Number of samples)
+T = 1.0 / 800.0  # サンプル間隔 (Sampling interval)
+x_fft = np.linspace(-2, 2, N)  # -2から2までのNポイントを生成します。
+y_fft = rect_function(x_fft)  # 矩形関数を計算します。
+yf = fft(y_fft)  # FFTを計算します。
+xf = fftfreq(N, T)[:N//2]  # FFTの周波数を計算します。
+
+# FFT のプロット (Plot the FFT)
+plt.figure(figsize=(12, 6))
+plt.plot(xf, 2.0/N * np.abs(yf[:N//2]), label='FFT')  # 振幅をプロットします。
+plt.title('FFT of Rectangular Function')
+plt.xlabel('Frequency')
+plt.ylabel('Amplitude')
+plt.legend()
+plt.grid()
+plt.show()
