@@ -1,0 +1,68 @@
+import random
+from transformers import GPT2LMHeadModel, GPT2Tokenizer
+
+def generate_text(prompt, max_tokens=50, temperature=1.0, top_p=1.0,
+                  frequency_penalty=0.0, presence_penalty=0.0, seed=None):
+    """
+    Generate text using a pre-trained GPT-2 model.
+    GPT-2モデルを使用してテキストを生成します。
+
+    Parameters:
+    prompt (str): The input text prompt to generate from.
+    プロンプト (str): 生成するための入力テキストプロンプト。
+    max_tokens (int): Maximum number of tokens to generate.
+    最大トークン数 (int): 生成されるトークンの最大数。
+    temperature (float): Controls the creativity of the output.
+    温度 (float): 出力の創造性を制御します。
+    top_p (float): Controls the diversity of the generated text.
+    top_p (float): 生成されるテキストの多様性を制御します。
+    frequency_penalty (float): Penalty for repeating words/phrases.
+    繰り返しペナルティ (float): 単語やフレーズの繰り返しに対するペナルティ。
+    presence_penalty (float): Penalty for frequent topics/ideas.
+    頻出ペナルティ (float): 特定のトピックやアイデアの頻出に対するペナルティ。
+    seed (int): Random seed for reproducibility.
+    シード (int): 再現性のためのランダムシード。
+    
+    Returns:
+    str: The generated text.
+    返り値:
+    str: 生成されたテキスト。
+    """
+    
+    # Set random seed for reproducibility
+    # 再現性のためにランダムシードを設定します。
+    if seed is not None:
+        random.seed(seed)
+
+    # Load pre-trained model and tokenizer
+    # 事前学習済みのモデルとトークナイザーを読み込みます。
+    model_name = 'gpt2'  # You can choose other models as well
+    model = GPT2LMHeadModel.from_pretrained(model_name)
+    tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+
+    # Encode the prompt
+    # プロンプトをエンコードします。
+    input_ids = tokenizer.encode(prompt, return_tensors='pt')
+
+    # Generate text
+    # テキストを生成します。
+    output = model.generate(
+        input_ids,
+        max_length=max_tokens + len(input_ids[0]),  # Include prompt length
+        temperature=temperature,
+        top_p=top_p,
+        repetition_penalty=1.0 + frequency_penalty,
+        do_sample=True  # Enable sampling for variability
+    )
+
+    # Decode the generated text
+    # 生成されたテキストをデコードします。
+    generated_text = tokenizer.decode(output[0], skip_special_tokens=True)
+    return generated_text
+
+# Example usage
+# 使用例
+prompt = "In a distant future,"
+generated = generate_text(prompt, max_tokens=100, temperature=0.7, top_p=0.9, seed=42)
+print("Generated Text:\n", generated)
+# 生成されたテキストを表示します。
