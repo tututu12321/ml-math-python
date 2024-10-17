@@ -1,0 +1,27 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Define prior parameters (Beta distribution)
+alpha_prior = 2
+beta_prior = 2
+
+# Data: coin toss results (1: heads, 0: tails)
+data = np.array([1, 0, 1, 1, 0, 1, 0, 1, 1, 1])
+
+# Updating the posterior
+alpha_posterior = alpha_prior + np.sum(data)
+beta_posterior = beta_prior + len(data) - np.sum(data)
+
+# Plotting the prior and posterior
+x = np.linspace(0, 1, 100)
+prior = (x ** (alpha_prior - 1)) * ((1 - x) ** (beta_prior - 1))
+posterior = (x ** (alpha_posterior - 1)) * ((1 - x) ** (beta_posterior - 1))
+
+plt.figure(figsize=(8, 5))
+plt.plot(x, prior, label="Prior Distribution", linestyle='--')
+plt.plot(x, posterior, label="Posterior Distribution", color='blue')
+plt.title('Bayesian Inference: Coin Toss Example')
+plt.xlabel('Probability of Heads')
+plt.ylabel('Density')
+plt.legend()
+plt.show()
