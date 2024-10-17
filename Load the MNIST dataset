@@ -1,0 +1,57 @@
+import numpy as np
+import tensorflow as tf
+from tensorflow import keras
+from keras import layers
+import matplotlib.pyplot as plt
+
+# Load the MNIST dataset
+# MNISTデータセットを読み込みます。
+(X_train, y_train), (X_test, y_test) = keras.datasets.mnist.load_data()
+
+# Preprocess the data
+# データを前処理します。
+X_train = X_train.astype('float32') / 255.0  # Normalize to [0, 1]
+X_test = X_test.astype('float32') / 255.0
+X_train = X_train.reshape((X_train.shape[0], 28, 28, 1))  # Reshape for CNN
+X_test = X_test.reshape((X_test.shape[0], 28, 28, 1))
+
+# Create the deep learning model
+# 深層学習モデルを作成します。
+model = keras.Sequential([
+    layers.Input(shape=(28, 28, 1)),  # Input layer
+    layers.Conv2D(32, (3, 3), activation='relu'),  # Convolutional layer
+    layers.MaxPooling2D((2, 2)),  # Max pooling layer
+    layers.Conv2D(64, (3, 3), activation='relu'),  # Another convolutional layer
+    layers.MaxPooling2D((2, 2)),  # Another max pooling layer
+    layers.Flatten(),  # Flatten the output
+    layers.Dense(64, activation='relu'),  # Dense layer
+    layers.Dense(10, activation='softmax')  # Output layer (10 classes)
+])
+
+# Compile the model
+# モデルをコンパイルします。
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+
+# Train the model
+# モデルを訓練します。
+model.fit(X_train, y_train, epochs=5, batch_size=64, validation_split=0.1)
+
+# Evaluate the model
+# モデルを評価します。
+test_loss, test_accuracy = model.evaluate(X_test, y_test)
+print("Test accuracy:", test_accuracy)
+# テスト精度を表示します。
+
+# Predict and visualize some results
+# 結果を予測し、いくつかの結果を可視化します。
+predictions = model.predict(X_test)
+
+# Show the first 5 test images and their predicted labels
+# 最初の5つのテスト画像とその予測ラベルを表示します。
+for i in range(5):
+    plt.imshow(X_test[i].reshape(28, 28), cmap='gray')
+    plt.title(f'Predicted label: {np.argmax(predictions[i])}')
+    plt.axis('off')
+    plt.show()
