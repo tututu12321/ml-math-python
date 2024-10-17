@@ -1,0 +1,63 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn import svm
+from sklearn.datasets import make_blobs
+
+# 点と直線の距離を計算する関数 (Calculate distance between point and line)
+def point_line_distance(x0, y0, a, b, c):
+    """
+    Calculate the distance between a point (x0, y0) and a line ax + by + c = 0.
+    :param x0: x-coordinate of the point
+    :param y0: y-coordinate of the point
+    :param a: coefficient of x in the line equation
+    :param b: coefficient of y in the line equation
+    :param c: constant term in the line equation
+    :return: distance between the point and the line
+    """
+    return np.abs(a * x0 + b * y0 + c) / np.sqrt(a**2 + b**2)
+
+# サンプルデータの生成 (Generate sample data)
+X, y = make_blobs(n_samples=100, centers=2, random_state=42, cluster_std=1.5)
+
+# SVMのモデルを作成 (Create SVM model)
+model = svm.SVC(kernel='linear', C=1.0)
+model.fit(X, y)
+
+# サポートベクタを取得 (Get support vectors)
+support_vectors = model.support_vectors_
+
+# SVMの直線（決定境界）のパラメータを取得 (Get parameters of the decision boundary)
+w = model.coef_[0]  # 重み (Weights)
+b = model.intercept_[0]  # バイアス (Bias)
+a = -w[0] / w[1]  # 直線の傾き (Slope of the line)
+xx = np.linspace(X[:, 0].min(), X[:, 0].max(), 100)
+yy = a * xx - b / w[1]  # 決定境界 (Decision boundary)
+
+# 決定境界から各点への距離を計算 (Calculate distances from points to the decision boundary)
+distances = [point_line_distance(x[0], x[1], w[0], w[1], b) for x in X]
+
+# データのプロット (Plot data)
+plt.figure(figsize=(8, 6))
+plt.scatter(X[:, 0], X[:, 1], c=y, cmap='coolwarm', alpha=0.7, edgecolors='k', label='Data points')
+plt.scatter(support_vectors[:, 0], support_vectors[:, 1], s=100, facecolors='none', edgecolors='k', label='Support Vectors')
+plt.plot(xx, yy, 'k-', label='Decision Boundary')
+
+# マージンの描画 (Plot margins)
+margin = 1 / np.sqrt(np.sum(model.coef_ ** 2))
+yy_down = yy - np.sqrt(1 + a ** 2) * margin
+yy_up = yy + np.sqrt(1 + a ** 2) * margin
+plt.plot(xx, yy_down, 'k--', label='Margin')
+plt.plot(xx, yy_up, 'k--')
+
+# 結果の表示 (Show results)
+plt.title('SVM with Decision Boundary and Margins')
+plt.xlabel('Feature 1')
+plt.ylabel('Feature 2')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# サンプル点の距離を表示 (Print the distance of a sample point)
+sample_point = np.array([1, 2])
+distance = point_line_distance(sample_point[0], sample_point[1], w[0], w[1], b)
+print(f"Distance between the point {sample_point} and the decision boundary: {distance:.4f}")
