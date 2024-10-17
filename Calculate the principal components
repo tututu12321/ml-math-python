@@ -1,0 +1,48 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# サンプルデータの生成 (Generate sample data)
+np.random.seed(0)
+data = np.random.rand(100, 2)  # 2次元データ (100 samples, 2 features)
+
+# 1. データの中心化 (Center the data)
+data_centered = data - np.mean(data, axis=0)
+
+# 2. 分散共分散行列の計算 (Calculate the covariance matrix)
+cov_matrix = np.cov(data_centered, rowvar=False)
+print("Covariance Matrix:")
+print(cov_matrix)
+
+# 3. 固有値と固有ベクトルの計算 (Calculate eigenvalues and eigenvectors)
+eigenvalues, eigenvectors = np.linalg.eig(cov_matrix)
+print("\nEigenvalues:")
+print(eigenvalues)
+print("\nEigenvectors:")
+print(eigenvectors)
+
+# 4. 固有値の降順で固有ベクトルをソート (Sort eigenvectors by eigenvalues in descending order)
+sorted_indices = np.argsort(eigenvalues)[::-1]
+sorted_eigenvalues = eigenvalues[sorted_indices]
+sorted_eigenvectors = eigenvectors[:, sorted_indices]
+
+# 5. 主成分を計算 (Calculate the principal components)
+principal_components = np.dot(data_centered, sorted_eigenvectors)
+
+# 結果のプロット (Plot the results)
+plt.figure(figsize=(8, 6))
+plt.scatter(data_centered[:, 0], data_centered[:, 1], label='Centered Data', alpha=0.5)
+plt.quiver(0, 0, sorted_eigenvectors[0, 0], sorted_eigenvectors[1, 0],
+           angles='xy', scale_units='xy', scale=1, color='r', label='1st Principal Component')
+plt.quiver(0, 0, sorted_eigenvectors[0, 1], sorted_eigenvectors[1, 1],
+           angles='xy', scale_units='xy', scale=1, color='b', label='2nd Principal Component')
+plt.title('PCA and Principal Components')
+plt.xlabel('Feature 1')
+plt.ylabel('Feature 2')
+plt.legend()
+plt.grid()
+plt.gca().set_aspect('equal', adjustable='box')
+plt.show()
+
+# 6. 主成分得点の表示 (Show the first few principal component scores)
+print("\nFirst 5 Principal Component Scores:")
+print(principal_components[:5])
