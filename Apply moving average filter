@@ -1,0 +1,39 @@
+# Import necessary libraries
+# 必要なライブラリをインポート
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Create sample time series data
+# サンプルの時系列データを作成
+np.random.seed(42)
+date_range = pd.date_range(start='2023-01-01', periods=100, freq='D')
+data = pd.Series(np.random.randn(100).cumsum(), index=date_range)
+
+# Apply moving average filter
+# 移動平均フィルタを適用
+window_size = 5
+moving_average = data.rolling(window=window_size).mean()
+
+# Create a board plot for the moving average filter
+# 移動平均フィルタのボード線図を作成
+plt.figure(figsize=(14, 7))
+plt.subplot(2, 1, 1)
+plt.plot(data, label='Original Data', color='blue', alpha=0.5)
+plt.plot(moving_average, label='Moving Average (Window Size = 5)', color='orange')
+plt.title('Time Series Data and Moving Average')
+plt.xlabel('Date')
+plt.ylabel('Value')
+plt.legend()
+plt.grid()
+
+# Create a box plot of the moving average
+# 移動平均のボックスプロットを作成
+plt.subplot(2, 1, 2)
+plt.boxplot(moving_average.dropna(), vert=False)
+plt.title('Box Plot of Moving Average')
+plt.xlabel('Value')
+plt.grid()
+
+plt.tight_layout()
+plt.show()
