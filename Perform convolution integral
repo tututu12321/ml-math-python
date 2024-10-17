@@ -1,0 +1,74 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Define the impulse response of the system
+# システムのインパルス応答を定義
+def impulse_response(t):
+    # Example: Exponential decay response
+    # 例: 指数減衰応答
+    return np.exp(-t) * (t >= 0)  # Return 0 for negative time
+
+# Perform convolution integral
+# 畳み込み積分を実行
+def convolution_integral(input_signal, impulse_response, dt):
+    # Calculate the convolution using the trapezoidal rule
+    # 台形法を用いて畳み込みを計算
+    output_signal = np.zeros(len(input_signal) + len(impulse_response) - 1)
+    for i in range(len(output_signal)):
+        for j in range(len(impulse_response)):
+            if 0 <= i - j < len(input_signal):
+                output_signal[i] += input_signal[i - j] * impulse_response[j] * dt  # Convolution
+    return output_signal
+
+# Generate a sample input signal
+# サンプル入力信号を生成
+def generate_input_signal(t):
+    return np.sin(2 * np.pi * 1 * t)  # Example: Sine wave input
+
+# Parameters
+# パラメータ設定
+dt = 0.01  # Time step (s)
+t = np.arange(0, 5, dt)  # Time vector
+
+# Generate the input signal
+# 入力信号を生成
+input_signal = generate_input_signal(t)
+
+# Generate the impulse response
+# インパルス応答を生成
+impulse_response_signal = impulse_response(t)
+
+# Perform convolution
+# 畳み込みを実行
+output_signal = convolution_integral(input_signal, impulse_response_signal, dt)
+
+# Plot the input signal, impulse response, and output signal
+# 入力信号、インパルス応答、出力信号をプロット
+plt.figure(figsize=(15, 8))
+
+# Input Signal
+plt.subplot(3, 1, 1)
+plt.title('Input Signal')
+plt.plot(t, input_signal)
+plt.xlabel('Time (s)')  # 時間（秒）
+plt.ylabel('Amplitude')  # 振幅
+plt.grid()
+
+# Impulse Response
+plt.subplot(3, 1, 2)
+plt.title('Impulse Response')
+plt.plot(t, impulse_response_signal)
+plt.xlabel('Time (s)')  # 時間（秒）
+plt.ylabel('Amplitude')  # 振幅
+plt.grid()
+
+# Output Signal
+plt.subplot(3, 1, 3)
+plt.title('Output Signal (Convolution Result)')
+plt.plot(np.arange(0, len(output_signal) * dt, dt), output_signal)
+plt.xlabel('Time (s)')  # 時間（秒）
+plt.ylabel('Amplitude')  # 振幅
+plt.grid()
+
+plt.tight_layout()
+plt.show()
