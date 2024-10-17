@@ -1,0 +1,97 @@
+import torch
+from transformers import BertForQuestionAnswering, BertTokenizer, Trainer, TrainingArguments
+from datasets import load_dataset
+import json
+
+# GPUの設定 (Use GPU if available)
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+# モデルとトークナイザーの読み込み (Load the model and tokenizer)
+model_name = "bert-base-uncased"
+model = BertForQuestionAnswering.from_pretrained(model_name).to(device)
+tokenizer = BertTokenizer.from_pretrained(model_name)
+
+# SQuADデータセットの読み込み (Load the SQuAD dataset)
+dataset = load_dataset("squad")
+
+# トークナイズ関数の定義 (Define the tokenization function)
+def preprocess_function(examples):
+    return tokenizer(
+        examples["question"],
+        examples["context"],
+        truncation=True,
+        max_length=384,
+        stride=128,
+        return_overflowing_tokens=True,
+        return_offsets_mapping=True,
+        padding="max_length",
+    )
+
+# データのトークナイズ (Tokenize the dataset)
+tokenized_datasets = dataset.map(preprocess_function, batched=True)
+
+# トレーニング用の設定 (Define the training arguments)
+training_args = TrainingArguments(
+    output_dir="./results",
+    evaluation_strategy="epoch",
+    learning_rate=2e-5,
+    per_device_train_batch_size=16,
+    num_train_epochs=3,
+    weight_decay=0.01,
+)
+
+# トレーナーの定義 (Define the Trainer)
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=tokenized_datasets["train"],
+    eval_dataset=tokenized_datasets["validation"],
+    tokenizer=tokenizer,
+)
+
+# モデルのトレーニング (Train the model)
+trainer.train()
+
+# テストデータに対する推論 (Make predictions on test data)
+test_samples = [
+    {
+        "context": "The capital of France is Paris.",
+        "question": "What is the capital of France?",
+    },
+    {
+        "context": "The Great Wall of China is one of the seven wonders of the world.",
+        "question": "What is one of the seven wonders of the world?",
+    },
+]
+
+# 推論の関数定義 (Define the prediction function)
+def predict_answer(context, question):
+    inputs = tokenizer(question, context, return_tensors="pt").to(device)
+    with torch.no_grad():
+        outputs = model(**inputs)
+
+    # スコアが最大となる開始位置と終了位置を取得 (Get the most likely start and end positions)
+    start_logits = outputs.start_logits
+    end_logits = outputs.end_logits
+    start_position = torch.argmax(start_logits)
+    end_position = torch.argmax(end_logits)
+
+    # トークンから答えのテキストを抽出 (Extract the answer from the tokens)
+    answer_tokens = inputs["input_ids"][0][start_position : end_position + 1]
+    answer = tokenizer.decode(answer_tokens, skip_special_tokens=True)
+    return answer
+
+# テストサンプルに対して答えを生成し、ファイルに書き出す (Generate answers and save to a file)
+results = []
+for sample in test_samples:
+    context = sample["context"]
+    question = sample["question"]
+    answer = predict_answer(context, question)
+    results.append({"question": question, "context": context, "answer": answer})
+
+# 結果をJSONファイルに書き出し (Write results to a JSON file)
+output_file = "squad_predictions.json"
+with open(output_file, "w") as f:
+    json.dump(results, f, indent=4)
+
+print(f"Predictions saved to {output_file}")
