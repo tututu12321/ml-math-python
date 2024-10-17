@@ -1,0 +1,53 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Gauss-Seidel Method for solving 2D Poisson's equation
+# 2次元ポアソン方程式を解くためのガウス-ザイデル法
+def gauss_seidel_poisson(f, dx, dy, max_iter=10000, tol=1e-5):
+    # Initialize the grid
+    # グリッドを初期化
+    nx, ny = f.shape
+    u = np.zeros((nx, ny))  # Solution array
+    u_new = np.zeros_like(u)  # New solution array for updates
+
+    for it in range(max_iter):
+        for i in range(1, nx - 1):
+            for j in range(1, ny - 1):
+                # Update the solution using the Gauss-Seidel formula
+                # ガウス-ザイデルの公式を用いて解を更新
+                u_new[i, j] = 0.25 * (u[i + 1, j] + u[i - 1, j] + u[i, j + 1] + u[i, j - 1] - dx * dx * f[i, j])
+
+        # Check for convergence
+        # 収束の確認
+        if np.linalg.norm(u_new - u) < tol:
+            print(f'Converged after {it} iterations.')
+            break
+        
+        u = u_new.copy()  # Update the solution
+
+    return u_new
+
+# Set parameters
+# パラメータ設定
+Lx, Ly = 1.0, 1.0  # Domain size
+nx, ny = 50, 50  # Number of grid points
+dx, dy = Lx / (nx - 1), Ly / (ny - 1)  # Grid spacing
+
+# Create the source term (right-hand side of the equation)
+# ソース項（方程式の右辺）を作成
+f = np.zeros((nx, ny))
+f[nx//2, ny//2] = -100  # Point source in the center
+
+# Solve the Poisson equation using Gauss-Seidel method
+# ガウス-ザイデル法を用いてポアソン方程式を解く
+u = gauss_seidel_poisson(f, dx, dy)
+
+# Plot the results
+# 結果をプロット
+plt.figure(figsize=(8, 6))
+plt.contourf(u, levels=50, cmap='viridis')
+plt.colorbar(label='Potential')
+plt.title('Solution to Poisson\'s Equation using Gauss-Seidel Method')
+plt.xlabel('X-axis')
+plt.ylabel('Y-axis')
+plt.show()
