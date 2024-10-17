@@ -1,0 +1,61 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import lsim, find_peaks
+from control import lti, step
+
+def generate_data():
+    """
+    Generate synthetic data for system identification.
+    システム同定のための合成データを生成します。
+    """
+    # Define system parameters
+    A = np.array([[0, 1], [-1, -1]])  # System matrix
+    B = np.array([[0], [1]])           # Input matrix
+    C = np.array([[1, 0]])             # Output matrix
+    D = np.array([[0]])                 # Direct transmission matrix
+
+    # Create a continuous-time linear system
+    system = lti(A, B, C, D)
+
+    # Generate time vector
+    t = np.linspace(0, 10, 100)  # 0 to 10 seconds, 100 points
+    u = step(t)                  # Step input signal
+    t, y, _ = lsim(system, u, t) # Simulate system response
+
+    return t, u, y
+
+def identify_system(t, u, y):
+    """
+    Identify a state-space model from input-output data.
+    入力出力データから状態空間モデルを同定します。
+    """
+    # Create a linear system using identified parameters
+    # パラメータを指定して線形システムを作成します。
+    A_identified = np.array([[0, 1], [-1.5, -1]])  # Example identified A matrix
+    B_identified = np.array([[0], [1]])             # Example identified B matrix
+    C_identified = np.array([[1, 0]])               # Example identified C matrix
+    D_identified = np.array([[0]])                   # Example identified D matrix
+
+    system_identified = lti(A_identified, B_identified, C_identified, D_identified)
+
+    return system_identified
+
+# Generate synthetic data
+t, u, y = generate_data()
+
+# Identify the system
+identified_system = identify_system(t, u, y)
+
+# Simulate the identified system response
+t_identified, y_identified, _ = lsim(identified_system, u, t)
+
+# Plot the results
+plt.figure(figsize=(12, 6))
+plt.plot(t, y, label='Actual Output', linestyle='--')
+plt.plot(t_identified, y_identified, label='Identified Output', linestyle='-')
+plt.title('System Identification')
+plt.xlabel('Time (s)')
+plt.ylabel('Output')
+plt.legend()
+plt.grid()
+plt.show()
