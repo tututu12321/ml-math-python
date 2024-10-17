@@ -1,0 +1,64 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# RNNのパラメータの設定 (Define RNN parameters)
+input_size = 1  # 入力層のサイズ (Input size)
+hidden_size = 5  # 隠れ層のサイズ (Size of hidden layer)
+output_size = 1  # 出力層のサイズ (Output size)
+time_steps = 10  # 時系列データの長さ (Length of the time series)
+
+# 重みの初期化 (Initialize weights)
+Wx = np.random.randn(hidden_size, input_size)  # 入力から隠れ層への重み (Weights from input to hidden)
+Wh = np.random.randn(hidden_size, hidden_size)  # 隠れ層から隠れ層への重み (Recurrent weights)
+Wy = np.random.randn(output_size, hidden_size)  # 隠れ層から出力への重み (Weights from hidden to output)
+bh = np.zeros((hidden_size, 1))  # 隠れ層のバイアス (Bias for hidden layer)
+by = np.zeros((output_size, 1))  # 出力層のバイアス (Bias for output layer)
+
+# RNNの処理 (RNN forward pass)
+def rnn_forward(x_seq):
+    h = np.zeros((hidden_size, 1))  # 初期の隠れ状態 (Initial hidden state)
+    h_seq = []  # 各時刻の隠れ状態を格納 (Store hidden states)
+    y_seq = []  # 各時刻の出力を格納 (Store outputs)
+    
+    for t in range(time_steps):
+        x = x_seq[t].reshape(-1, 1)  # 時刻tの入力 (Input at time t)
+        
+        # 隠れ状態の更新 (Update hidden state)
+        h = np.tanh(np.dot(Wx, x) + np.dot(Wh, h) + bh)
+        h_seq.append(h)
+        
+        # 出力の計算 (Calculate output)
+        y = np.dot(Wy, h) + by
+        y_seq.append(y)
+    
+    return h_seq, y_seq
+
+# サンプル入力データの生成 (Generate sample input data)
+np.random.seed(42)
+x_seq = np.random.randn(time_steps, input_size)  # 時系列データの入力 (Time series input data)
+
+# RNNの実行 (Run the RNN)
+h_seq, y_seq = rnn_forward(x_seq)
+
+# 各時刻の出力をプロット (Plot the outputs over time)
+y_seq = np.array(y_seq).squeeze()
+plt.figure(figsize=(8, 4))
+plt.plot(range(time_steps), y_seq, label='RNN Output')
+plt.title('RNN Output over Time')
+plt.xlabel('Time step')
+plt.ylabel('Output value')
+plt.grid(True)
+plt.legend()
+plt.show()
+
+# 隠れ状態のプロット (Optional: Plot hidden states)
+h_seq = np.array(h_seq).squeeze()
+plt.figure(figsize=(8, 4))
+for i in range(hidden_size):
+    plt.plot(range(time_steps), h_seq[:, i], label=f'Hidden state {i+1}')
+plt.title('Hidden States over Time')
+plt.xlabel('Time step')
+plt.ylabel('Hidden state value')
+plt.grid(True)
+plt.legend()
+plt.show()
