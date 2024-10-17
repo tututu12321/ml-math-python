@@ -1,0 +1,33 @@
+import numpy as np
+
+# Create a 3D tensor representing an image
+# 画像を表す3次元テンソルを作成
+# Dimensions: height, width, channels (e.g., RGB)
+height = 100  # Height of the image (画像の高さ)
+width = 100   # Width of the image (画像の幅)
+channels = 3  # Number of color channels (色のチャネル数)
+
+# Generate a random 3D tensor (image data)
+# ランダムな3次元テンソル（画像データ）を生成
+image_tensor = np.random.rand(height, width, channels)
+
+# Print the shape of the tensor
+# テンソルの形状を表示
+print("Shape of the tensor:", image_tensor.shape)  # (100, 100, 3)
+
+# Access a specific pixel value
+# 特定のピクセル値にアクセス
+pixel_value = image_tensor[50, 50]  # Accessing the pixel at (50, 50)
+# ピクセル(50, 50)の値を取得
+print("Pixel value at (50, 50):", pixel_value)
+
+# Modify a specific pixel value
+# 特定のピクセル値を変更
+image_tensor[50, 50] = [1.0, 0.0, 0.0]  # Change to red color (赤色に変更)
+print("Modified pixel value at (50, 50):", image_tensor[50, 50])
+
+# Calculate the mean value of each channel
+# 各チャネルの平均値を計算
+mean_values = np.mean(image_tensor, axis=(0, 1))  # Mean across height and width
+# 高さと幅にわたる平均を計算
+print("Mean values for each channel:", mean_values)
