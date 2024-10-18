@@ -1,0 +1,45 @@
+import optuna
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
+
+# Irisデータセットを読み込む
+data = load_iris()
+X = data.data
+y = data.target
+
+# データを訓練セットとテストセットに分割する
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 目的関数の定義
+def objective(trial):
+    # チューニングするハイパーパラメータの設定
+    max_depth = trial.suggest_int('max_depth', 1, 10)  # 最大深さ
+    min_samples_split = trial.suggest_int('min_samples_split', 2, 10)  # 内部ノードを分割するために必要な最小サンプル数
+    min_samples_leaf = trial.suggest_int('min_samples_leaf', 1, 10)  # リーフノードに必要な最小サンプル数
+
+    # 決定木モデルの作成
+    model = DecisionTreeClassifier(max_depth=max_depth,
+                                    min_samples_split=min_samples_split,
+                                    min_samples_leaf=min_samples_leaf,
+                                    random_state=42)
+    
+    # モデルを訓練する
+    model.fit(X_train, y_train)
+    
+    # テストセットで予測する
+    y_pred = model.predict(X_test)
+    
+    # 精度を計算して返す
+    accuracy = accuracy_score(y_test, y_pred)
+    return accuracy  # 目的関数の出力
+
+# スタディを作成して目的関数を最適化する
+study = optuna.create_study(direction='maximize')  # 精度を最大化する
+study.optimize(objective, n_trials=50)  # 試行回数を指定
+
+# 最適なハイパーパラメータを出力する
+print("Best Hyperparameters:")
+print(study.best_params)
+print("Best Accuracy:", study.best_value)
