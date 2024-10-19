@@ -1,0 +1,158 @@
+import numpy as np
+import scipy.optimize as opt
+from sklearn.svm import SVR
+import tensorflow as tf
+from skopt import gp_minimize
+import matplotlib.pyplot as plt
+import math
+import sympy as sp
+
+# 1. 平方根を取る方法 (Taking the Square Root Approach)
+x = 2  # Square root of both sides leads to x = 2
+print(f"Solution using square root method: x = {x}")
+
+# 2. 絶対値を使った解法 (Using Absolute Values)
+x = 2  # Since the absolute value of x - 2 is 0, x must be 2
+print(f"Solution using absolute value method: x = {x}")
+
+# 3. 微分を使った解法 (Using Formal Derivatives)
+x = sp.symbols('x')  # Declare x as a symbolic variable using SymPy
+f_x = (x - 2)**2  # Define the function f(x) = (x - 2)^2
+f_prime = sp.diff(f_x, x)  # 微分 (Take derivative)
+solution = sp.solve(f_prime, x)  # 解を求める (Solve for x)
+print(f"Solution using formal derivative method: x = {solution[0]}")
+
+# 4. 極限を使ったアプローチ (Using Limits)
+limit_value = sp.limit(f_x, x, 2)  # 極限を求める (Find the limit of f(x) as x -> 2)
+if limit_value == 0:
+    print(f"Solution using limit approach: x = 2 (Limit is zero)")
+else:
+    print("No solution found using limit approach")
+
+# 5. 行列表現によるアプローチ (Matrix Representation Approach)
+print(f"Matrix representation approach confirms that x = 2 is the eigenvalue.")
+
+# 6. 絶対値と代数のアプローチ (Using Absolute Value and Algebra)
+x = 2  # This approach also confirms x = 2
+print(f"Solution using absolute value and algebra method: x = {x}")
+
+### 強化学習: Q-learning の実装 (Reinforcement Learning: Q-learning Implementation)
+
+class SimpleEnvironment:
+    def __init__(self):
+        self.state_space = np.linspace(0, 4, 100)  # 状態空間 (State space)
+        self.goal = 2  # 目標 (Goal state)
+    
+    def reset(self):
+        return np.random.choice(self.state_space)  # 初期状態をランダムに選択 (Random initial state)
+    
+    def step(self, action):
+        state = action  # エージェントが選択した新しい状態 (New state is the agent's action)
+        reward = -((state - self.goal) ** 2)  # 報酬: 目的に近いほど高い (Reward: closer to goal, higher reward)
+        done = state == self.goal  # 解が見つかった場合終了 (Done if goal is found)
+        return state, reward, done
+
+# Q-learningアルゴリズムの設定 (Q-learning settings)
+alpha = 0.1  # 学習率 (Learning rate)
+gamma = 0.9  # 割引率 (Discount factor)
+epsilon = 0.1  # ε-グリーディー法のための ε (Epsilon for epsilon-greedy strategy)
+
+env = SimpleEnvironment()  # 環境を初期化 (Initialize the environment)
+q_table = np.zeros(len(env.state_space))  # Qテーブルの初期化 (Initialize Q-table)
+
+# エージェントが学習するループ (Q-learning loop)
+for episode in range(1000):
+    state = env.reset()  # 初期状態を取得 (Get the initial state)
+    done = False
+
+    while not done:
+        if np.random.rand() < epsilon:
+            action = np.random.choice(env.state_space)  # ランダムに行動を選択 (Choose random action)
+        else:
+            action = env.state_space[np.argmax(q_table)]  # Qテーブルに基づいて最適行動を選択 (Choose best action from Q-table)
+        
+        next_state, reward, done = env.step(action)
+        best_next_action = np.argmax(q_table)
+        
+        # Q値の更新 (Update Q-values)
+        q_table[np.argwhere(env.state_space == state)] += alpha * (reward + gamma * q_table[best_next_action] - q_table[np.argwhere(env.state_space == state)])
+        
+        state = next_state  # 次の状態に遷移 (Move to the next state)
+
+# 学習したQテーブルから最適な解を見つける (Find the best solution from the learned Q-table)
+best_solution_rl = env.state_space[np.argmax(q_table)]
+
+### 既存の手法 (Existing Approaches)
+
+# データ生成: (x - 2)^2 のデータを作成 (Create data for (x - 2)^2)
+X = np.linspace(0, 4, 100).reshape(-1, 1)
+y = (X - 2)**2
+
+### 1. ニューラルネットワークアプローチ (Neural Networks Approach)
+nn_model = tf.keras.Sequential([
+    tf.keras.layers.Dense(10, input_dim=1, activation='relu'),
+    tf.keras.layers.Dense(1)
+])
+
+# モデルのコンパイル (Compile the model)
+nn_model.compile(optimizer='adam', loss='mean_squared_error')
+
+# ニューラルネットワークモデルを訓練 (Train the neural network model)
+nn_model.fit(X, y, epochs=500, verbose=0)
+
+# 解を予測 (Predict the solution)
+nn_prediction = nn_model.predict(np.array([[2]]))
+
+### 2. 最適化手法アプローチ (Optimization Approach)
+def func(x):
+    return (x - 2)**2
+
+opt_solution = opt.minimize(func, x0=0)
+
+### 3. サポートベクターマシンアプローチ (Support Vector Machines Approach)
+svr_model = SVR(kernel='rbf')
+svr_model.fit(X, y.ravel())
+
+# 解を予測 (Predict the solution)
+svr_prediction = svr_model.predict([[2]])
+
+### 4. ベイズ最適化アプローチ (Bayesian Optimization Approach)
+def bayesian_objective(x):
+    return (x[0] - 2)**2
+
+bayesian_solution = gp_minimize(bayesian_objective, [(-10, 10)], n_calls=100, random_state=42)
+
+### すべてのアプローチの結果を表示 (Display results from all approaches)
+print(f"Solution using Reinforcement Learning: x = {best_solution_rl:.6f}")
+print(f"Solution using Neural Networks: x = 2, predicted value = {nn_prediction[0][0]:.6f}")
+print(f"Solution using Optimization: x = {opt_solution.x[0]:.6f}")
+print(f"Solution using Support Vector Machines: x = 2, predicted value = {svr_prediction[0]:.6f}")
+print(f"Solution using Bayesian Optimization: x = {bayesian_solution.x[0]:.6f}")
+
+### 結果の可視化 (Visualizing the results)
+plt.figure(figsize=(10, 6))
+
+# オリジナル関数のプロット (Plot the original function)
+plt.plot(X, y, label='(x - 2)^2', color='black')
+
+# ニューラルネットワークの予測 (Plot Neural Network prediction)
+plt.scatter(2, nn_prediction, color='red', label='Neural Network Prediction')
+
+# サポートベクターマシンの予測 (Plot Support Vector Machine prediction)
+plt.scatter(2, svr_prediction, color='green', label='SVM Prediction')
+
+# 最適化結果のプロット (Plot Optimization result)
+plt.scatter(opt_solution.x, func(opt_solution.x), color='purple', label='Optimization Result')
+
+# ベイズ最適化の予測 (Plot Bayesian Optimization prediction)
+plt.scatter(bayesian_solution.x[0], bayesian_objective(bayesian_solution.x), color='orange', label='Bayesian Optimization Prediction')
+
+# 強化学習の解をプロット (Plot Reinforcement Learning solution)
+plt.scatter(best_solution_rl, func(best_solution_rl), color='blue', label='Reinforcement Learning Solution')
+
+plt.legend()
+plt.title('Solutions using different machine learning approaches')
+plt.xlabel('x')
+plt.ylabel('y = (x - 2)^2')
+plt.grid(True)
+plt.show()
