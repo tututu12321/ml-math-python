@@ -1,0 +1,56 @@
+import numpy as np
+import pymc3 as pm
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# 1. サンプルデータの作成 (Generating sample data)
+# 被験者の能力 (Ability of examinees)
+np.random.seed(42)
+n_students = 100  # 学生の数 (Number of students)
+n_items = 10      # 問題数 (Number of items)
+
+# 能力パラメータを正規分布から生成 (Generate ability parameter from a normal distribution)
+theta = np.random.normal(0, 1, size=n_students)
+
+# 各項目の識別力 (Discrimination parameter for each item)
+a = np.random.lognormal(mean=0, sigma=0.5, size=n_items)
+
+# 各項目の難易度 (Difficulty parameter for each item)
+b = np.random.normal(0, 1, size=n_items)
+
+# 応答データの生成 (Generate response data)
+def logistic(x):
+    return 1 / (1 + np.exp(-x))
+
+# 応答行列の作成 (Create the response matrix)
+prob_correct = logistic(np.outer(theta, a) - b)
+responses = np.random.binomial(1, prob_correct)
+
+# 2. ベイズIRTモデルの定義 (Defining the Bayesian IRT model)
+with pm.Model() as irt_model:
+    # 事前分布の設定 (Setting priors)
+    theta_est = pm.Normal('theta', mu=0, sigma=1, shape=n_students)  # 能力 (Ability)
+    a_est = pm.Lognormal('a', mu=0, sigma=0.5, shape=n_items)  # 識別力 (Discrimination)
+    b_est = pm.Normal('b', mu=0, sigma=1, shape=n_items)  # 難易度 (Difficulty)
+    
+    # ロジスティックモデル (Logistic model)
+    p = pm.Deterministic('p', 1 / (1 + pm.math.exp(-a_est * (theta_est[:, None] - b_est))))
+    
+    # 応答データの観測 (Observed response data)
+    response_obs = pm.Bernoulli('response_obs', p=p, observed=responses)
+    
+    # 3. MCMCサンプリングの実行 (Running MCMC sampling)
+    trace = pm.sample(1000, return_inferencedata=True)
+
+# 4. 結果の分析 (Analyzing the results)
+# 能力パラメータの事後分布を可視化 (Visualizing the posterior distribution of ability parameters)
+pm.plot_posterior(trace, var_names=['theta'], figsize=(10, 6))
+plt.show()
+
+# 識別力と難易度の事後分布を可視化 (Visualizing the posterior distribution of discrimination and difficulty parameters)
+pm.plot_posterior(trace, var_names=['a', 'b'], figsize=(12, 8))
+plt.show()
+
+# 5. 結果のサマリー (Summarizing the results)
+# 推定されたパラメータの要約を表示 (Display the summary of the estimated parameters)
+print(pm.summary(trace, var_names=['theta', 'a', 'b']))
