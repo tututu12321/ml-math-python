@@ -1,0 +1,39 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from supervised.automl import AutoML
+
+# 1. データの準備 (Preparing the dataset)
+# データセットの読み込み (Load dataset)
+# ここではサンプルとしてPandasのデータフレームを作成 (Create a sample pandas DataFrame)
+data = pd.DataFrame({
+    'feature1': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+    'feature2': [5, 4, 3, 2, 1, 5, 4, 3, 2, 1],
+    'target': [1, 1, 0, 0, 0, 1, 1, 0, 0, 1]
+})
+
+# 説明変数と目的変数を分ける (Separate features and target)
+X = data[['feature1', 'feature2']]  # 説明変数 (Features)
+y = data['target']  # 目的変数 (Target)
+
+# データを学習用とテスト用に分割 (Split data into training and testing sets)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 2. AutoMLモデルの作成 (Creating an AutoML model)
+# MLJARのAutoMLを初期化 (Initialize MLJAR AutoML)
+automl = AutoML(mode="Explain", 
+                total_time_limit=10,  # 時間制限を設定 (Set time limit for training)
+                ml_task='binary_classification')  # バイナリ分類タスク (Binary classification task)
+
+# モデルの学習 (Train the model)
+automl.fit(X_train, y_train)
+
+# 3. モデルの予測 (Making predictions)
+# テストデータで予測を実行 (Make predictions on the test data)
+predictions = automl.predict(X_test)
+
+# 4. 結果の表示 (Displaying results)
+# 予測結果を表示 (Display predictions)
+print("Predictions on test data:", predictions)
+
+# モデルの詳細なレポートを作成 (Create a detailed report of the model)
+automl.report()
