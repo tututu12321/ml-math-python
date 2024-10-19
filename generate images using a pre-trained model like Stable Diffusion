@@ -1,0 +1,20 @@
+import torch
+from diffusers import StableDiffusionPipeline
+
+# Load the pre-trained Stable Diffusion pipeline
+pipe = StableDiffusionPipeline.from_pretrained("CompVis/stable-diffusion-v1-4", torch_dtype=torch.float16)
+
+# If you have a GPU, move the model to GPU
+pipe = pipe.to("cuda")
+
+# Provide the text prompt (image description)
+prompt = "A futuristic city with flying cars at sunset"
+
+# Generate the image
+image = pipe(prompt).images[0]
+
+# Save the generated image
+image.save("generated_image.png")
+
+# Show the generated image
+image.show()
