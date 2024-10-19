@@ -1,0 +1,28 @@
+import whisper
+
+# Load the pre-trained Whisper model (choose from tiny, base, small, medium, large)
+# Whisperモデルの読み込み（tiny, base, small, medium, largeから選択）
+model = whisper.load_model("base")  # You can choose "tiny", "small", "medium", or "large" as well
+# "tiny", "small", "medium", "large"から選択可能
+
+# Load the audio file (provide the path to your audio file)
+# 音声ファイルの読み込み（音声ファイルのパスを指定）
+audio_file = "your_audio_file.mp3"  # Replace with the actual path to your audio file
+# 音声ファイルへのパスを指定
+
+# Transcribe the audio file
+# 音声ファイルを文字起こし
+result = model.transcribe(audio_file)
+
+# Print the transcribed text
+# 文字起こし結果を表示
+print("Transcription: ")
+print(result["text"])
+
+# Optionally, save the transcribed text to a file
+# オプション：文字起こし結果をファイルに保存
+with open("transcription_output.txt", "w") as f:
+    f.write(result["text"])
+
+print("Transcription saved to 'transcription_output.txt'.")
+# 文字起こし結果が 'transcription_output.txt' に保存されました。
