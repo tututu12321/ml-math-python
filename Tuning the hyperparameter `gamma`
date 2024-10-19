@@ -1,0 +1,43 @@
+import numpy as np
+import pandas as pd
+from sklearn import datasets
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.svm import SVC
+from sklearn.metrics import classification_report
+
+# 1. データの読み込み (Load the dataset)
+# ここでは有名なirisデータセットを使用 (Using the popular iris dataset)
+iris = datasets.load_iris()
+X = iris.data  # 説明変数 (Features)
+y = iris.target  # 目的変数 (Target)
+
+# データを学習用とテスト用に分割 (Split the data into training and testing sets)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 2. SVMモデルの作成 (Create an SVM model)
+# サポートベクターマシンの分類器 (SVM classifier)
+svc = SVC()
+
+# 3. ハイパーパラメータ `gamma` の調整 (Tuning the hyperparameter `gamma`)
+# グリッドサーチで最適な`gamma`を見つける (Using GridSearchCV to find the best `gamma` value)
+# gamma: カーネルの影響範囲を制御 (gamma controls the influence range of the kernel)
+param_grid = {'gamma': [0.1, 0.01, 0.001, 0.0001], 'C': [1, 10, 100]}  # 調整するパラメータ (Parameters to tune)
+
+# グリッドサーチCVを使用して最適なパラメータを探索 (Use GridSearchCV to find the best parameters)
+grid_search = GridSearchCV(svc, param_grid, cv=5)  # 5分割交差検証 (5-fold cross-validation)
+grid_search.fit(X_train, y_train)
+
+# 最適なハイパーパラメータの表示 (Display the best hyperparameters)
+print("Best Parameters: ", grid_search.best_params_)
+
+# 4. 最適なパラメータを使用してSVMモデルを学習 (Train the SVM model with the best parameters)
+best_svc = grid_search.best_estimator_
+best_svc.fit(X_train, y_train)
+
+# 5. テストデータに対する予測 (Make predictions on the test data)
+y_pred = best_svc.predict(X_test)
+
+# 6. 結果の評価 (Evaluate the results)
+# 分類レポートを表示 (Display the classification report)
+print("Classification Report:\n", classification_report(y_test, y_pred))
+
