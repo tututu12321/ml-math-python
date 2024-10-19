@@ -1,0 +1,58 @@
+import numpy as np
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score
+import matplotlib.pyplot as plt
+
+# データセットの読み込み（Irisデータセットを使用）
+# Load the dataset (using Iris dataset)
+iris = datasets.load_iris()
+X = iris.data  # 特徴量 (Features)
+y = iris.target  # ラベル (Labels)
+
+# トレーニングデータとテストデータに分割
+# Split data into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# カーネル関数の種類 (Types of Kernel Functions)
+kernels = ['linear', 'poly', 'rbf']
+
+# カーネル関数ごとにモデルをトレーニングして評価
+# Train and evaluate a model for each kernel function
+for kernel in kernels:
+    # SVMモデルのインスタンスを作成
+    # Create an instance of the SVM model
+    svm = SVC(kernel=kernel, gamma='scale', C=1)
+
+    # モデルのトレーニング (Train the model)
+    svm.fit(X_train, y_train)
+
+    # テストデータを使用して予測 (Predict on the test data)
+    y_pred = svm.predict(X_test)
+
+    # 精度を計算 (Calculate accuracy)
+    accuracy = accuracy_score(y_test, y_pred)
+
+    # 結果を表示 (Display results)
+    print(f"Kernel Function: {kernel}, Accuracy: {accuracy:.4f}")
+
+### カーネル関数ごとの性能を比較
+# Comparing performance of different kernel functions
+plt.figure(figsize=(8, 6))
+accuracies = []
+
+for kernel in kernels:
+    svm = SVC(kernel=kernel, gamma='scale', C=1)
+    svm.fit(X_train, y_train)
+    y_pred = svm.predict(X_test)
+    accuracy = accuracy_score(y_test, y_pred)
+    accuracies.append(accuracy)
+
+# カーネルごとの精度のバーグラフを表示
+# Plot bar chart of accuracy by kernel
+plt.bar(kernels, accuracies, color=['blue', 'green', 'red'])
+plt.xlabel('Kernel Function')
+plt.ylabel('Accuracy')
+plt.title('Comparison of Kernel Function Performance')
+plt.show()
