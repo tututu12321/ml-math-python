@@ -1,0 +1,82 @@
+import numpy as np
+from sklearn import datasets
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV, train_test_split
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score
+import scipy.stats as stats
+
+# データセットの読み込み（Irisデータセットを使用）
+# Load dataset (Using the Iris dataset)
+iris = datasets.load_iris()
+X = iris.data  # 特徴量 (Features)
+y = iris.target  # ラベル (Labels)
+
+# トレーニングデータとテストデータに分割
+# Split data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+### 1. GridSearch (グリッドサーチ)
+
+# SVMモデルのインスタンスを作成
+# Create an instance of the SVM model
+svm = SVC()
+
+# ハイパーパラメータの候補を定義（グリッドサーチ用）
+# Define the grid of hyperparameters for GridSearch
+param_grid = {
+    'C': [0.1, 1, 10, 100],  # コストパラメータ (Cost parameter)
+    'gamma': [1, 0.1, 0.01, 0.001],  # ガンマ (Gamma parameter)
+    'kernel': ['linear', 'rbf']  # カーネル関数 (Kernel function)
+}
+
+# グリッドサーチを設定
+# Set up GridSearch
+grid_search = GridSearchCV(svm, param_grid, refit=True, cv=5, verbose=2)
+
+# モデルをトレーニング（グリッドサーチ）
+# Train the model with GridSearch
+grid_search.fit(X_train, y_train)
+
+# 最適なパラメータを出力
+# Print the best parameters found by GridSearch
+print("Best Parameters found by GridSearch:")
+print(grid_search.best_params_)
+
+# 最適なパラメータでテストセットを予測
+# Predict on the test set using the best parameters
+y_pred_grid = grid_search.predict(X_test)
+
+# 精度を出力
+# Print accuracy
+print(f"Accuracy with GridSearch: {accuracy_score(y_test, y_pred_grid):.4f}")
+
+### 2. RandomizedSearch (ランダムサーチ)
+
+# ハイパーパラメータの候補を定義（ランダムサーチ用）
+# Define the grid of hyperparameters for RandomizedSearch
+param_dist = {
+    'C': stats.uniform(0.1, 100),  # コストパラメータ (Cost parameter)
+    'gamma': stats.uniform(0.001, 1),  # ガンマ (Gamma parameter)
+    'kernel': ['linear', 'rbf']  # カーネル関数 (Kernel function)
+}
+
+# ランダムサーチを設定
+# Set up RandomizedSearch
+random_search = RandomizedSearchCV(svm, param_dist, n_iter=100, refit=True, cv=5, verbose=2, random_state=42)
+
+# モデルをトレーニング（ランダムサーチ）
+# Train the model with RandomizedSearch
+random_search.fit(X_train, y_train)
+
+# 最適なパラメータを出力
+# Print the best parameters found by RandomizedSearch
+print("Best Parameters found by RandomizedSearch:")
+print(random_search.best_params_)
+
+# 最適なパラメータでテストセットを予測
+# Predict on the test set using the best parameters
+y_pred_random = random_search.predict(X_test)
+
+# 精度を出力
+# Print accuracy
+print(f"Accuracy with RandomizedSearch: {accuracy_score(y_test, y_pred_random):.4f}")
