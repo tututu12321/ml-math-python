@@ -1,0 +1,57 @@
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
+
+# モデルとトークナイザの読み込み (GPT-2)
+model_name = "microsoft/DialoGPT-medium"  # GPTベースのダイアログ用モデル
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(model_name)
+
+# パディングトークンを設定 (eos_tokenを利用)
+tokenizer.pad_token = tokenizer.eos_token  # または tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+
+# カスタムチャットデータの用意 (会話データセット)
+train_data = [
+    {"input_text": "Hello!", "response_text": "Hi there! How can I help you?"},
+    {"input_text": "What's your name?", "response_text": "I'm a chatbot created by OpenAI."},
+    # 他のデータを追加...
+]
+
+# トークナイズ
+train_encodings = tokenizer([x['input_text'] for x in train_data], truncation=True, padding=True, return_tensors='pt')
+label_encodings = tokenizer([x['response_text'] for x in train_data], truncation=True, padding=True, return_tensors='pt')
+
+# データセットの作成
+class ChatDataset(torch.utils.data.Dataset):
+    def __init__(self, encodings, labels):
+        self.encodings = encodings
+        self.labels = labels
+    
+    def __getitem__(self, idx):
+        item = {key: val[idx] for key, val in self.encodings.items()}
+        item['labels'] = self.labels['input_ids'][idx]
+        return item
+    
+    def __len__(self):
+        return len(self.labels['input_ids'])
+
+train_dataset = ChatDataset(train_encodings, label_encodings)
+
+# トレーニング設定
+from transformers import Trainer, TrainingArguments
+
+training_args = TrainingArguments(
+    output_dir='./results',            # 出力先
+    num_train_epochs=3,                # エポック数
+    per_device_train_batch_size=4,     # バッチサイズ
+    save_steps=10_000,                 # モデルの保存頻度
+    save_total_limit=2,                # 保存するモデルの最大数
+)
+
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+)
+
+# モデルのファインチューニング
+trainer.train()
