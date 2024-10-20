@@ -1,0 +1,48 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# シグモイド関数の定義
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+# シグモイド関数の微分（逆伝播で使われる）
+def sigmoid_derivative(x):
+    return sigmoid(x) * (1 - sigmoid(x))
+
+# xの範囲を設定してシグモイド関数を計算
+x = np.linspace(-10, 10, 100)
+y = sigmoid(x)
+
+# シグモイド関数のグラフを描画
+plt.figure(figsize=(10, 6))
+plt.plot(x, y, label="Sigmoid", color="blue")
+plt.title("Sigmoid Function")
+plt.xlabel("x")
+plt.ylabel("Sigmoid(x)")
+plt.grid(True)
+plt.legend()
+plt.show()
+
+# シグモイド関数の微分（逆伝播）の計算
+y_prime = sigmoid_derivative(x)
+
+# シグモイド関数の微分グラフを描画
+plt.figure(figsize=(10, 6))
+plt.plot(x, y_prime, label="Sigmoid Derivative", color="red")
+plt.title("Sigmoid Function Derivative (Backpropagation)")
+plt.xlabel("x")
+plt.ylabel("Sigmoid'(x)")
+plt.grid(True)
+plt.legend()
+plt.show()
+
+# 逆伝播計算
+# 順伝播で得た出力を使用して、逆伝播のための勾配を計算
+input_value = 1.0  # 例として入力値1.0を設定
+forward_output = sigmoid(input_value)  # 順伝播の結果
+backward_gradient = forward_output * (1 - forward_output)  # 逆伝播の勾配
+
+# 結果を出力
+print(f"Input value: {input_value}")
+print(f"Sigmoid output (forward pass): {forward_output}")
+print(f"Sigmoid derivative (backpropagation gradient): {backward_gradient}")
