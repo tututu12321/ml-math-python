@@ -1,0 +1,90 @@
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras import layers, models, losses
+
+# 定数の設定
+latent_dim = 2  # 潜在変数の次元
+input_shape = (28, 28, 1)  # MNISTの画像サイズ
+
+# エンコーダの定義
+def build_encoder():
+    encoder_inputs = layers.Input(shape=input_shape)
+    x = layers.Flatten()(encoder_inputs)
+    x = layers.Dense(128, activation='relu')(x)
+    z_mean = layers.Dense(latent_dim)(x)
+    z_log_var = layers.Dense(latent_dim)(x)
+
+    # 潜在変数zのサンプリング
+    def sampling(args):
+        z_mean, z_log_var = args
+        epsilon = tf.random.normal(shape=(tf.shape(z_mean)[0], latent_dim))
+        return z_mean + tf.exp(0.5 * z_log_var) * epsilon
+
+    z = layers.Lambda(sampling)([z_mean, z_log_var])
+    encoder = models.Model(encoder_inputs, [z_mean, z_log_var, z], name="encoder")
+    return encoder
+
+# デコーダの定義
+def build_decoder():
+    decoder_inputs = layers.Input(shape=(latent_dim,))
+    x = layers.Dense(128, activation='relu')(decoder_inputs)
+    x = layers.Dense(28 * 28 * 1, activation='sigmoid')(x)
+    decoder_outputs = layers.Reshape((28, 28, 1))(x)
+    decoder = models.Model(decoder_inputs, decoder_outputs, name="decoder")
+    return decoder
+
+# VAEの定義
+class VAE(models.Model):
+    def __init__(self, encoder, decoder):
+        super(VAE, self).__init__()
+        self.encoder = encoder
+        self.decoder = decoder
+
+    def call(self, inputs):
+        z_mean, z_log_var, z = self.encoder(inputs)
+        reconstructed = self.decoder(z)
+        kl_loss = -0.5 * tf.reduce_mean(
+            1 + z_log_var - tf.square(z_mean) - tf.exp(z_log_var))
+        self.add_loss(kl_loss)
+        return reconstructed
+
+# モデルの構築
+encoder = build_encoder()
+decoder = build_decoder()
+vae = VAE(encoder, decoder)
+
+# モデルのコンパイル
+vae.compile(optimizer='adam', loss=losses.MeanSquaredError())
+
+# MNISTデータの読み込みと前処理
+(x_train, _), (x_test, _) = tf.keras.datasets.mnist.load_data()
+x_train = np.expand_dims(x_train, -1).astype("float32") / 255.0
+x_test = np.expand_dims(x_test, -1).astype("float32") / 255.0
+
+# モデルのトレーニング
+vae.fit(x_train, x_train, epochs=30, batch_size=128, validation_data=(x_test, x_test))
+
+# 潜在空間からサンプリングして新しい画像を生成
+import matplotlib.pyplot as plt
+
+def plot_latent_space(decoder, n=30, figsize=15):
+    """潜在空間からサンプリングして新しい画像を生成し、表示"""
+    digit_size = 28
+    scale = 1.0
+    figure = np.zeros((digit_size * n, digit_size * n))
+    grid_x = np.linspace(-scale, scale, n)
+    grid_y = np.linspace(-scale, scale, n)
+
+    for i, yi in enumerate(grid_x):
+        for j, xi in enumerate(grid_y):
+            z_sample = np.array([[xi, yi]])
+            x_decoded = decoder.predict(z_sample)
+            digit = x_decoded[0].reshape(digit_size, digit_size)
+            figure[i * digit_size: (i + 1) * digit_size,
+                   j * digit_size: (j + 1) * digit_size] = digit
+
+    plt.figure(figsize=(figsize, figsize))
+    plt.imshow(figure, cmap='Greys_r')
+    plt.show()
+
+plot_latent_space(decoder)
