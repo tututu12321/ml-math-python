@@ -1,0 +1,71 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 関数 F(x) = sin(x)
+def F(x):
+    return np.sin(x)
+
+# F(x) の1次のテイラー展開 (点 a の周り)
+def taylor_approximation(x, a):
+    # F(a) + F'(a)(x - a)
+    return np.sin(a) + np.cos(a) * (x - a)
+
+# 誤差計算
+def taylor_error(x, a):
+    # F(x) とテイラー展開の誤差 |F(x) - テイラー展開|
+    return np.abs(F(x) - taylor_approximation(x, a))
+
+# テイラー展開を中心とする点
+a = np.pi / 4  # 例として a = π/4
+
+# x の範囲を定義
+x = np.linspace(0, 2*np.pi, 400)
+
+# テイラー展開の誤差を計算
+error = taylor_error(x, a)
+
+# 相対誤差の計算 (元の関数に対する誤差の割合)
+relative_error = error / np.abs(F(x))
+error_threshold = 0.01  # 1%の誤差
+within_error = relative_error <= error_threshold  # 1%以下の部分
+
+# 誤差が1%以下のxの範囲を計算
+solutions = x[within_error]
+min_x_within_error = np.min(solutions)
+max_x_within_error = np.max(solutions)
+
+# プロット
+plt.figure(figsize=(10, 6))
+
+# 元の関数 F(x)
+plt.plot(x, F(x), label=r'$F(x) = \sin(x)$', color='blue')
+
+# テイラー展開
+plt.plot(x, taylor_approximation(x, a), label='1st-order Taylor expansion', color='green', linestyle='--')
+
+# 誤差をプロット
+plt.plot(x, error, label='Error: |F(x) - Taylor expansion|', color='red', linestyle=':')
+
+# 相対誤差が1%以下の範囲を色付け
+plt.fill_between(x, F(x), taylor_approximation(x, a), where=within_error, color='black', alpha=0.5, label='Error < 1%')
+
+# グラフの装飾
+plt.axhline(0, color='black', linewidth=0.5)
+plt.axvline(a, color='black', linewidth=0.5, linestyle='--')
+plt.title('Taylor expansion and error for $F(x) = \sin(x)$ at $x = a = \pi / 4$')
+plt.xlabel('x')
+plt.ylabel('y')
+plt.legend()
+plt.grid(True)
+
+# プロットを表示
+plt.show()
+
+# 最小値と最大値を度数でも表示
+min_x_within_error_deg = np.degrees(min_x_within_error)
+max_x_within_error_deg = np.degrees(max_x_within_error)
+
+# 誤差が1%以下の範囲の最小値と最大値を表示
+print("誤差が1%以下のxの範囲:")
+print(f"最小値: {min_x_within_error} ラジアン ({min_x_within_error_deg} 度)")
+print(f"最大値: {max_x_within_error} ラジアン ({max_x_within_error_deg} 度)")
