@@ -1,0 +1,51 @@
+from PIL import Image, ImageDraw
+import numpy as np
+import os
+
+# シングルモーダル：画像データのみを処理
+def process_image(image_path):
+    try:
+        image = Image.open(image_path)  # 画像を読み込み
+        image_array = np.array(image)   # 画像をnumpy配列に変換
+        print("Image shape:", image_array.shape)  # 画像のサイズを出力
+        return image_array
+    except FileNotFoundError:
+        print(f"File not found: {image_path}")
+
+# テキストデータを処理
+def process_text(text):
+    print("Text length:", len(text))  # テキストの長さを出力
+    return text
+
+# マルチモーダル：画像とテキストの両方を処理
+def process_multimodal(image_path, text):
+    print("\nProcessing image and text (Multimodal):")
+    image_data = process_image(image_path)
+    text_data = process_text(text)
+    return image_data, text_data
+
+# テスト用の画像を生成
+def create_test_image(image_path):
+    image = Image.new('RGB', (100, 100), color = 'blue')  # 100x100の青い画像を生成
+    draw = ImageDraw.Draw(image)
+    draw.text((10, 40), "Test Image", fill="white")  # テスト用のテキストを描画
+    image.save(image_path)
+    print(f"Test image created: {image_path}")
+
+# メイン処理
+if __name__ == "__main__":
+    # 画像ファイルが存在するか確認し、なければテスト用の画像を生成
+    image_path = "sample_image.jpg"
+    if not os.path.exists(image_path):
+        print(f"{image_path} not found, creating a test image...")
+        create_test_image(image_path)
+
+    # テキストデータ
+    text_data = "This is a sample text for multimodal processing."
+
+    # シングルモーダル：画像のみ処理
+    print("Single Modal - Image Processing:")
+    image_only_data = process_image(image_path)
+
+    # マルチモーダル：画像とテキストの両方を処理
+    image_data, text_data = process_multimodal(image_path, text_data)
