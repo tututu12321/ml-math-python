@@ -1,0 +1,29 @@
+import numpy as np
+
+# エルミート行列の作成
+def create_hermitian_matrix(n):
+    A = np.random.rand(n, n) + 1j * np.random.rand(n, n)  # ランダムな複素数行列
+    A = A + A.conj().T  # 転置共役を取ることでエルミート行列にする
+    return A
+
+# ユニタリ行列の作成（QR分解を使う）
+def create_unitary_matrix(n):
+    A = np.random.rand(n, n) + 1j * np.random.rand(n, n)  # ランダムな複素数行列
+    Q, R = np.linalg.qr(A)  # QR分解を使ってユニタリ行列を得る
+    return Q
+
+# 行列の固有値を確認
+def check_eigenvalues(matrix, name):
+    eigenvalues = np.linalg.eigvals(matrix)
+    print(f"{name} 行列の固有値: {eigenvalues}")
+
+# エルミート行列の作成と確認
+n = 4  # 4x4行列を作成
+hermitian_matrix = create_hermitian_matrix(n)
+print("エルミート行列:\n", hermitian_matrix)
+check_eigenvalues(hermitian_matrix, "エルミート")
+
+# ユニタリ行列の作成と確認
+unitary_matrix = create_unitary_matrix(n)
+print("\nユニタリ行列:\n", unitary_matrix)
+check_eigenvalues(unitary_matrix, "ユニタリ")
