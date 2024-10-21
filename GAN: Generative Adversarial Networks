@@ -1,0 +1,101 @@
+import tensorflow as tf
+from tensorflow.keras import layers
+import numpy as np
+import matplotlib.pyplot as plt
+
+# データセットの準備 (MNISTデータセットを使用)
+def load_mnist_data():
+    (train_images, _), (_, _) = tf.keras.datasets.mnist.load_data()
+    train_images = train_images / 127.5 - 1.0  # [-1, 1]の範囲に正規化
+    train_images = np.expand_dims(train_images, axis=-1)  # チャネル次元を追加
+    return train_images
+
+# 生成器モデルの構築
+def build_generator():
+    model = tf.keras.Sequential()
+    model.add(layers.Dense(256, input_dim=100))
+    model.add(layers.LeakyReLU(alpha=0.2))
+    model.add(layers.Dense(512))
+    model.add(layers.LeakyReLU(alpha=0.2))
+    model.add(layers.Dense(1024))
+    model.add(layers.LeakyReLU(alpha=0.2))
+    model.add(layers.Dense(28 * 28 * 1, activation='tanh'))  # 28x28の画像サイズに変換
+    model.add(layers.Reshape((28, 28, 1)))  # 画像に変換
+    return model
+
+# 識別器モデルの構築
+def build_discriminator():
+    model = tf.keras.Sequential()
+    model.add(layers.Flatten(input_shape=(28, 28, 1)))
+    model.add(layers.Dense(512))
+    model.add(layers.LeakyReLU(alpha=0.2))
+    model.add(layers.Dense(256))
+    model.add(layers.LeakyReLU(alpha=0.2))
+    model.add(layers.Dense(1, activation='sigmoid'))  # 本物か偽物かの判定
+    return model
+
+# GANモデルの構築
+def build_gan(generator, discriminator):
+    discriminator.trainable = False  # GANの学習では識別器を固定
+    gan_input = layers.Input(shape=(100,))
+    generated_image = generator(gan_input)
+    gan_output = discriminator(generated_image)
+    gan = tf.keras.Model(gan_input, gan_output)
+    return gan
+
+# GANのトレーニング
+def train_gan(generator, discriminator, gan, epochs=10000, batch_size=128, sample_interval=1000):
+    # MNISTデータセットを読み込み
+    X_train = load_mnist_data()
+
+    # ラベル設定
+    real = np.ones((batch_size, 1))
+    fake = np.zeros((batch_size, 1))
+
+    for epoch in range(epochs):
+        # 本物の画像をランダムに選ぶ
+        idx = np.random.randint(0, X_train.shape[0], batch_size)
+        real_images = X_train[idx]
+
+        # ノイズベクトルを生成して偽物の画像を作る
+        noise = np.random.normal(0, 1, (batch_size, 100))
+        fake_images = generator.predict(noise)
+
+        # 識別器を訓練 (本物と偽物の画像)
+        d_loss_real = discriminator.train_on_batch(real_images, real)
+        d_loss_fake = discriminator.train_on_batch(fake_images, fake)
+        d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
+
+        # ノイズベクトルを生成してGANを訓練 (生成器を通して)
+        noise = np.random.normal(0, 1, (batch_size, 100))
+        g_loss = gan.train_on_batch(noise, real)  # 生成器は「本物」として識別されることを目標に学習
+
+        # 進捗の表示
+        if epoch % sample_interval == 0:
+            print(f"{epoch} [D loss: {d_loss[0]}, acc.: {100 * d_loss[1]:.2f}%] [G loss: {g_loss}]")
+            sample_images(generator)
+
+# 生成画像のサンプルを保存
+def sample_images(generator, image_grid_rows=4, image_grid_columns=4):
+    noise = np.random.normal(0, 1, (image_grid_rows * image_grid_columns, 100))
+    generated_images = generator.predict(noise)
+    generated_images = 0.5 * generated_images + 0.5  # [-1, 1] から [0, 1] へスケーリング
+
+    fig, axs = plt.subplots(image_grid_rows, image_grid_columns, figsize=(4, 4), sharey=True, sharex=True)
+    cnt = 0
+    for i in range(image_grid_rows):
+        for j in range(image_grid_columns):
+            axs[i, j].imshow(generated_images[cnt, :, :, 0], cmap='gray')
+            axs[i, j].axis('off')
+            cnt += 1
+    plt.show()
+
+# モデルの構築とコンパイル
+generator = build_generator()
+discriminator = build_discriminator()
+discriminator.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+gan = build_gan(generator, discriminator)
+gan.compile(loss='binary_crossentropy', optimizer='adam')
+
+# トレーニングの実行
+train_gan(generator, discriminator, gan, epochs=10000, batch_size=128, sample_interval=1000)
