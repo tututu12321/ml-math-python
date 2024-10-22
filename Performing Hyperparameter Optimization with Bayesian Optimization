@@ -1,0 +1,65 @@
+import optuna
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
+
+# データの準備
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.5,), (0.5,))
+])
+
+train_dataset = datasets.MNIST(root='./data', train=True, transform=transform, download=True)
+train_loader = DataLoader(dataset=train_dataset, batch_size=64, shuffle=True)
+
+# ニューラルネットワークの定義
+class SimpleNet(nn.Module):
+    def __init__(self, hidden_size, dropout_rate):
+        super(SimpleNet, self).__init__()
+        self.fc1 = nn.Linear(28 * 28, hidden_size)
+        self.fc2 = nn.Linear(hidden_size, 10)
+        self.dropout = nn.Dropout(dropout_rate)
+
+    def forward(self, x):
+        x = x.view(-1, 28 * 28)
+        x = torch.relu(self.fc1(x))
+        x = self.dropout(x)
+        x = self.fc2(x)
+        return x
+
+# 目的関数の定義 (Optunaのトライアル用)
+def objective(trial):
+    # ハイパーパラメータの探索空間を設定
+    hidden_size = trial.suggest_int('hidden_size', 32, 128)
+    dropout_rate = trial.suggest_float('dropout_rate', 0.1, 0.5)
+    learning_rate = trial.suggest_loguniform('learning_rate', 1e-4, 1e-1)
+    
+    # モデルの定義
+    model = SimpleNet(hidden_size, dropout_rate)
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    
+    # 訓練プロセス
+    model.train()
+    for epoch in range(3):  # エポック数は簡易的に3に設定
+        running_loss = 0.0
+        for inputs, labels in train_loader:
+            optimizer.zero_grad()
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+            running_loss += loss.item()
+
+    # 最終エポックの損失を返す（これを最適化対象にする）
+    return running_loss / len(train_loader)
+
+# ベイズ最適化によるハイパーパラメータ最適化の実行
+study = optuna.create_study(direction='minimize', sampler=optuna.samplers.TPESampler())
+study.optimize(objective, n_trials=50)
+
+# 結果の表示
+print("最適なハイパーパラメータ:")
+print(study.best_params)
