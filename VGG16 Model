@@ -1,0 +1,31 @@
+import tensorflow as tf
+from tensorflow.keras.applications import VGG16
+from tensorflow.keras.applications.vgg16 import preprocess_input, decode_predictions
+from tensorflow.keras.preprocessing import image
+import numpy as np
+
+# Load the VGG16 model with pre-trained ImageNet weights
+model = VGG16(weights='imagenet')
+
+# Print model summary to understand the architecture
+model.summary()
+
+# Load and preprocess an input image
+def load_and_preprocess_image(img_path):
+    img = image.load_img(img_path, target_size=(224, 224))  # Resize image to 224x224
+    img_array = image.img_to_array(img)
+    img_array = np.expand_dims(img_array, axis=0)
+    img_array = preprocess_input(img_array)  # Preprocess image as per VGG16 requirements
+    return img_array
+
+# Predict using VGG16
+def predict_image_class(img_path):
+    img_array = load_and_preprocess_image(img_path)
+    predictions = model.predict(img_array)
+    decoded_predictions = decode_predictions(predictions, top=3)[0]
+    for i, (imagenet_id, label, score) in enumerate(decoded_predictions):
+        print(f"{i+1}: {label} ({score * 100:.2f}%)")
+
+# Example usage
+img_path = 'your_image.jpg'  # Replace with your image path
+predict_image_class(img_path)
