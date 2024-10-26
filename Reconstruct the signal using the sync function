@@ -1,0 +1,30 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Define the sinc function
+def sinc(t):
+    # Handle the case where t is zero to avoid division by zero
+    return np.sinc(t / np.pi)
+
+# Parameters
+T_s = 0.1  # Sampling interval
+t = np.linspace(-5, 5, 1000)  # Time range for continuous time signal
+
+# Create a sampled signal (e.g., cosine wave sampled)
+n = np.arange(-10, 11)  # Sample indices
+x_n = np.cos(2 * np.pi * n * T_s)  # Sampled values
+t_reconstruct = np.linspace(-1, 1, 1000)
+
+# Reconstruct the signal using the sinc function
+x_reconstructed = np.sum([x_n[i] * sinc(np.pi * (t_reconstruct - n[i] * T_s) / T_s) for i in range(len(n))], axis=0)
+
+# Plot the original sampled points and the reconstructed signal
+plt.figure(figsize=(10, 6))
+plt.stem(n * T_s, x_n, linefmt='r-', markerfmt='ro', basefmt='k', label='Sampled Points')
+plt.plot(t_reconstruct, x_reconstructed, label='Reconstructed Signal', linewidth=2)
+plt.xlabel('Time (t)')
+plt.ylabel('Amplitude')
+plt.title('Reconstruction of a Sampled Signal using sinc function')
+plt.legend()
+plt.grid(True)
+plt.show()
