@@ -1,0 +1,48 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# サンプルデータの生成
+np.random.seed(0)  # 再現性のためにシードを設定
+N = 100  # サンプル数
+t = np.arange(N)
+x = np.sin(2 * np.pi * t / 20) + 0.5 * np.random.randn(N)  # サンプルデータ1 (自己相関用)
+y = np.cos(2 * np.pi * t / 20) + 0.5 * np.random.randn(N)  # サンプルデータ2 (相互相関用)
+
+# 自己相関関数の計算
+def autocorrelation(x):
+    n = len(x)
+    result = np.correlate(x, x, mode='full')  # 'full'で全てのラグを計算
+    return result[result.size // 2:] / n  # 正のラグの部分のみを取得
+
+# 相互相関関数の計算
+def cross_correlation(x, y):
+    n = len(x)
+    result = np.correlate(x, y, mode='full')
+    return result[result.size // 2:] / n
+
+# 自己相関関数の計算とプロット
+acf_x = autocorrelation(x)
+lags = np.arange(len(acf_x))
+
+plt.figure(figsize=(12, 5))
+plt.subplot(1, 2, 1)
+plt.plot(lags, acf_x, label='ACF of x', color='blue')
+plt.title('Autocorrelation Function (ACF)')
+plt.xlabel('Lag')
+plt.ylabel('ACF')
+plt.grid(True)
+plt.legend()
+
+# 相互相関関数の計算とプロット
+ccf_xy = cross_correlation(x, y)
+
+plt.subplot(1, 2, 2)
+plt.plot(lags, ccf_xy, label='CCF between x and y', color='red')
+plt.title('Cross-Correlation Function (CCF)')
+plt.xlabel('Lag')
+plt.ylabel('CCF')
+plt.grid(True)
+plt.legend()
+
+plt.tight_layout()
+plt.show()
