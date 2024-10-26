@@ -1,0 +1,71 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# NRZ Encoding
+def nrz_encoding(data, bit_rate=1):
+    t = np.arange(0, len(data), 1/bit_rate)
+    signal = np.repeat(data, int(bit_rate))
+    return t, signal
+
+# RZ Encoding
+def rz_encoding(data, bit_rate=1):
+    t = np.arange(0, len(data), 1/(bit_rate*2))
+    signal = np.repeat(data, int(bit_rate))
+    rz_signal = np.zeros(len(signal) * 2)
+    rz_signal[::2] = signal
+    return t, rz_signal
+
+# Manchester Encoding
+def manchester_encoding(data, bit_rate=1):
+    t = np.arange(0, len(data), 1/bit_rate/2)  # Adjust time for twice the length per bit
+    signal = []
+    for bit in data:
+        if bit == 1:
+            signal.extend([1, 0])
+        else:
+            signal.extend([0, 1])
+    signal = np.array(signal)
+    return t[:len(signal)], signal
+
+# Example data
+data = [1, 0, 1, 1, 0, 0, 1]
+bit_rate = 100
+
+# Generate signals
+t_nrz, nrz_signal = nrz_encoding(data, bit_rate)
+t_rz, rz_signal = rz_encoding(data, bit_rate)
+t_manchester, manchester_signal = manchester_encoding(data, bit_rate)
+
+# Plot signals
+plt.figure(figsize=(10, 6))
+
+# Plot NRZ
+plt.subplot(3, 1, 1)
+plt.step(t_nrz, nrz_signal, where='post')
+plt.ylim(-0.5, 1.5)
+plt.title('NRZ Encoding')
+plt.xlabel('Time')
+plt.ylabel('Amplitude')
+plt.grid(True)
+
+# Plot RZ
+plt.subplot(3, 1, 2)
+plt.step(t_rz, rz_signal, where='post')
+plt.ylim(-0.5, 1.5)
+plt.title('RZ Encoding')
+plt.xlabel('Time')
+plt.ylabel('Amplitude')
+plt.grid(True)
+
+# Plot Manchester
+plt.subplot(3, 1, 3)
+plt.step(t_manchester, manchester_signal, where='post')
+plt.ylim(-0.5, 1.5)
+plt.title('Manchester Encoding')
+plt.xlabel('Time')
+plt.ylabel('Amplitude')
+plt.grid(True)
+
+# Adjust layout and show plot
+plt.tight_layout()
+plt.show()
