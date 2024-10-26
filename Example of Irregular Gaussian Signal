@@ -1,0 +1,24 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ガウス分布のパラメータ
+mean = 0  # 平均
+std_dev = 1  # 標準偏差
+num_samples = 100  # サンプル数
+
+# ガウス分布に従う不規則信号を生成
+gaussian_signal = np.random.normal(mean, std_dev, num_samples)
+
+# 時間軸 (サンプル番号)
+time = np.arange(num_samples)
+
+# プロット
+plt.figure(figsize=(10, 5))
+plt.plot(time, gaussian_signal, marker='o', linestyle='-', color='blue', label='Gaussian Signal')
+plt.title('Example of Irregular Gaussian Signal')
+plt.xlabel('Time (Sample #)')
+plt.ylabel('Amplitude')
+plt.grid(True)
+plt.axhline(0, color='black', linewidth=0.5)  # y=0の基準線を追加
+plt.legend()
+plt.show()
