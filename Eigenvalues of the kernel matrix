@@ -1,0 +1,42 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# RBFカーネル関数の定義
+def rbf_kernel(x, y, sigma=1.0):
+    return np.exp(-np.linalg.norm(x - y)**2 / (2 * sigma**2))
+
+# カーネル行列を計算
+def compute_kernel_matrix(data, sigma=1.0):
+    n_samples = data.shape[0]
+    kernel_matrix = np.zeros((n_samples, n_samples))
+    for i in range(n_samples):
+        for j in range(n_samples):
+            kernel_matrix[i, j] = rbf_kernel(data[i], data[j], sigma)
+    return kernel_matrix
+
+# サンプルデータの定義 (例: 2次元データ)
+data = np.array([[1, 2], [3, 4], [5, 6], [7, 8]])
+
+# カーネル行列を計算
+sigma = 1.0  # RBFカーネルのパラメータ
+kernel_matrix = compute_kernel_matrix(data, sigma)
+
+# カーネル行列の固有値と固有ベクトルを計算
+eigenvalues, eigenvectors = np.linalg.eigh(kernel_matrix)
+
+# 結果の表示
+print("カーネル行列:")
+print(kernel_matrix)
+print("\nカーネル行列の固有値:")
+print(eigenvalues)
+print("\nカーネル行列の固有ベクトル:")
+print(eigenvectors)
+
+# 固有値のプロット
+plt.figure(figsize=(8, 4))
+plt.plot(np.arange(1, len(eigenvalues) + 1), eigenvalues, marker='o')
+plt.title('Eigenvalues of the Kernel Matrix')
+plt.xlabel('Index')
+plt.ylabel('Eigenvalue')
+plt.grid(True)
+plt.show()
