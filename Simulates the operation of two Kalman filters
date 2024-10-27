@@ -1,0 +1,81 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# パラメータ設定
+dt = 0.01  # 時間ステップ (10 ms)
+T = 10  # シミュレーション時間 (10秒)
+n_steps = int(T / dt)  # シミュレーションのステップ数
+
+# 加速度センサとジャイロセンサからの観測データのシミュレーション
+true_angle = np.linspace(0, np.pi / 4, n_steps)  # 真の角度 (0から45度への線形変化)
+gyro_noise = np.random.normal(0, 0.05, n_steps)  # ジャイロセンサのノイズ
+accel_noise = np.random.normal(0, 0.1, n_steps)  # 加速度センサのノイズ
+
+# 観測データ
+gyro_measurements = np.gradient(true_angle, dt) + gyro_noise  # 角速度をジャイロで観測
+accel_measurements = true_angle + accel_noise  # 角度を加速度センサで観測
+
+# 1つめのカルマンフィルタ：角度推定
+angle_estimate = np.zeros(n_steps)
+angle_variance = np.zeros(n_steps)
+P_angle = 1  # 初期の推定誤差の分散
+R_gyro = 0.05  # ジャイロセンサの観測ノイズの分散
+R_accel = 0.1  # 加速度センサの観測ノイズの分散
+
+for t in range(1, n_steps):
+    # 予測ステップ
+    angle_estimate[t] = angle_estimate[t - 1] + gyro_measurements[t] * dt
+    P_angle += R_gyro * dt
+
+    # 更新ステップ
+    K_angle = P_angle / (P_angle + R_accel)
+    angle_estimate[t] += K_angle * (accel_measurements[t] - angle_estimate[t])
+    P_angle = (1 - K_angle) * P_angle
+    angle_variance[t] = P_angle
+
+# 2つめのカルマンフィルタ：姿勢推定 (簡易的に角速度と角度のみを扱う)
+wheel_angle = np.zeros(n_steps)
+wheel_velocity = np.zeros(n_steps)
+P_wheel = 1  # 初期の推定誤差の分散
+R_wheel = 0.05  # 車輪の角度の観測ノイズの分散
+
+for t in range(1, n_steps):
+    # 予測ステップ
+    wheel_velocity[t] = wheel_velocity[t - 1] + angle_estimate[t] * dt
+    wheel_angle[t] = wheel_angle[t - 1] + wheel_velocity[t] * dt
+    P_wheel += R_wheel * dt
+
+    # 更新ステップ（簡易的に姿勢制御のための角度の推定にのみ更新）
+    K_wheel = P_wheel / (P_wheel + R_accel)
+    wheel_angle[t] += K_wheel * (accel_measurements[t] - wheel_angle[t])
+    P_wheel = (1 - K_wheel) * P_wheel
+
+# 結果のプロット
+time = np.linspace(0, T, n_steps)
+
+plt.figure(figsize=(12, 8))
+
+# 1つめのカルマンフィルタの結果
+plt.subplot(2, 1, 1)
+plt.plot(time, true_angle, label="True Angle", color='blue')
+plt.plot(time, accel_measurements, label="Accel Measurements", linestyle='--', color='orange')
+plt.plot(time, angle_estimate, label="Estimated Angle (Kalman Filter)", color='red')
+plt.fill_between(time, angle_estimate - np.sqrt(angle_variance), angle_estimate + np.sqrt(angle_variance), color='red', alpha=0.2, label="Angle Estimate Variance")
+plt.xlabel("Time [s]")
+plt.ylabel("Angle [rad]")
+plt.title("Kalman Filter for Angle Estimation")
+plt.grid(True)
+plt.legend()
+
+# 2つめのカルマンフィルタの結果
+plt.subplot(2, 1, 2)
+plt.plot(time, wheel_angle, label="Estimated Wheel Angle", color='green')
+plt.plot(time, wheel_velocity, label="Estimated Wheel Velocity", linestyle='--', color='purple')
+plt.xlabel("Time [s]")
+plt.ylabel("Wheel State")
+plt.title("Kalman Filter for Wheel Angle and Velocity Estimation")
+plt.grid(True)
+plt.legend()
+
+plt.tight_layout()
+plt.show()
