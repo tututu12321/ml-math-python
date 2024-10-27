@@ -1,0 +1,41 @@
+import numpy as np
+
+# 行列の初期設定
+A = np.array([
+    [1, 0, 0, 0],
+    [0, 1, 0, 0],
+    [0, 0, 1, 0],
+    [0, 0, 0, 1]
+])  # 状態遷移行列 A
+
+P = np.eye(4)  # 現在の共分散行列 P（4x4の単位行列として初期化）
+B = np.array([
+    [0.1],
+    [0.1],
+    [0.1],
+    [0.1]
+])  # 入力制御行列 B
+
+# 入力電圧の分散（例として0.01）
+voltage_variance = 0.01
+
+# A^T（Aの転置行列）
+A_T = A.T
+
+# B^T（Bの転置行列）
+B_T = B.T
+
+# APATの計算: APA^T
+AP = np.dot(A, P)
+APAT = np.dot(AP, A_T)
+
+# BUB^Tの計算: BUB^T
+BBT = np.dot(B, B_T)
+BUBT = BBT * voltage_variance
+
+# 次の共分散行列の予測: P' = APA^T + BUB^T
+P_predict = APAT + BUBT
+
+# 結果の表示
+print("Predicted covariance matrix P':")
+print(P_predict)
