@@ -1,0 +1,73 @@
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import numpy as np
+import matplotlib.pyplot as plt
+
+# データセットの生成
+def generate_data(T=100, noise_std=0.1):
+    """ シンプルな非線形システムのデータ生成 """
+    x = np.zeros(T)
+    y = np.zeros(T)
+    x[0] = np.random.randn()  # 初期状態
+    for t in range(1, T):
+        x[t] = 0.5 * x[t - 1] + 2 * np.sin(x[t - 1]) + np.random.randn() * noise_std
+        y[t] = x[t] + np.random.randn() * noise_std
+    return x, y
+
+# ニューラルネットワークモデルの定義
+class TransitionModel(nn.Module):
+    """ 状態遷移モデルをニューラルネットワークで表現 """
+    def __init__(self, input_dim=1, hidden_dim=16, output_dim=1):
+        super(TransitionModel, self).__init__()
+        self.fc1 = nn.Linear(input_dim, hidden_dim)
+        self.fc2 = nn.Linear(hidden_dim, output_dim)
+
+    def forward(self, x):
+        x = torch.relu(self.fc1(x))
+        return self.fc2(x)
+
+# パラメータ設定
+T = 100  # シーケンスの長さ
+x_true, y_observed = generate_data(T)
+
+# モデルの初期化
+model = TransitionModel()
+optimizer = optim.Adam(model.parameters(), lr=0.01)
+loss_fn = nn.MSELoss()
+
+# トレーニングループ
+num_epochs = 100
+for epoch in range(num_epochs):
+    model.train()
+    total_loss = 0.0
+    x_pred = torch.zeros(T, 1)  # 予測された状態を保存するテンソル
+    x_pred[0] = torch.tensor([0.0])  # 初期状態の予測
+
+    for t in range(1, T):
+        # 遷移モデルの予測
+        x_input = x_pred[t - 1].clone().detach().unsqueeze(0)  # 前の時刻の予測値を入力 (コピーを使用)
+        x_pred[t] = model(x_input)
+
+    # 観測値との誤差を計算
+    y_true = torch.tensor(y_observed, dtype=torch.float32).unsqueeze(1)
+    loss = loss_fn(x_pred, y_true)
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+    total_loss += loss.item()
+
+    if epoch % 10 == 0:
+        print(f'Epoch [{epoch}/{num_epochs}], Loss: {total_loss:.4f}')
+
+# 結果のプロット
+plt.figure(figsize=(10, 6))
+plt.plot(x_true, label='True State', color='blue')
+plt.plot(y_observed, label='Observed State', linestyle='--', color='orange')
+plt.plot(x_pred.detach().numpy(), label='Predicted State', color='red')
+plt.xlabel('Time Step')
+plt.ylabel('State')
+plt.title('Deep Kalman Filter - True State vs Predicted State')
+plt.legend()
+plt.grid()
+plt.show()
