@@ -1,0 +1,76 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.linalg import eigh
+from scipy.integrate import odeint
+
+# --- 1. Define mass and stiffness matrices for a multi-degree-of-freedom system ---
+# Example: 3-degree-of-freedom system
+M = np.array([[2, 0, 0], 
+              [0, 2, 0], 
+              [0, 0, 1]])  # Mass matrix (kg)
+K = np.array([[50, -25, 0], 
+              [-25, 50, -25], 
+              [0, -25, 25]])  # Stiffness matrix (N/m)
+
+# --- 2. Eigenvalue analysis (Find eigenvalues and eigenvectors) ---
+eigenvalues, eigenvectors = eigh(K, M)
+
+# Calculate natural frequencies
+natural_frequencies = np.sqrt(eigenvalues)
+
+print("Natural Frequencies (rad/s):", natural_frequencies)
+print("Mode Shapes:")
+print(eigenvectors)
+
+# --- 3. Simulate forced vibration ---
+# Vibration equation: M * d2x/dt2 + K * x = F(t)
+# Convert to state-space form
+def equation_of_motion(state, t, M, K, F):
+    # Decompose the state vector
+    x = state[:3]  # Displacement
+    v = state[3:]  # Velocity
+
+    # Calculate acceleration using the inverse of the mass matrix
+    M_inv = np.linalg.inv(M)
+    a = M_inv @ (F(t) - K @ x)
+
+    # Return changes in state
+    return np.concatenate([v, a])
+
+# --- 4. Define the external force ---
+# A simple sinusoidal force applied to the first mass
+def external_force(t):
+    return np.array([10 * np.sin(1.5 * t), 0, 0])
+
+# Define initial conditions and time range
+initial_state = np.zeros(6)  # Initial displacement and velocity are zero
+time = np.linspace(0, 20, 1000)
+
+# Solve the differential equations
+solution = odeint(equation_of_motion, initial_state, time, args=(M, K, external_force))
+
+# --- 5. Plot the simulation results ---
+plt.figure(figsize=(10, 6))
+for i in range(3):
+    plt.plot(time, solution[:, i], label=f'Displacement of Mass {i+1}')
+
+plt.title('Forced Vibration of a 3-DOF System')
+plt.xlabel('Time (s)')
+plt.ylabel('Displacement (m)')
+plt.grid(True)
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+# --- 6. Plot the mode shapes ---
+plt.figure(figsize=(8, 5))
+for i in range(3):
+    plt.plot([1, 2, 3], eigenvectors[:, i], marker='o', label=f'Mode {i+1}')
+
+plt.title('Mode Shapes of the 3-DOF System')
+plt.xlabel('Mass Index')
+plt.ylabel('Relative Amplitude')
+plt.grid(True)
+plt.legend()
+plt.tight_layout()
+plt.show()
