@@ -1,0 +1,119 @@
+import numpy as np
+
+# 1. テイラー展開による対数の近似
+# ln(x) をテイラー展開を用いて計算 (x が 1 に近い場合に精度が良い)
+def ln_taylor_series(x, terms=10):
+    """
+    テイラー展開を用いて対数を計算する関数
+    Approximates ln(x) using Taylor series expansion around x=1.
+    
+    Parameters:
+    x (float): 対数の引数 (x > 0)
+    terms (int): テイラー展開の項数
+    
+    Returns:
+    float: ln(x) の近似値
+    """
+    if x <= 0:
+        raise ValueError("x must be greater than 0")
+    
+    # テイラー展開は x = 1 に近い場合に精度が高くなるので、x を 1 に近づける変換
+    z = (x - 1) / (x + 1)
+    result = 0
+    for n in range(terms):
+        result += (2 * z**(2 * n + 1)) / (2 * n + 1)
+    return result
+
+# 2. 反復法（ニュートン法）を使った対数の計算
+# 方程式 ln(y) = x を解くことで近似値を求める
+def ln_newton(x, tol=1e-10, max_iter=1000):
+    """
+    ニュートン法を用いて ln(x) を求める関数
+    Uses Newton's method to approximate ln(x).
+    
+    Parameters:
+    x (float): 対数の引数 (x > 0)
+    tol (float): 許容誤差
+    max_iter (int): 最大反復回数
+    
+    Returns:
+    float: ln(x) の近似値
+    """
+    if x <= 0:
+        raise ValueError("x must be greater than 0")
+    
+    y = x - 1  # 初期値
+    for i in range(max_iter):
+        y_next = y - (np.exp(y) - x) / np.exp(y)
+        if abs(y_next - y) < tol:
+            return y_next
+        y = y_next
+    raise ValueError("Newton's method did not converge")
+
+# 3. 数値積分を用いた対数の計算
+# ln(x) を 1 から x までの積分で表現
+def ln_numerical_integration(x, n=100000):
+    """
+    数値積分を用いて ln(x) を計算する関数
+    Approximates ln(x) using numerical integration from 1 to x.
+    
+    Parameters:
+    x (float): 対数の引数 (x > 0)
+    n (int): 積分の分割数
+    
+    Returns:
+    float: ln(x) の近似値
+    """
+    if x <= 0:
+        raise ValueError("x must be greater than 0")
+    
+    dx = (x - 1) / n
+    integral = 0
+    for i in range(n):
+        integral += 1 / (1 + i * dx)
+    return integral * dx
+
+# 4. 対数変換を用いた計算
+# ln(x) を log2(x) または log10(x) などを利用して計算
+def ln_from_log_base(x, base=10):
+    """
+    任意の底を使用して ln(x) を計算する関数
+    Calculates ln(x) using a different logarithmic base.
+    
+    Parameters:
+    x (float): 対数の引数 (x > 0)
+    base (float): 対数の底 (default=10 for log10)
+    
+    Returns:
+    float: ln(x) の近似値
+    """
+    if x <= 0:
+        raise ValueError("x must be greater than 0")
+    
+    # log_base(x) を利用して ln(x) を計算
+    return np.log(x) / np.log(base)
+
+# テスト例
+x = 2.0  # 対数を計算したい値
+
+# テイラー展開による対数の近似
+ln_taylor = ln_taylor_series(x, terms=20)
+print(f"ln({x}) (Taylor Series): {ln_taylor}")
+
+# ニュートン法による対数の計算
+ln_newton_result = ln_newton(x)
+print(f"ln({x}) (Newton's Method): {ln_newton_result}")
+
+# 数値積分による対数の計算
+ln_integration = ln_numerical_integration(x)
+print(f"ln({x}) (Numerical Integration): {ln_integration}")
+
+# 対数変換を用いた対数の計算
+ln_log_base10 = ln_from_log_base(x, base=10)
+ln_log_base2 = ln_from_log_base(x, base=2)
+print(f"ln({x}) using log10: {ln_log_base10}")
+print(f"ln({x}) using log2: {ln_log_base2}")
+
+# Pythonの標準ライブラリを使った確認
+ln_numpy = np.log(x)
+print(f"ln({x}) (Numpy's log): {ln_numpy}")
