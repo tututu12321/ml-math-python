@@ -1,0 +1,59 @@
+import math
+
+# CORDICアルゴリズムの定数
+# アークタンジェントのテーブル
+atan_table = [math.atan(2**-i) for i in range(40)]
+
+# スケーリングファクター K (収束するための定数)
+K = 0.607252935  # これは、無限回シフトしたときに得られるスケーリングファクター
+
+def cordic_rotate(angle, iterations=20):
+    """
+    CORDICアルゴリズムを用いて sin と cos を計算する関数
+    Calculates sin and cos using the CORDIC algorithm.
+    
+    Parameters:
+    angle (float): 角度 (ラジアン単位)
+    iterations (int): 反復回数
+    
+    Returns:
+    tuple: (cos(angle), sin(angle))
+    """
+    # 初期値
+    x = K
+    y = 0
+    z = angle
+
+    # CORDICアルゴリズムによる回転
+    for i in range(iterations):
+        # 方向の決定
+        if z < 0:
+            direction = -1
+        else:
+            direction = 1
+
+        # シフト演算による座標の更新
+        x_new = x - direction * y * 2**-i
+        y_new = y + direction * x * 2**-i
+        z -= direction * atan_table[i]
+
+        x, y = x_new, y_new
+
+    return x, y  # (cos(angle), sin(angle))
+
+# テスト例
+angle_degrees = 45  # 角度 (度)
+angle_radians = math.radians(angle_degrees)  # ラジアンに変換
+
+# CORDICでの計算
+cos_val, sin_val = cordic_rotate(angle_radians)
+
+# 結果の表示
+print(f"COS({angle_degrees}°): {cos_val}")
+print(f"SIN({angle_degrees}°): {sin_val}")
+
+# Pythonの標準ライブラリを使った確認
+cos_lib = math.cos(angle_radians)
+sin_lib = math.sin(angle_radians)
+print(f"COS({angle_degrees}°) (Python library): {cos_lib}")
+print(f"SIN({angle_degrees}°) (Python library): {sin_lib}")
