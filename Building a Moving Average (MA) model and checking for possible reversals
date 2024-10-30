@@ -1,0 +1,35 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from statsmodels.tsa.arima_process import ArmaProcess
+
+# MA(1) モデルの設定
+theta = 0.5  # MAモデルのパラメータ
+ma_model = ArmaProcess([1], [1, theta])  # MA(1) プロセスを構築
+
+# 反転可能性のチェック
+if abs(theta) < 1:
+    print("The MA(1) model is invertible.")
+else:
+    print("The MA(1) model is not invertible.")
+
+# MA(1) モデルのシミュレーション
+n_samples = 100  # サンプル数
+np.random.seed(0)
+ma_data = ma_model.generate_sample(nsample=n_samples)
+
+# プロット
+plt.figure(figsize=(10, 6))
+plt.plot(ma_data, color="blue", label="MA(1) Process (theta = 0.5)")
+plt.xlabel("Time")
+plt.ylabel("Value")
+plt.title("MA(1) Model Simulation")
+plt.legend()
+plt.grid()
+plt.show()
+
+# MA(1) モデルの自己相関
+from statsmodels.graphics.tsaplots import plot_acf
+
+plot_acf(ma_data, lags=20)
+plt.title("ACF of MA(1) Model")
+plt.show()
