@@ -1,0 +1,83 @@
+import numpy as np
+import scipy.integrate as integrate
+import matplotlib.pyplot as plt
+
+# 曲線の関数 y = f(x)
+def f(x):
+    return np.sqrt(x)  # 例として f(x) = sqrt(x)
+
+# 数値微分で f'(x) を計算する関数
+def df(x, h=1e-5):
+    return (f(x + h) - f(x - h)) / (2 * h)
+
+# 曲線の長さの計算
+def curve_length(f, a, b):
+    """
+    曲線の長さを計算する関数
+
+    Parameters:
+    f (function): 曲線の関数 f(x)
+    a (float): 積分範囲の開始点
+    b (float): 積分範囲の終了点
+
+    Returns:
+    float: 曲線の長さ
+    """
+    integrand = lambda x: np.sqrt(1 + (df(x))**2)
+    length, _ = integrate.quad(integrand, a, b)
+    return length
+
+# 重心の計算
+def center_of_mass(f, a, b):
+    """
+    曲線領域の重心（x座標とy座標）を計算する関数
+
+    Parameters:
+    f (function): 曲線の関数 f(x)
+    a (float): 積分範囲の開始点
+    b (float): 積分範囲の終了点
+
+    Returns:
+    tuple: (x座標の重心, y座標の重心)
+    """
+    # 面積計算
+    area, _ = integrate.quad(f, a, b)
+
+    # x座標の重心
+    x_center_integrand = lambda x: x * f(x)
+    x_center, _ = integrate.quad(x_center_integrand, a, b)
+    x_center /= area
+
+    # y座標の重心
+    y_center_integrand = lambda x: (f(x) ** 2) / 2
+    y_center, _ = integrate.quad(y_center_integrand, a, b)
+    y_center /= area
+
+    return x_center, y_center
+
+# パラメータ設定
+a = 0    # 積分範囲の開始点
+b = 4    # 積分範囲の終了点
+
+# 曲線の長さと重心の計算
+length = curve_length(f, a, b)
+x_center, y_center = center_of_mass(f, a, b)
+
+# 結果の表示
+print(f"Curve Length: {length:.2f}")
+print(f"Center of Mass (x): {x_center:.2f}")
+print(f"Center of Mass (y): {y_center:.2f}")
+
+# プロット
+x_vals = np.linspace(a, b, 100)
+y_vals = f(x_vals)
+
+plt.figure(figsize=(10, 6))
+plt.plot(x_vals, y_vals, label=r"$y=\sqrt{x}$", color="blue")
+plt.scatter(x_center, y_center, color="red", marker="o", label="Center of Mass")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Curve Length and Center of Mass")
+plt.legend()
+plt.grid()
+plt.show()
