@@ -1,0 +1,29 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+
+# サンプルデータの生成（ランダム信号）
+np.random.seed(0)
+n_samples = 1000
+output_signal = np.random.randn(n_samples)
+
+# ARMA モデルのフィッティング（ARIMA を使用して d=0 に設定）
+model = sm.tsa.ARIMA(output_signal, order=(1, 0, 1))  # (p, d, q) の形式で d=0
+fitted_model = model.fit()
+
+# フィッティング結果の表示
+print(fitted_model.summary())
+
+# 予測値の取得
+forecast_steps = 10
+forecast = fitted_model.forecast(steps=forecast_steps)
+
+# 結果のプロット
+plt.figure(figsize=(10, 5))
+plt.plot(output_signal, label="Original Signal")
+plt.plot(np.arange(len(output_signal), len(output_signal) + forecast_steps), forecast, label="Forecast", color="red")
+plt.title("ARMA Model Forecast (using ARIMA with d=0)")
+plt.xlabel("Time")
+plt.ylabel("Signal Value")
+plt.legend()
+plt.show()
