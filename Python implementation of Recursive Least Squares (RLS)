@@ -1,0 +1,56 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# パラメータの設定
+num_samples = 100               # サンプル数
+np.random.seed(0)               # 乱数シード
+lambda_ = 0.99                  # 忘却係数
+delta = 1.0                     # 初期共分散行列のスケール
+theta_true = np.array([2, -3])  # 真のパラメータ（例として）
+
+# データの生成 (線形モデル + ノイズ)
+X = np.random.randn(num_samples, 2)  # 入力データ
+y = X @ theta_true + np.random.normal(0, 0.5, num_samples)  # 出力データ
+
+# RLSアルゴリズムの初期化
+theta_est = np.zeros(2)         # パラメータ推定の初期値
+P = delta * np.eye(2)           # 初期共分散行列
+
+# パラメータの推定履歴
+theta_history = []
+
+# 逐次最小二乗法 (RLS) の実行
+for i in range(num_samples):
+    x_i = X[i, :].reshape(-1, 1)  # 入力ベクトルを列ベクトルに
+    y_i = y[i]                    # 対応する出力
+
+    # 予測誤差
+    error = y_i - (theta_est @ x_i).item()
+
+    # カルマンゲインの計算
+    gain = (P @ x_i) / (lambda_ + (x_i.T @ P @ x_i).item())
+
+    # パラメータの更新
+    theta_est = theta_est + (gain.flatten() * error)
+    P = (P - gain @ x_i.T @ P) / lambda_
+
+    # 推定パラメータの履歴を記録
+    theta_history.append(theta_est.copy())
+
+# 推定結果の表示
+theta_history = np.array(theta_history)
+print(f"True Parameters: {theta_true}")
+print(f"Estimated Parameters: {theta_est}")
+
+# パラメータ推定の収束をプロット
+plt.figure(figsize=(10, 6))
+plt.plot(theta_history[:, 0], label="Theta 1 Estimate")
+plt.plot(theta_history[:, 1], label="Theta 2 Estimate")
+plt.axhline(theta_true[0], color='r', linestyle='--', label="Theta 1 True")
+plt.axhline(theta_true[1], color='g', linestyle='--', label="Theta 2 True")
+plt.xlabel("Sample")
+plt.ylabel("Parameter Value")
+plt.legend()
+plt.title("Recursive Least Squares Parameter Estimation")
+plt.grid()
+plt.show()
