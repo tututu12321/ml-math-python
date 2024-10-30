@@ -1,0 +1,53 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.io import wavfile
+from scipy.signal import lfilter
+
+# 1. 統計モデルに基づく音声合成（簡易版: ガウス分布モデルを仮定）
+def statistical_model_synthesis(mean, std_dev, length):
+    """
+    平均と標準偏差を基にした統計モデルにより、ガウス分布に従う音声信号を生成
+    """
+    signal = np.random.normal(mean, std_dev, length)
+    return signal
+
+# 2. 統計的パラメトリック音声合成（簡易版: LPCパラメータを用いた音声合成）
+def lpc_synthesis(signal, order=8):
+    """
+    LPC分析に基づき、音声信号を合成
+    """
+    a = np.polyfit(range(len(signal)), signal, order)
+    synthesized_signal = lfilter([1], np.concatenate([[1], -a[1:]]), signal)
+    return synthesized_signal
+
+# 3. 一貫学習に基づく音声合成（簡易版: 自己教師学習でノイズ除去）
+def self_supervised_synthesis(signal, noise_level=0.1):
+    """
+    ノイズを含む音声信号を生成し、ノイズ除去によって信号を強化
+    """
+    noisy_signal = signal + np.random.normal(0, noise_level, len(signal))
+    estimated_signal = noisy_signal - noise_level  # 簡易ノイズ除去
+    return estimated_signal
+
+# テスト用音声信号の生成
+mean, std_dev, length = 0, 1, 16000  # 平均0, 標準偏差1, 長さ16000サンプル
+signal = statistical_model_synthesis(mean, std_dev, length)
+
+# LPC音声合成
+lpc_signal = lpc_synthesis(signal)
+
+# 一貫学習による音声合成
+enhanced_signal = self_supervised_synthesis(lpc_signal)
+
+# 音声信号の保存
+wavfile.write("statistical_synth.wav", 16000, signal.astype(np.float32))
+wavfile.write("lpc_synth.wav", 16000, lpc_signal.astype(np.float32))
+wavfile.write("enhanced_synth.wav", 16000, enhanced_signal.astype(np.float32))
+
+# 結果をプロット
+plt.figure(figsize=(12, 8))
+plt.subplot(311), plt.plot(signal), plt.title("Statistical Model Synthesis"), plt.axis('off')
+plt.subplot(312), plt.plot(lpc_signal), plt.title("LPC-Based Synthesis"), plt.axis('off')
+plt.subplot(313), plt.plot(enhanced_signal), plt.title("Self-Supervised Enhanced Synthesis"), plt.axis('off')
+plt.tight_layout()
+plt.show()
