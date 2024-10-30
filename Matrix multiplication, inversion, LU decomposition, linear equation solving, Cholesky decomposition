@@ -1,0 +1,64 @@
+import numpy as np
+from scipy.linalg import lu, cholesky
+
+# 1. 行列積の計算
+def matrix_multiplication(A, B):
+    return np.dot(A, B)
+
+# 2. 逆行列の計算
+def inverse_matrix(A):
+    return np.linalg.inv(A)
+
+# 3. LU分解の計算
+def lu_decomposition(A):
+    P, L, U = lu(A)
+    return P, L, U
+
+# 4. 線形方程式の解法 (正方行列で逆行列が存在する場合)
+def solve_linear_equation(A, b):
+    return np.linalg.solve(A, b)
+
+# 5. 擬似逆行列を用いた線形方程式の解法（SVD使用、正方行列でない場合など）
+def solve_linear_equation_svd(A, b):
+    U, S, Vt = np.linalg.svd(A, full_matrices=False)
+    S_inv = np.diag([1 / s if s > 1e-10 else 0 for s in S])
+    A_pseudo_inverse = Vt.T @ S_inv @ U.T
+    return A_pseudo_inverse @ b
+
+# 6. Cholesky分解（正定値対称行列の場合のみ使用可能）
+def cholesky_decomposition(A):
+    return cholesky(A, lower=True)
+
+# --- 使用例 ---
+
+# 任意の行列 A とベクトル b の定義
+A = np.array([[4, 2], [2, 3]])
+B = np.array([[1, 0], [0, 1]])
+b = np.array([1, 2])
+
+print("1. 行列積の計算")
+product = matrix_multiplication(A, B)
+print("A * B =\n", product)
+
+print("\n2. 逆行列の計算")
+inverse = inverse_matrix(A)
+print("A^(-1) =\n", inverse)
+
+print("\n3. LU 分解の計算")
+P, L, U = lu_decomposition(A)
+print("P =\n", P)
+print("L =\n", L)
+print("U =\n", U)
+
+print("\n4. 線形方程式 A*x = b の解法 (通常の方法)")
+x_solution = solve_linear_equation(A, b)
+print("Solution (x) =\n", x_solution)
+
+print("\n5. 線形方程式 A*x = b の解法 (SVDを用いた擬似逆行列)")
+x_solution_svd = solve_linear_equation_svd(A, b)
+print("Solution with SVD (x) =\n", x_solution_svd)
+
+print("\n6. Cholesky 分解の計算")
+cholesky_L = cholesky_decomposition(A)
+print("Cholesky L =\n", cholesky_L)
+print("Check: L * L.T =\n", cholesky_L @ cholesky_L.T)
