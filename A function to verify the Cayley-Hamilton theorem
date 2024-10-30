@@ -1,0 +1,48 @@
+import numpy as np
+from sympy import Matrix, symbols
+
+# ケーリー・ハミルトンの定理の検証
+def cayley_hamilton(matrix):
+    """
+    ケーリー・ハミルトンの定理を検証する関数
+    
+    Parameters:
+    matrix (Matrix): sympy.Matrix 型の正方行列 A
+    
+    Returns:
+    bool: ケーリー・ハミルトンの定理が成立する場合 True
+    """
+    n = matrix.shape[0]
+    # 特性多項式を求める
+    lambda_ = symbols('lambda')
+    char_poly = matrix.charpoly(lambda_).as_expr()
+    print("Characteristic Polynomial:", char_poly)
+    
+    # 特性多項式の係数
+    coeffs = matrix.charpoly(lambda_).all_coeffs()
+    print("Coefficients of Characteristic Polynomial:", coeffs)
+    
+    # 特性多項式に基づいて行列を生成
+    result = Matrix.zeros(n, n)  # 初期値をゼロ行列に設定
+    for i in range(n + 1):
+        result += coeffs[i] * matrix**(n - i)
+    print("Substitute A into Characteristic Polynomial Result:\n", result)
+    
+    # ゼロ行列と比較
+    return result == Matrix.zeros(n, n)
+
+# 行列の設定（例として3x3行列）
+A = np.array([
+    [1, -2, 1],
+    [1, 0, 1],
+    [0, -1, 2]
+])
+
+# numpy 配列から sympy.Matrix に変換
+A_sym = Matrix(A)
+
+# ケーリー・ハミルトンの定理の確認
+if cayley_hamilton(A_sym):
+    print("The Cayley-Hamilton theorem is verified for the matrix A.")
+else:
+    print("The Cayley-Hamilton theorem does not hold for the matrix A.")
