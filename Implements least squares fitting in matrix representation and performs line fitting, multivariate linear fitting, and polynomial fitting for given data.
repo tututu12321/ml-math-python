@@ -1,0 +1,80 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 直線フィッティング
+def linear_fit(x_data, y_data):
+    # 行列 A とベクトル b を構築
+    A = np.vstack([np.ones(len(x_data)), x_data]).T
+    b = y_data
+    # 最小二乗解の計算
+    x = np.linalg.inv(A.T @ A) @ A.T @ b
+    return x  # x[0] = β, x[1] = α
+
+# 多変数の線形フィッティング
+def multivariable_fit(x_data, y_data, z_data):
+    # 行列 A とベクトル b を構築
+    A = np.vstack([np.ones(len(x_data)), x_data, y_data]).T
+    b = z_data
+    # 最小二乗解の計算
+    x = np.linalg.inv(A.T @ A) @ A.T @ b
+    return x  # x[0] = γ, x[1] = α, x[2] = β
+
+# 多項式フィッティング
+def polynomial_fit(x_data, y_data, degree):
+    # 行列 A とベクトル b を構築
+    A = np.vander(x_data, degree + 1)
+    b = y_data
+    # 最小二乗解の計算
+    x = np.linalg.inv(A.T @ A) @ A.T @ b
+    return x  # x[0]からx[degree]までの係数が返される
+
+# データの生成
+x_data = np.linspace(0, 10, 50)
+y_data = 2 * x_data + 3 + np.random.normal(0, 1, x_data.shape)  # 直線データにノイズを加えたもの
+z_data = 4 * x_data + 5 * y_data + 2 + np.random.normal(0, 1, x_data.shape)  # 多変数データにノイズ
+
+# 直線フィッティング
+linear_params = linear_fit(x_data, y_data)
+print(f"Linear Fit: y = {linear_params[1]:.2f} * x + {linear_params[0]:.2f}")
+
+# 多変数の線形フィッティング
+multi_params = multivariable_fit(x_data, y_data, z_data)
+print(f"Multivariable Fit: z = {multi_params[1]:.2f} * x + {multi_params[2]:.2f} * y + {multi_params[0]:.2f}")
+
+# 多項式フィッティング
+degree = 2
+poly_params = polynomial_fit(x_data, y_data, degree)
+print(f"Polynomial Fit (Degree {degree}): y = {poly_params[0]:.2f} + {poly_params[1]:.2f} * x + {poly_params[2]:.2f} * x^2")
+
+# フィッティング結果のプロット
+plt.figure(figsize=(12, 8))
+
+# 直線フィッティングのプロット
+plt.subplot(3, 1, 1)
+plt.scatter(x_data, y_data, label="Data", color="blue")
+plt.plot(x_data, linear_params[1] * x_data + linear_params[0], label="Linear Fit", color="red")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.legend()
+plt.title("Linear Fit")
+
+# 多変数の線形フィッティングのプロット
+plt.subplot(3, 1, 2)
+plt.scatter(x_data, z_data, label="Data", color="blue")
+plt.plot(x_data, multi_params[1] * x_data + multi_params[2] * y_data + multi_params[0], label="Multivariable Fit", color="green")
+plt.xlabel("x")
+plt.ylabel("z")
+plt.legend()
+plt.title("Multivariable Linear Fit")
+
+# 多項式フィッティングのプロット
+plt.subplot(3, 1, 3)
+plt.scatter(x_data, y_data, label="Data", color="blue")
+plt.plot(x_data, np.polyval(poly_params[::-1], x_data), label="Polynomial Fit", color="purple")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.legend()
+plt.title(f"Polynomial Fit (Degree {degree})")
+
+plt.tight_layout()
+plt.show()
