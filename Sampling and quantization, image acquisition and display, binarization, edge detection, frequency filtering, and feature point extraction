@@ -1,0 +1,49 @@
+import cv2
+import numpy as np
+from matplotlib import pyplot as plt
+
+# ダミー画像の生成（ランダムなグレースケール画像）
+image = np.random.randint(0, 256, (256, 256), dtype=np.uint8)
+
+# 11.2.1 二値化
+_, binary_image = cv2.threshold(image, 128, 255, cv2.THRESH_BINARY)
+
+# 11.2.2 エッジ検出（Canny法）
+edges = cv2.Canny(image, 100, 200)
+
+# 11.2.3 周波数フィルタリング（低周波フィルタリング: 2次元FFT）
+dft = np.fft.fft2(image)
+dft_shift = np.fft.fftshift(dft)
+rows, cols = image.shape
+crow, ccol = rows // 2, cols // 2
+mask = np.zeros((rows, cols), np.uint8)
+mask[crow-30:crow+30, ccol-30:ccol+30] = 1
+fshift = dft_shift * mask
+f_ishift = np.fft.ifftshift(fshift)
+filtered_image = np.abs(np.fft.ifft2(f_ishift))
+
+# 11.2.4 特徴点抽出（ORB特徴量）
+orb = cv2.ORB_create()
+keypoints, descriptors = orb.detectAndCompute(image, None)
+feature_image = cv2.drawKeypoints(image, keypoints, None, color=(0, 255, 0))
+
+# 画像の表示
+plt.figure(figsize=(12, 8))
+
+plt.subplot(231), plt.imshow(image, cmap='gray')
+plt.title('Original Image (Dummy)'), plt.axis('off')
+
+plt.subplot(232), plt.imshow(binary_image, cmap='gray')
+plt.title('Binary Image'), plt.axis('off')
+
+plt.subplot(233), plt.imshow(edges, cmap='gray')
+plt.title('Edge Detection'), plt.axis('off')
+
+plt.subplot(234), plt.imshow(filtered_image, cmap='gray')
+plt.title('Low-pass Filtered Image'), plt.axis('off')
+
+plt.subplot(235), plt.imshow(feature_image, cmap='gray')
+plt.title('Feature Points'), plt.axis('off')
+
+plt.tight_layout()
+plt.show()
