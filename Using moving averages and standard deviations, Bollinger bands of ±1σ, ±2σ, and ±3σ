@@ -1,0 +1,44 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# サンプルデータの生成 (ランダムな株価データを例にしています)
+np.random.seed(0)
+dates = pd.date_range(start="2023-01-01", periods=100)
+price_data = np.random.normal(100, 5, size=len(dates))  # 平均100, 標準偏差5の正規分布
+df = pd.DataFrame(price_data, index=dates, columns=["Price"])
+
+# ボリンジャーバンドのパラメータ
+W = 25  # 移動平均のウィンドウサイズ
+m = 2   # 標準偏差の係数
+
+# 移動平均と標準偏差の計算
+df["Moving_Avg"] = df["Price"].rolling(window=W).mean()
+df["Std_Dev"] = df["Price"].rolling(window=W).std()
+
+# ボリンジャーバンドの計算
+df["Upper_Band"] = df["Moving_Avg"] + m * df["Std_Dev"]
+df["Lower_Band"] = df["Moving_Avg"] - m * df["Std_Dev"]
+df["Upper_Band_1sigma"] = df["Moving_Avg"] + 1 * df["Std_Dev"]
+df["Lower_Band_1sigma"] = df["Moving_Avg"] - 1 * df["Std_Dev"]
+df["Upper_Band_3sigma"] = df["Moving_Avg"] + 3 * df["Std_Dev"]
+df["Lower_Band_3sigma"] = df["Moving_Avg"] - 3 * df["Std_Dev"]
+
+# プロット
+plt.figure(figsize=(14, 7))
+plt.plot(df["Price"], label="Price", color="black", linestyle='solid')
+plt.plot(df["Moving_Avg"], label="Moving Average", color="blue", linestyle='--')
+plt.plot(df["Upper_Band"], label="Upper Band (2σ)", color="red", linestyle='--')
+plt.plot(df["Lower_Band"], label="Lower Band (2σ)", color="red", linestyle='--')
+plt.plot(df["Upper_Band_1sigma"], label="Upper Band (1σ)", color="orange", linestyle=':')
+plt.plot(df["Lower_Band_1sigma"], label="Lower Band (1σ)", color="orange", linestyle=':')
+plt.plot(df["Upper_Band_3sigma"], label="Upper Band (3σ)", color="green", linestyle=':')
+plt.plot(df["Lower_Band_3sigma"], label="Lower Band (3σ)", color="green", linestyle=':')
+
+# グラフの設定
+plt.title("Bollinger Bands")
+plt.xlabel("Date")
+plt.ylabel("Price")
+plt.legend()
+plt.grid(True)
+plt.show()
