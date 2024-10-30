@@ -1,0 +1,85 @@
+import numpy as np
+import librosa
+import librosa.display
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+
+# ダミー音声データの生成
+def generate_dummy_audio(duration=2.0, sr=22050):
+    """
+    指定された持続時間とサンプリングレートでダミー音声信号（440Hzのサイン波）を生成
+    """
+    t = np.linspace(0, duration, int(sr * duration), endpoint=False)
+    audio = 0.5 * np.sin(2 * np.pi * 440 * t) + 0.3 * np.sin(2 * np.pi * 880 * t)  # 440Hzと880Hzのサイン波を重ねた音声
+    return audio, sr
+
+# § 3節 継続長モデルのための前処理
+def extract_duration_features(audio, sr):
+    """
+    音声データから継続長（フレーム）を計算
+    """
+    hop_length = 512
+    frame_durations = librosa.frames_to_time(range(len(audio) // hop_length), sr=sr, hop_length=hop_length)
+    return frame_durations
+
+# § 4節 音響モデルのための前処理
+def extract_acoustic_features(audio, sr):
+    """
+    音響特徴量（メルスペクトログラムとピッチ）の抽出
+    """
+    hop_length = 512
+    # メルスペクトログラム
+    mel_spectrogram = librosa.feature.melspectrogram(y=audio, sr=sr, n_fft=2048, hop_length=hop_length, n_mels=128)
+    mel_db = librosa.power_to_db(mel_spectrogram, ref=np.max)
+    
+    # ピッチの抽出
+    pitches, magnitudes = librosa.piptrack(y=audio, sr=sr, hop_length=hop_length)
+    pitch_features = np.max(pitches, axis=0)
+    
+    return mel_db, pitch_features
+
+# § 5節 特徴量の正規化
+def normalize_features(features):
+    """
+    特徴量の正規化を実行
+    """
+    scaler = StandardScaler()
+    normalized_features = scaler.fit_transform(features.T).T  # 転置してフレームごとに正規化
+    return normalized_features, scaler
+
+# ダミー音声生成
+audio, sr = generate_dummy_audio()
+
+# 継続長モデルのための前処理
+frame_durations = extract_duration_features(audio, sr)
+
+# 音響モデルのための前処理
+mel_spectrogram, pitch_features = extract_acoustic_features(audio, sr)
+
+# メルスペクトログラムの正規化
+normalized_mel, mel_scaler = normalize_features(mel_spectrogram)
+
+# ピッチ特徴量の正規化
+pitch_features = pitch_features.reshape(1, -1)  # 正規化のための整形
+normalized_pitch, pitch_scaler = normalize_features(pitch_features)
+
+# 特徴量の可視化
+plt.figure(figsize=(10, 8))
+plt.subplot(3, 1, 1)
+librosa.display.specshow(mel_spectrogram, sr=sr, hop_length=512, x_axis="time", y_axis="mel")
+plt.colorbar(format="%+2.0f dB")
+plt.title("Mel Spectrogram")
+
+plt.subplot(3, 1, 2)
+librosa.display.specshow(normalized_mel, sr=sr, hop_length=512, x_axis="time", y_axis="mel")
+plt.colorbar(format="%+2.0f dB")
+plt.title("Normalized Mel Spectrogram")
+
+plt.subplot(3, 1, 3)
+plt.plot(normalized_pitch.flatten(), label="Normalized Pitch")
+plt.title("Normalized Pitch")
+plt.xlabel("Frames")
+plt.ylabel("Pitch Value")
+plt.legend()
+plt.tight_layout()
+plt.show()
