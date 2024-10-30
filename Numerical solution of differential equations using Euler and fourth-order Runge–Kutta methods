@@ -1,0 +1,62 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 微分方程式 dy/dx = cos(x) に対応する関数
+def dydx(x, y):
+    return np.cos(x)
+
+# オイラー法
+def euler_method(dydx, x0, y0, xe, n):
+    x = np.linspace(x0, xe, n)
+    y = np.zeros(n)
+    y[0] = y0
+    dx = (xe - x0) / (n - 1)
+    
+    for k in range(1, n):
+        y[k] = y[k - 1] + dydx(x[k - 1], y[k - 1]) * dx
+    
+    return x, y
+
+# 4次のルンゲ・クッタ法
+def runge_kutta_4(dydx, x0, y0, xe, n):
+    x = np.linspace(x0, xe, n)
+    y = np.zeros(n)
+    y[0] = y0
+    dx = (xe - x0) / (n - 1)
+    
+    for k in range(1, n):
+        k1 = dydx(x[k - 1], y[k - 1]) * dx
+        k2 = dydx(x[k - 1] + dx / 2, y[k - 1] + k1 / 2) * dx
+        k3 = dydx(x[k - 1] + dx / 2, y[k - 1] + k2 / 2) * dx
+        k4 = dydx(x[k - 1] + dx, y[k - 1] + k3) * dx
+        y[k] = y[k - 1] + (k1 + 2 * k2 + 2 * k3 + k4) / 6
+    
+    return x, y
+
+# パラメータ設定
+x0 = 0       # xの初期値
+y0 = 0       # yの初期値
+xe = np.pi   # xの終了値
+n = 11       # 分割数
+
+# オイラー法による数値解
+x_euler, y_euler = euler_method(dydx, x0, y0, xe, n)
+
+# ルンゲ・クッタ法による数値解
+x_rk4, y_rk4 = runge_kutta_4(dydx, x0, y0, xe, n)
+
+# 解析解
+x_analytic = np.linspace(x0, xe, 100)
+y_analytic = np.sin(x_analytic)
+
+# 結果のプロット
+plt.figure(figsize=(12, 6))
+plt.plot(x_analytic, y_analytic, 'o-', label="Analytic Solution (sin(x))", color="blue")
+plt.plot(x_euler, y_euler, '*-', label="Euler Method", color="green")
+plt.plot(x_rk4, y_rk4, 'x-', label="Runge-Kutta 4th Order", color="red")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title(f"Solving dy/dx = cos(x) with Euler and Runge-Kutta Methods (n={n})")
+plt.legend()
+plt.grid(True)
+plt.show()
