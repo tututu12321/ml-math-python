@@ -1,0 +1,20 @@
+import numpy as np
+import sympy as sp
+
+# 行列 A の定義
+A = sp.Matrix([[5, 4, 2], [0, 1, -1], [0, 0, 3]])
+
+# ジョルダン標準形の計算
+J, P = A.jordan_form()
+print("Jordan Normal Form (J):\n", J)
+print("Transformation Matrix (P):\n", P)
+
+# スペクトル集合の計算（固有値の計算）
+eigenvalues = A.eigenvals()
+spectrum_set = list(eigenvalues.keys())
+print("Spectrum Set (Eigenvalues):\n", spectrum_set)
+
+# スペクトル集合とジョルダン標準形の対応を確認
+print("\nEigenvalues and their algebraic multiplicity:")
+for eigenvalue, multiplicity in eigenvalues.items():
+    print(f"Eigenvalue: {eigenvalue}, Multiplicity: {multiplicity}")
