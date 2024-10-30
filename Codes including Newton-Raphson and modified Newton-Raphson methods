@@ -1,0 +1,82 @@
+import numpy as np
+
+def newton_raphson(func, jacobian, initial_guess, tolerance=1e-6, max_iter=100):
+    """
+    ニュートンラプソン法を用いて非線形方程式の解を求める関数。
+    
+    Parameters:
+    - func: 関数f(x)または方程式系
+    - jacobian: 関数のヤコビアン行列（接線剛性マトリクス）
+    - initial_guess: 初期推定値（numpy配列）
+    - tolerance: 収束基準（差分の許容誤差）
+    - max_iter: 最大反復回数
+    
+    Returns:
+    - 解の近似値、反復回数
+    """
+    u = initial_guess
+    for i in range(max_iter):
+        F_val = func(u)
+        J_val = jacobian(u)
+        delta_u = np.linalg.solve(J_val, -F_val)  # Δu_i を求める
+        u_next = u + delta_u  # 次の推定値
+        
+        # 残差の確認
+        if np.linalg.norm(delta_u) < tolerance:
+            print(f"Converged in {i+1} iterations (Full Newton-Raphson).")
+            return u_next, i+1
+        u = u_next  # 次の反復へ更新
+    raise ValueError("The method did not converge within the maximum number of iterations.")
+
+def modified_newton_raphson(func, jacobian, initial_guess, tolerance=1e-6, max_iter=200, update_interval=10):
+    """
+    修正ニュートンラプソン法を用いて非線形方程式の解を求める関数。
+    
+    Parameters:
+    - func: 関数f(x)または方程式系
+    - jacobian: 関数のヤコビアン行列（接線剛性マトリクス）
+    - initial_guess: 初期推定値（numpy配列）
+    - tolerance: 収束基準（差分の許容誤差）
+    - max_iter: 最大反復回数
+    - update_interval: ヤコビアン更新の間隔
+    
+    Returns:
+    - 解の近似値、反復回数
+    """
+    u = initial_guess
+    J_initial = jacobian(u)  # 初期のヤコビアンを保存
+    for i in range(max_iter):
+        if i % update_interval == 0:
+            J_initial = jacobian(u)  # 指定した間隔でヤコビアンを更新
+        F_val = func(u)
+        delta_u = np.linalg.solve(J_initial, -F_val)
+        u_next = u + delta_u
+        
+        # 残差の確認
+        if np.linalg.norm(delta_u) < tolerance:
+            print(f"Converged in {i+1} iterations (Modified Newton-Raphson).")
+            return u_next, i+1
+        u = u_next  # 次の反復へ更新
+    raise ValueError("The method did not converge within the maximum number of iterations.")
+
+# --- 使用例 ---
+
+# 例: f(u) = u^2 - 4 = 0 を解く
+
+# 目的関数とヤコビアンの定義
+def func(u):
+    return np.array([u[0]**2 - 4])  # f(u) = u^2 - 4
+
+def jacobian(u):
+    return np.array([[2 * u[0]]])  # df/du = 2u
+
+# 初期推定値
+initial_guess = np.array([1.0])
+
+# フルニュートンラプソン法の実行
+solution, iterations = newton_raphson(func, jacobian, initial_guess)
+print("Solution (Full Newton-Raphson):", solution)
+
+# 修正ニュートンラプソン法の実行
+modified_solution, modified_iterations = modified_newton_raphson(func, jacobian, initial_guess)
+print("Solution (Modified Newton-Raphson):", modified_solution)
