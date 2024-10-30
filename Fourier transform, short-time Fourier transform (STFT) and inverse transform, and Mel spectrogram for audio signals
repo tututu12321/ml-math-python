@@ -1,0 +1,60 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.fftpack import fft, ifft
+from scipy.signal import stft, istft
+from scipy.io import wavfile
+import librosa
+import librosa.display
+
+# 音声信号の生成またはロード
+sample_rate = 16000  # サンプルレート
+duration = 1.0       # 1秒
+t = np.linspace(0, duration, int(sample_rate * duration), endpoint=False)
+signal = 0.5 * np.sin(2 * np.pi * 440 * t) + 0.3 * np.sin(2 * np.pi * 880 * t)  # 440Hzと880Hzの音
+
+# § 4節 音声のフーリエ変換
+fft_signal = fft(signal)
+frequencies = np.fft.fftfreq(len(signal), 1 / sample_rate)
+
+# フーリエ変換の結果をプロット
+plt.figure(figsize=(12, 4))
+plt.plot(frequencies[:len(frequencies)//2], np.abs(fft_signal)[:len(frequencies)//2])
+plt.title("Fourier Transform of Audio Signal")
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Amplitude")
+plt.grid()
+plt.show()
+
+# § 5節 音声の短時間フーリエ変換（STFT）とその逆変換
+f, t, Zxx = stft(signal, fs=sample_rate, window='hann', nperseg=256, noverlap=128)
+_, x_rec = istft(Zxx, fs=sample_rate, window='hann', nperseg=256, noverlap=128)
+
+# 短時間フーリエ変換の結果をプロット
+plt.figure(figsize=(12, 4))
+plt.pcolormesh(t, f, np.abs(Zxx), shading='gouraud')
+plt.title("Short-Time Fourier Transform (STFT) Magnitude")
+plt.xlabel("Time (s)")
+plt.ylabel("Frequency (Hz)")
+plt.colorbar(label="Magnitude")
+plt.show()
+
+# 逆STFTと元の信号の比較
+plt.figure(figsize=(12, 4))
+plt.plot(x_rec, label="Reconstructed Signal")
+plt.plot(signal, label="Original Signal", alpha=0.5)
+plt.title("Original vs. Reconstructed Signal from STFT")
+plt.legend()
+plt.show()
+
+# § 6節 メルスペクトログラム
+mel_spectrogram = librosa.feature.melspectrogram(y=signal, sr=sample_rate, n_fft=256, hop_length=128, n_mels=128)
+log_mel_spectrogram = librosa.power_to_db(mel_spectrogram, ref=np.max)
+
+# メルスペクトログラムのプロット
+plt.figure(figsize=(12, 4))
+librosa.display.specshow(log_mel_spectrogram, sr=sample_rate, hop_length=128, x_axis="time", y_axis="mel")
+plt.colorbar(format="%+2.0f dB")
+plt.title("Mel Spectrogram")
+plt.xlabel("Time (s)")
+plt.ylabel("Mel Frequency")
+plt.show()
