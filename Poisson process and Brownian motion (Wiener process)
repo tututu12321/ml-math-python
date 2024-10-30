@@ -1,0 +1,76 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ポアソン過程のシミュレーション
+def simulate_poisson_process(rate, T):
+    """
+    ポアソン過程をシミュレーションする関数
+
+    Parameters:
+    rate (float): 単位時間あたりのイベント発生率（λ）
+    T (float): シミュレーションの終了時刻
+
+    Returns:
+    times (array): イベントが発生した時刻のリスト
+    """
+    times = []
+    t = 0
+    while t < T:
+        t += np.random.exponential(1 / rate)  # 平均 1/λ の指数分布
+        if t < T:
+            times.append(t)
+    return np.array(times)
+
+# ブラウン運動（ウィーナー過程）のシミュレーション
+def simulate_brownian_motion(T, n_steps):
+    """
+    ブラウン運動をシミュレーションする関数
+
+    Parameters:
+    T (float): シミュレーションの終了時刻
+    n_steps (int): ステップ数
+
+    Returns:
+    times (array): 時間のリスト
+    W (array): ウィーナー過程の値
+    """
+    dt = T / n_steps
+    times = np.linspace(0, T, n_steps + 1)
+    dW = np.sqrt(dt) * np.random.randn(n_steps)
+    W = np.concatenate(([0], np.cumsum(dW)))
+    return times, W
+
+# パラメータ設定
+rate = 5  # ポアソン過程の発生率 λ
+T = 10    # シミュレーションの終了時刻
+n_steps = 1000  # ブラウン運動のステップ数
+
+# ポアソン過程のシミュレーション
+poisson_times = simulate_poisson_process(rate, T)
+
+# ブラウン運動のシミュレーション
+brownian_times, W = simulate_brownian_motion(T, n_steps)
+
+# プロット
+plt.figure(figsize=(12, 6))
+
+# ポアソン過程のプロット
+plt.subplot(2, 1, 1)
+plt.step(poisson_times, np.arange(1, len(poisson_times) + 1), where='post', label="Poisson Process")
+plt.xlabel("Time")
+plt.ylabel("Event Count")
+plt.title("Poisson Process Simulation")
+plt.legend()
+plt.grid()
+
+# ブラウン運動のプロット
+plt.subplot(2, 1, 2)
+plt.plot(brownian_times, W, label="Brownian Motion (Wiener Process)")
+plt.xlabel("Time")
+plt.ylabel("W(t)")
+plt.title("Brownian Motion (Wiener Process) Simulation")
+plt.legend()
+plt.grid()
+
+plt.tight_layout()
+plt.show()
