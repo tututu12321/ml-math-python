@@ -1,0 +1,58 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import butter, lfilter
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense
+from tensorflow.keras.optimizers import Adam
+
+# ローパスフィルタのターゲット生成用
+def butter_lowpass(cutoff, fs, order=5):
+    nyq = 0.5 * fs
+    normal_cutoff = cutoff / nyq
+    b, a = butter(order, normal_cutoff, btype='low', analog=False)
+    return b, a
+
+def apply_lowpass_filter(data, cutoff=2.5, fs=50.0, order=5):
+    b, a = butter_lowpass(cutoff, fs, order=order)
+    y = lfilter(b, a, data)
+    return y
+
+# データ生成
+def generate_signal(sequence_length=500, noise_level=0.5, freq=5):
+    t = np.linspace(0, 1, sequence_length)
+    signal = np.sin(2 * np.pi * freq * t)  # 高周波成分
+    noise = noise_level * np.random.normal(size=sequence_length)  # ノイズ
+    noisy_signal = signal + noise
+    return noisy_signal, t
+
+# ローパスフィルタを適用したターゲットデータ生成
+sequence_length = 500
+noisy_signal, t = generate_signal(sequence_length)
+target_signal = apply_lowpass_filter(noisy_signal, cutoff=2.5, fs=50.0)
+
+# データの整形（LSTM用に3次元に）
+X = noisy_signal.reshape((sequence_length, 1, 1))  # (サンプル数, 時系列の長さ, 特徴量の数)
+y = target_signal.reshape((sequence_length, 1))    # (サンプル数, 出力次元)
+
+# モデルの構築
+model = Sequential([
+    LSTM(64, input_shape=(1, 1), activation='relu', return_sequences=True),
+    Dense(1)
+])
+
+# モデルのコンパイルと学習
+model.compile(optimizer=Adam(learning_rate=0.01), loss='mean_squared_error')
+model.fit(X, y, epochs=50, batch_size=32)
+
+# モデルによる予測
+predicted_signal = model.predict(X).reshape(-1)
+
+# 結果のプロット
+plt.figure(figsize=(14, 6))
+plt.plot(t, noisy_signal, label='Noisy Input Signal')
+plt.plot(t, target_signal, label='Target Low-pass Filtered Signal')
+plt.plot(t, predicted_signal, label='NN Low-pass Filtered Signal', linestyle='dashed')
+plt.xlabel('Time')
+plt.ylabel('Amplitude')
+plt.legend()
+plt.show()
