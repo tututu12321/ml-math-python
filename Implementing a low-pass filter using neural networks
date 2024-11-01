@@ -1,0 +1,52 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import LSTM, Dense
+from tensorflow.keras.optimizers import Adam
+from scipy.signal import lfilter
+
+# 一次遅れ系のシミュレーションデータ生成
+def first_order_system(u, K=1.0, tau=1.0, dt=0.01):
+    alpha = dt / (tau + dt)
+    y = np.zeros_like(u)
+    for t in range(1, len(u)):
+        y[t] = alpha * u[t] + (1 - alpha) * y[t - 1]
+    return K * y
+
+# 入力信号生成 (ステップ入力)
+def generate_input_signal(length=500):
+    u = np.ones(length)
+    u[:int(length / 2)] = 0  # ステップ入力
+    return u
+
+# データ生成
+length = 500
+u = generate_input_signal(length)
+y = first_order_system(u, K=1.0, tau=2.0)  # ターゲット出力
+
+# ニューラルネットワーク用にデータを整形
+X = u.reshape((length, 1, 1))  # LSTMの入力形式に整形
+Y = y.reshape((length, 1))
+
+# ニューラルネットワークの構築
+model = Sequential([
+    LSTM(50, activation='relu', input_shape=(1, 1), return_sequences=True),
+    Dense(1)
+])
+
+# モデルのコンパイルと学習
+model.compile(optimizer=Adam(learning_rate=0.01), loss='mean_squared_error')
+model.fit(X, Y, epochs=100, batch_size=32, verbose=1)
+
+# モデルによる予測
+y_pred = model.predict(X).reshape(-1)
+
+# 結果のプロット
+plt.figure(figsize=(12, 6))
+plt.plot(u, label='Input (Step Signal)')
+plt.plot(y, label='Target Output (1st Order System)')
+plt.plot(y_pred, label='NN Predicted Output', linestyle='dashed')
+plt.xlabel('Time Step')
+plt.ylabel('Amplitude')
+plt.legend()
+plt.show()
