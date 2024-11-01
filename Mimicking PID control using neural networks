@@ -1,0 +1,73 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.optimizers import Adam
+
+# システムの動作を模倣するためのデータを生成
+def generate_system_response(setpoint, Kp=1.0, Ki=0.1, Kd=0.01, steps=100):
+    """
+    PID制御器のシミュレーション
+    """
+    y = 0.0  # システム出力
+    integral = 0.0
+    prev_error = 0.0
+    y_data = []
+    u_data = []
+    
+    for t in range(steps):
+        error = setpoint - y
+        integral += error
+        derivative = error - prev_error
+        u = Kp * error + Ki * integral + Kd * derivative
+        y += u * 0.1  # システム応答 (簡単な一次遅れ系を仮定)
+        
+        y_data.append(y)
+        u_data.append(u)
+        
+        prev_error = error
+    
+    return np.array(u_data), np.array(y_data)
+
+# データ生成
+setpoint = 1.0  # 目標値
+steps = 100
+u_data, y_data = generate_system_response(setpoint, Kp=1.0, Ki=0.1, Kd=0.01, steps=steps)
+
+# 入力データと出力データの整形
+X_train = np.expand_dims(y_data[:-1], axis=1)  # システム出力 (入力)
+y_train = u_data[1:]  # PID制御器の出力 (目標出力)
+
+# ニューラルネットワークモデルの定義
+model = Sequential([
+    Dense(64, activation='relu', input_shape=(1,)),
+    Dense(64, activation='relu'),
+    Dense(1)
+])
+
+# モデルのコンパイルと学習
+model.compile(optimizer=Adam(learning_rate=0.01), loss='mean_squared_error')
+model.fit(X_train, y_train, epochs=200, batch_size=16, verbose=1)
+
+# ニューラルネットワークによる制御シミュレーション
+y_nn = 0.0
+y_nn_data = []
+u_nn_data = []
+
+for t in range(steps):
+    error = setpoint - y_nn
+    u_nn = model.predict(np.array([[y_nn]]))[0, 0]
+    y_nn += u_nn * 0.1  # システム応答
+    
+    y_nn_data.append(y_nn)
+    u_nn_data.append(u_nn)
+
+# 結果のプロット
+plt.figure(figsize=(12, 6))
+plt.plot(range(steps), y_data, label='PID Controller Output (Target)')
+plt.plot(range(steps), y_nn_data, label='NN Controller Output', linestyle='--')
+plt.xlabel('Time Steps')
+plt.ylabel('System Output')
+plt.legend()
+plt.title('PID Controller vs Neural Network Controller')
+plt.show()
