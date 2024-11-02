@@ -1,0 +1,25 @@
+import sympy as sp
+
+# 行列の定義（例として3x3行列）
+A = sp.Matrix([
+    [5, 4, 2],
+    [0, 1, -1],
+    [0, 0, 3]
+])
+
+# ジョルダン標準形の計算
+P, J = A.jordan_form()
+
+# 結果の表示
+print("Original Matrix A:")
+sp.pprint(A)
+
+print("\nJordan Form J:")
+sp.pprint(J)
+
+print("\nTransformation Matrix P:")
+sp.pprint(P)
+
+# ジョルダン標準形が正しいか検証: A = P * J * P^-1
+is_correct = A.equals(P * J * P.inv())
+print("\nVerification (A == P * J * P^-1):", is_correct)
