@@ -1,0 +1,26 @@
+import numpy as np
+from scipy.linalg import hessenberg
+
+# 任意の行列を定義
+A = np.array([
+    [4, 1, 2, 2],
+    [1, 2, 0, 1],
+    [2, 0, 3, 3],
+    [2, 1, 3, 4]
+])
+
+print("Original Matrix A:")
+print(A)
+
+# Householder法を使ってHessenberg行列を計算
+H, Q = hessenberg(A, calc_q=True)
+
+print("\nHessenberg Matrix H:")
+print(H)
+
+print("\nOrthogonal Matrix Q (Householder transformations):")
+print(Q)
+
+# 確認: Q.T @ A @ Q が H に近いかをチェック
+print("\nCheck: Q.T @ A @ Q:")
+print(np.dot(Q.T, np.dot(A, Q)))
