@@ -1,0 +1,46 @@
+import numpy as np
+import scipy.linalg as la
+import matplotlib.pyplot as plt
+
+# システムの行列Aを定義（例として2次元系）
+A = np.array([
+    [0, 1],
+    [-2, -3]
+])
+
+# 初期条件
+x0 = np.array([1, 0])
+
+# 固有値と固有ベクトルを計算
+eigenvalues, eigenvectors = la.eig(A)
+print("Eigenvalues:", eigenvalues)
+print("Eigenvectors:\n", eigenvectors)
+
+# 時間の範囲
+t = np.linspace(0, 10, 200)
+
+# 固有値と固有ベクトルを用いて一般解を計算
+def solve_ode(A, x0, t):
+    eigvals, eigvecs = la.eig(A)
+    C = np.linalg.inv(eigvecs) @ x0
+    solution = np.zeros((len(t), len(x0)))
+
+    for i in range(len(t)):
+        exp_terms = np.exp(eigvals * t[i])
+        solution[i, :] = np.real(eigvecs @ (C * exp_terms))
+    
+    return solution
+
+# ODEの解を求める
+solution = solve_ode(A, x0, t)
+
+# 結果のプロット
+plt.figure(figsize=(10, 6))
+plt.plot(t, solution[:, 0], label='x1 (Solution component)')
+plt.plot(t, solution[:, 1], label='x2 (Solution component)')
+plt.title("Solution of the Differential Equation using Eigenvalues")
+plt.xlabel("Time")
+plt.ylabel("Solution components")
+plt.legend()
+plt.grid()
+plt.show()
