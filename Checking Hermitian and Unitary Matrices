@@ -1,0 +1,24 @@
+import numpy as np
+
+# 任意の複素行列を定義
+A = np.array([[2+0j, 1-1j], [1+1j, 3+0j]])
+B = np.array([[1/np.sqrt(2), 1j/np.sqrt(2)], [-1j/np.sqrt(2), 1/np.sqrt(2)]])
+
+# エルミート行列のチェック関数
+def is_hermitian(matrix):
+    return np.allclose(matrix, matrix.conj().T)
+
+# ユニタリ行列のチェック関数
+def is_unitary(matrix):
+    identity = np.eye(matrix.shape[0])
+    return np.allclose(np.dot(matrix, matrix.conj().T), identity)
+
+# Aがエルミート行列かどうかチェック
+print("Matrix A:")
+print(A)
+print("Is A Hermitian? ", is_hermitian(A))
+
+# Bがユニタリ行列かどうかチェック
+print("\nMatrix B:")
+print(B)
+print("Is B Unitary? ", is_unitary(B))
