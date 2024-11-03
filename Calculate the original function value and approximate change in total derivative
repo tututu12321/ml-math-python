@@ -1,0 +1,25 @@
+import numpy as np
+
+# 関数 f(x, y) = sqrt(x^2 + y^2)
+def f(x, y):
+    return np.sqrt(x**2 + y**2)
+
+# 全微分 df の計算
+def total_differential(x, y, dx, dy):
+    df_dx = x / np.sqrt(x**2 + y**2)  # ∂f/∂x
+    df_dy = y / np.sqrt(x**2 + y**2)  # ∂f/∂y
+    df = df_dx * dx + df_dy * dy
+    return df
+
+# 計算例
+x0, y0 = 3, 4  # 指定した点 (x0, y0)
+dx, dy = 0.1, 0.1  # x, y の変化量
+
+# 元の関数値と全微分による近似変化量の計算
+f0 = f(x0, y0)
+df = total_differential(x0, y0, dx, dy)
+f_approx = f0 + df
+
+print("元の関数値 f(x0, y0):", f0)
+print("全微分による近似変化量 df:", df)
+print("近似された新しい関数値 f_approx:", f_approx)
