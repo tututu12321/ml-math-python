@@ -1,0 +1,51 @@
+# Autograd, PyTorch, TensorFlow, and JAXを用いた自動微分による勾配計算
+import numpy as np
+import autograd.numpy as np_autograd
+from autograd import grad
+import torch
+import tensorflow as tf
+import jax
+import jax.numpy as jnp
+
+# 共通の目的関数の定義
+def func(w):
+    return w[0]**2 + w[1]**2  # シンプルな2変数の二乗和
+
+# 1. Autogradを使用した勾配計算
+def autograd_gradient():
+    grad_func = grad(func)
+    w = np_autograd.array([3.0, 4.0])
+    gradient = grad_func(w)
+    print("Autograd:")
+    print("  Gradient:", gradient)
+
+# 2. PyTorchを使用した勾配計算
+def pytorch_gradient():
+    w = torch.tensor([3.0, 4.0], requires_grad=True)
+    loss = w[0]**2 + w[1]**2
+    loss.backward()
+    print("PyTorch:")
+    print("  Gradient:", w.grad.numpy())
+
+# 3. TensorFlowを使用した勾配計算
+def tensorflow_gradient():
+    w = tf.Variable([3.0, 4.0])
+    with tf.GradientTape() as tape:
+        loss = w[0]**2 + w[1]**2
+    gradient = tape.gradient(loss, w)
+    print("TensorFlow:")
+    print("  Gradient:", gradient.numpy())
+
+# 4. JAXを使用した勾配計算
+def jax_gradient():
+    grad_func = jax.grad(func)
+    w = jnp.array([3.0, 4.0])
+    gradient = grad_func(w)
+    print("JAX:")
+    print("  Gradient:", gradient)
+
+# 各ライブラリで勾配計算を実行
+autograd_gradient()
+pytorch_gradient()
+tensorflow_gradient()
+jax_gradient()
