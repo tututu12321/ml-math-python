@@ -1,0 +1,55 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# パラメータ設定
+alpha = 0.01  # 学習率
+time_steps = 100  # シミュレーションのステップ数
+V_out = 1.0  # 教師電圧 V_out
+V_input_initial = 0.5  # 初期の入力節点電圧
+G_initial = 0.1  # 初期のコンダクタンス G
+
+# 初期化
+V_input = V_input_initial
+G = G_initial
+G_history = [G]  # コンダクタンスの履歴を記録
+V_history = [V_input]  # 入力節点電圧の履歴を記録
+
+# 逆伝搬時のシミュレーション
+for t in range(1, time_steps + 1):
+    # 入力換算誤差電圧
+    V_error = V_out - V_input
+    
+    # Hebb則に基づく差分表現の学習更新式 (差分表現)
+    dG_dt = alpha * V_error * V_input
+    G += dG_dt
+    
+    # 結果の記録
+    G_history.append(G)
+    V_history.append(V_input)
+
+    # 入力節点電圧をランダムに変化させてシミュレーション
+    V_input = V_input_initial + 0.05 * np.sin(0.1 * t)
+
+# プロット
+plt.figure(figsize=(10, 5))
+
+# コンダクタンスの変化
+plt.subplot(2, 1, 1)
+plt.plot(G_history, label="Conductance G")
+plt.xlabel("Time Step")
+plt.ylabel("Conductance G")
+plt.title("Conductance Update over Time (Hebb Rule)")
+plt.legend()
+plt.grid(True)
+
+# 入力節点電圧の変化
+plt.subplot(2, 1, 2)
+plt.plot(V_history, label="Input Node Voltage V_input", color="orange")
+plt.xlabel("Time Step")
+plt.ylabel("Input Voltage V_input")
+plt.title("Input Node Voltage over Time")
+plt.legend()
+plt.grid(True)
+
+plt.tight_layout()
+plt.show()
