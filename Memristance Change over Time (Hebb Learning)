@@ -1,0 +1,43 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 設定
+time_steps = 1000  # シミュレーションの時間ステップ数
+dt = 0.01  # 時間刻み
+input_current = np.sin(np.linspace(0, 10 * np.pi, time_steps))  # 入力電流 (正弦波)
+R_on = 100  # メモリスタの最小抵抗値 (オン状態)
+R_off = 16000  # メモリスタの最大抵抗値 (オフ状態)
+w = 0.5  # 重み（初期値0.5、範囲0-1）
+
+# メモリスタンス（メモリスタの抵抗値）の初期化
+memristance = np.zeros(time_steps)
+memristance[0] = R_on * (1 - w) + R_off * w
+
+# Hebb則に基づく学習のシミュレーション
+for t in range(1, time_steps):
+    # Hebb則: 同時に発火する際に重みを増加させる
+    delta_w = dt * input_current[t] * input_current[t - 1]
+    w += delta_w  # 重みを更新
+    w = np.clip(w, 0, 1)  # 重みを0から1の範囲に制限
+
+    # メモリスタンスを更新
+    memristance[t] = R_on * (1 - w) + R_off * w
+
+# プロット
+plt.figure(figsize=(10, 6))
+plt.subplot(2, 1, 1)
+plt.plot(np.arange(time_steps) * dt, input_current, label="Input Current")
+plt.xlabel("Time (s)")
+plt.ylabel("Input Current (A)")
+plt.title("Input Current over Time")
+plt.legend()
+
+plt.subplot(2, 1, 2)
+plt.plot(np.arange(time_steps) * dt, memristance, label="Memristance (Resistance)")
+plt.xlabel("Time (s)")
+plt.ylabel("Memristance (Ohms)")
+plt.title("Memristance Change over Time (Hebb Learning)")
+plt.legend()
+
+plt.tight_layout()
+plt.show()
