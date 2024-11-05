@@ -1,0 +1,68 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# パラメータ設定
+n = 5  # 節点セルの数
+C = 1.0  # キャパシタンス
+R_x = 1.0  # 抵抗
+T = np.random.randn(n)  # 外部入力（ランダム）
+time_steps = 100  # シミュレーションの時間ステップ
+dt = 0.01  # 時間刻み
+
+# 重み行列 A と B の初期化 (ランダム値)
+A = np.random.randn(n, n)
+B = np.random.randn(n, n)
+
+# 初期状態
+x = np.zeros(n)
+y = np.zeros(n)
+
+# 結果を記録するための配列
+x_history = []
+y_history = []
+
+# リミッタ関数 f(x) の定義
+def limiter(x):
+    return 0.5 * (np.abs(x + 1) - np.abs(x - 1))
+
+# シミュレーションループ
+for t in range(time_steps):
+    # 出力 y の計算
+    y = limiter(x)
+
+    # 微分方程式の更新
+    dx_dt = (-x / R_x + A @ y + B @ T) / C
+    x = x + dx_dt * dt  # オイラー法で状態変数 x を更新
+
+    # 結果を記録
+    x_history.append(x.copy())
+    y_history.append(y.copy())
+
+# 結果のプロット
+x_history = np.array(x_history)
+y_history = np.array(y_history)
+
+plt.figure(figsize=(12, 6))
+
+# 状態変数 x のプロット
+plt.subplot(2, 1, 1)
+for i in range(n):
+    plt.plot(x_history[:, i], label=f"x{i+1}")
+plt.xlabel("Time Step")
+plt.ylabel("State Variable x")
+plt.title("State Variable Evolution")
+plt.legend()
+plt.grid(True)
+
+# 出力 y のプロット
+plt.subplot(2, 1, 2)
+for i in range(n):
+    plt.plot(y_history[:, i], label=f"y{i+1}")
+plt.xlabel("Time Step")
+plt.ylabel("Output Voltage y")
+plt.title("Output Voltage Evolution")
+plt.legend()
+plt.grid(True)
+
+plt.tight_layout()
+plt.show()
