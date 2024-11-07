@@ -1,0 +1,50 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 「静」: 連立一次方程式の解法
+# 例: 電気回路における電圧・電流の定常状態を求める
+
+# 連立一次方程式 Ax = b
+A = np.array([[3, -1], [1, 2]])
+b = np.array([5, 5])
+
+# 解を求める
+x_static = np.linalg.solve(A, b)
+print("「静」 - 定常状態の解:", x_static)
+
+# 解のプロット
+plt.figure(figsize=(8, 4))
+plt.subplot(1, 2, 1)
+plt.plot([0, x_static[0]], [0, x_static[1]], marker='o', label="Steady State Solution")
+plt.xlabel('x1')
+plt.ylabel('x2')
+plt.title('Steady State Solution (Static)')
+plt.legend()
+plt.grid()
+
+# 「動」: 固有値問題の解法
+# 例: 振動解析や安定性解析
+
+# 行列Aの固有値と固有ベクトルを計算
+eigenvalues, eigenvectors = np.linalg.eig(A)
+print("「動」 - 固有値:", eigenvalues)
+print("「動」 - 固有ベクトル:\n", eigenvectors)
+
+# 固有値の実部をプロットして安定性を確認
+plt.subplot(1, 2, 2)
+plt.scatter(np.real(eigenvalues), np.imag(eigenvalues), marker='x', color='red', label="Eigenvalues")
+plt.axhline(0, color='gray', linestyle='--')
+plt.axvline(0, color='gray', linestyle='--')
+plt.xlabel("Real Part")
+plt.ylabel("Imaginary Part")
+plt.title("Eigenvalues (Dynamic)")
+plt.grid()
+plt.legend()
+
+plt.tight_layout()
+plt.show()
+
+# コメント
+# 1. 連立一次方程式の解法 (「静」) では、システムが平衡状態にあるときの変数 x1, x2 の値を求めました。
+# 2. 固有値問題の解法 (「動」) では、システムの固有値を計算し、その挙動や安定性を分析しました。
+#    固有値の実部が負の場合、システムは安定であり、正の場合は不安定な振る舞いを示します。
