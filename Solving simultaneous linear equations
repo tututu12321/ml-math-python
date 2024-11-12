@@ -1,0 +1,121 @@
+import numpy as np
+from scipy.linalg import lu, inv, solve, cho_factor, cho_solve
+from scipy.sparse.linalg import cg
+from numpy.linalg import cond
+
+# 7.2 LU分解とガウスの消去法
+def lu_decomposition(A):
+    """
+    Performs LU decomposition using SciPy.
+    :param A: Coefficient matrix
+    :return: L, U matrices from LU decomposition
+    """
+    P, L, U = lu(A)
+    return P, L, U
+
+# 7.3 ガウス・ジョルダン法と逆行列の計算
+def gauss_jordan_inverse(A):
+    """
+    Computes the inverse of matrix A using Gauss-Jordan elimination.
+    :param A: Coefficient matrix
+    :return: Inverse of A
+    """
+    return inv(A)
+
+# 7.4 SciPyによる直接法の使用例
+def solve_directly(A, b):
+    """
+    Solves Ax = b directly using SciPy's solve function.
+    :param A: Coefficient matrix
+    :param b: Right-hand side vector
+    :return: Solution vector x
+    """
+    return solve(A, b)
+
+# 7.5 クラウト法，修正コレスキー分解
+def cholesky_decomposition(A):
+    """
+    Performs Cholesky decomposition for a symmetric positive-definite matrix A.
+    :param A: Coefficient matrix
+    :return: Lower triangular matrix L such that A = L * L.T
+    """
+    c, low = cho_factor(A)
+    return c
+
+# 7.6 行列の条件数と連立一次方程式の誤差解析
+def calculate_condition_number(A):
+    """
+    Calculates the condition number of matrix A.
+    :param A: Coefficient matrix
+    :return: Condition number of A
+    """
+    return cond(A)
+
+# 8.3 ヤコビ反復法
+def jacobi_method(A, b, initial_guess=None, tol=1e-10, max_iterations=100):
+    """
+    Solves Ax = b using Jacobi iterative method.
+    :param A: Coefficient matrix
+    :param b: Right-hand side vector
+    :param initial_guess: Initial guess for solution vector
+    :param tol: Tolerance for convergence
+    :param max_iterations: Maximum number of iterations
+    :return: Solution vector x
+    """
+    x = initial_guess if initial_guess is not None else np.zeros(len(b))
+    D = np.diag(A)
+    R = A - np.diagflat(D)
+
+    for _ in range(max_iterations):
+        x_new = (b - np.dot(R, x)) / D
+        if np.linalg.norm(x_new - x) < tol:
+            return x_new
+        x = x_new
+    return x
+
+# 8.4 共役勾配法
+def conjugate_gradient_method(A, b, tol=1e-10, max_iterations=1000):
+    """
+    Solves Ax = b using the Conjugate Gradient method.
+    :param A: Coefficient matrix
+    :param b: Right-hand side vector
+    :param tol: Tolerance for convergence
+    :param max_iterations: Maximum number of iterations
+    :return: Solution vector x
+    """
+    x, info = cg(A, b, tol=tol, maxiter=max_iterations)
+    if info != 0:
+        raise ValueError("Conjugate Gradient did not converge within the maximum number of iterations")
+    return x
+
+# サンプル行列とベクトルの定義
+A = np.array([[4, 1, 2], [1, 3, 0], [2, 0, 5]], dtype=float)
+b = np.array([7, 5, 3], dtype=float)
+
+# 7.2 LU分解とガウスの消去法
+P, L, U = lu_decomposition(A)
+print("LU decomposition:\nL:\n", L, "\nU:\n", U)
+
+# 7.3 ガウス・ジョルダン法と逆行列の計算
+inverse_A = gauss_jordan_inverse(A)
+print("Inverse of A:\n", inverse_A)
+
+# 7.4 SciPyによる直接法の使用例
+x_direct = solve_directly(A, b)
+print("Solution using direct method:", x_direct)
+
+# 7.5 修正コレスキー分解
+cholesky_L = cholesky_decomposition(A)
+print("Cholesky decomposition (lower triangular matrix):\n", cholesky_L)
+
+# 7.6 行列の条件数と誤差解析
+condition_number = calculate_condition_number(A)
+print("Condition number of A:", condition_number)
+
+# 8.3 ヤコビ反復法による解法
+x_jacobi = jacobi_method(A, b)
+print("Solution using Jacobi method:", x_jacobi)
+
+# 8.4 共役勾配法による解法
+x_conjugate_gradient = conjugate_gradient_method(A, b)
+print("Solution using Conjugate Gradient method:", x_conjugate_gradient)
