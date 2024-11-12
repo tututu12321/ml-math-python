@@ -1,0 +1,54 @@
+import numpy as np
+from scipy.optimize import curve_fit
+from scipy.stats import pearsonr
+
+# 4.2.1 2パラメータ非線形式の関数定義
+def two_param_model(x, a, b):
+    return a * np.exp(b * x)
+
+# 4.2.2 2パラメータ非線形式のフィッティングと相関計算
+def fit_two_param_model(x_data, y_data):
+    # 2パラメータフィッティング
+    popt, pcov = curve_fit(two_param_model, x_data, y_data)
+    a, b = popt
+    print(f"Estimated parameters for 2-parameter model: a={a}, b={b}")
+
+    # パラメータの相関係数を計算
+    correlation_ab = pcov[0, 1] / (np.sqrt(pcov[0, 0] * pcov[1, 1]))
+    print(f"Correlation between a and b: {correlation_ab}")
+    return popt, correlation_ab
+
+# 4.2.3 多パラメータ非線形式の関数定義
+def multi_param_model(x, a, b, c, d):
+    return a * np.exp(b * x) + c * np.sin(d * x)
+
+# 4.2.4 多パラメータ非線形式のフィッティングと相関計算
+def fit_multi_param_model(x_data, y_data):
+    # 多パラメータフィッティング
+    popt, pcov = curve_fit(multi_param_model, x_data, y_data)
+    a, b, c, d = popt
+    print(f"Estimated parameters for multi-parameter model: a={a}, b={b}, c={c}, d={d}")
+
+    # パラメータ間の相関行列を計算
+    correlations = np.zeros((len(popt), len(popt)))
+    for i in range(len(popt)):
+        for j in range(len(popt)):
+            if i != j:
+                correlations[i, j] = pcov[i, j] / (np.sqrt(pcov[i, i] * pcov[j, j]))
+
+    print("Correlation matrix for multi-parameter model:")
+    print(correlations)
+    return popt, correlations
+
+# サンプルデータの生成
+x_data = np.linspace(0, 10, 100)
+y_data_two_param = 2 * np.exp(0.5 * x_data) + 0.5 * np.random.normal(size=len(x_data))
+y_data_multi_param = 2 * np.exp(0.3 * x_data) + 1.5 * np.sin(0.5 * x_data) + 0.5 * np.random.normal(size=len(x_data))
+
+# 2パラメータ非線形式のフィッティングと相関
+print("Fitting 2-parameter model:")
+fit_two_param_model(x_data, y_data_two_param)
+
+# 多パラメータ非線形式のフィッティングと相関
+print("\nFitting multi-parameter model:")
+fit_multi_param_model(x_data, y_data_multi_param)
