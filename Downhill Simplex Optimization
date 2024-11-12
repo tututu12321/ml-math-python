@@ -1,0 +1,31 @@
+import numpy as np
+from scipy.optimize import minimize
+
+# 2変数関数の例
+def objective_function(x):
+    """
+    Objective function to minimize. 
+    :param x: A numpy array where x[0] = x1 and x[1] = x2
+    :return: Function value at x
+    """
+    x1, x2 = x
+    return (x1 - 1)**2 + (x2 - 2)**2 + x1 * x2  # Example function
+
+# ダウンヒルシンプレックス法による最適化
+def downhill_simplex_method(initial_guess):
+    """
+    Minimizes a 2-variable function using the Downhill Simplex method (Nelder-Mead).
+    :param initial_guess: Initial guess for the variables as a numpy array, e.g., np.array([x0, y0])
+    :return: Result of the optimization containing the minimum point and function value
+    """
+    result = minimize(objective_function, initial_guess, method='Nelder-Mead')
+    return result.x, result.fun
+
+# 初期値の設定
+initial_guess = np.array([0.0, 0.0])
+
+# 最小化の実行
+min_point, min_value = downhill_simplex_method(initial_guess)
+
+print("Approximate minimum point:", min_point)
+print("Function value at minimum point:", min_value)
