@@ -1,0 +1,51 @@
+import math
+
+def golden_section_search(f, a, b, tol=1e-5):
+    """
+    Performs the Golden Section Search to find the minimum of a unimodal function f in the interval [a, b].
+    :param f: Objective function to minimize (must be unimodal in [a, b])
+    :param a: Left endpoint of the interval
+    :param b: Right endpoint of the interval
+    :param tol: Tolerance for the stopping criterion
+    :return: Approximate minimum point and its function value
+    """
+    # Golden ratio
+    phi = (1 + math.sqrt(5)) / 2
+    resphi = 2 - phi
+
+    # Initial points
+    c = a + resphi * (b - a)
+    d = b - resphi * (b - a)
+    
+    # Function evaluations at initial points
+    fc = f(c)
+    fd = f(d)
+
+    while abs(b - a) > tol:
+        if fc < fd:
+            b, d = d, c
+            c = a + resphi * (b - a)
+            fd = fc
+            fc = f(c)
+        else:
+            a, c = c, d
+            d = b - resphi * (b - a)
+            fc = fd
+            fd = f(d)
+    
+    # The midpoint of the interval [a, b] is the best estimate for the minimum
+    x_min = (b + a) / 2
+    return x_min, f(x_min)
+
+# Example usage with a sample function
+def sample_function(x):
+    return (x - 2)**2 + 1  # Example: minimum at x = 2
+
+# Interval and tolerance for the search
+a, b = 0, 5
+tol = 1e-5
+
+# Finding the minimum
+min_point, min_value = golden_section_search(sample_function, a, b, tol)
+print("Approximate minimum point:", min_point)
+print("Function value at minimum point:", min_value)
