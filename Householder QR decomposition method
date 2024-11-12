@@ -1,0 +1,79 @@
+import numpy as np
+from scipy.linalg import qr, solve
+from numpy.linalg import lstsq, inv
+
+# 8.1 過剰条件方程式の最小2乗解
+def least_squares_solution(A, b):
+    """
+    Solves the overdetermined system Ax = b using least squares method.
+    """
+    x, residuals, rank, s = lstsq(A, b, rcond=None)
+    return x, residuals
+
+# 8.2 ハウスホルダー変換
+def householder_transform(A):
+    """
+    Applies Householder transformation to matrix A to make it upper triangular.
+    """
+    Q, R = qr(A, mode='full')
+    return Q, R
+
+# 8.3 ハウスホルダーQR分解法
+def householder_qr_solution(A, b):
+    """
+    Solves the least squares solution using Householder QR decomposition.
+    """
+    Q, R = qr(A, mode='economic')
+    Qt_b = np.dot(Q.T, b)
+    x = solve(R, Qt_b)
+    return x
+
+# 8.4 正規方程式の不安定性
+def normal_equation_solution(A, b):
+    """
+    Solves the least squares solution using the normal equation (A^T A)x = A^T b.
+    Note: This method can be numerically unstable for ill-conditioned A.
+    """
+    AtA = np.dot(A.T, A)
+    Atb = np.dot(A.T, b)
+    x = np.dot(inv(AtA), Atb)
+    return x
+
+# 8.5 最小2乗法による関数の推定
+def estimate_function(x_data, y_data):
+    """
+    Fits a function of the form y = a * x + b using least squares method.
+    """
+    # Create matrix A for the linear model y = ax + b
+    A = np.vstack([x_data, np.ones(len(x_data))]).T
+    a, b = lstsq(A, y_data, rcond=None)[0]
+    return a, b
+
+# サンプルデータの生成
+np.random.seed(0)
+x_data = np.linspace(0, 10, 20)
+y_data = 3 * x_data + 5 + np.random.normal(0, 1, x_data.shape)  # y = 3x + 5 にノイズを加えたデータ
+
+# 8.1 過剰条件方程式の最小2乗解
+A = np.vstack([x_data, np.ones(len(x_data))]).T
+b = y_data
+least_squares_x, residuals = least_squares_solution(A, b)
+print("Least Squares Solution:", least_squares_x)
+print("Residuals:", residuals)
+
+# 8.2 ハウスホルダー変換
+Q, R = householder_transform(A)
+print("Q matrix from Householder Transformation:\n", Q)
+print("R matrix from Householder Transformation:\n", R)
+
+# 8.3 ハウスホルダーQR分解法
+qr_solution = householder_qr_solution(A, b)
+print("Solution using Householder QR Decomposition:", qr_solution)
+
+# 8.4 正規方程式の不安定性
+normal_solution = normal_equation_solution(A, b)
+print("Solution using Normal Equation (Potentially Unstable):", normal_solution)
+
+# 8.5 最小2乗法による関数の推定
+a, b = estimate_function(x_data, y_data)
+print("Estimated function: y =", a, "* x +", b)
