@@ -1,0 +1,35 @@
+import numpy as np
+from numpy.linalg import eig
+
+# 代数方程式の根を求めるためのコンパニオン行列の作成
+def companion_matrix(coefficients):
+    """
+    Creates the companion matrix for a given polynomial.
+    :param coefficients: List or array of polynomial coefficients in descending order
+    :return: Companion matrix
+    """
+    n = len(coefficients) - 1
+    # 定数項をゼロ以外にする
+    c = np.array(coefficients) / coefficients[0]
+    companion = np.zeros((n, n))
+    companion[1:, :-1] = np.eye(n - 1)
+    companion[:, -1] = -c[1:]
+    return companion
+
+# 代数方程式の根を計算する
+def solve_polynomial(coefficients):
+    """
+    Solves a polynomial equation by finding the eigenvalues of its companion matrix.
+    :param coefficients: List or array of polynomial coefficients in descending order
+    :return: Roots of the polynomial
+    """
+    companion = companion_matrix(coefficients)
+    roots = eig(companion)[0]  # 固有値を取得（複素数も含む）
+    return roots
+
+# サンプル多項式の係数 (例: x^3 - 6x^2 + 11x - 6 = 0)
+coefficients = [1, -6, 11, -6]
+
+# 根を計算
+roots = solve_polynomial(coefficients)
+print("Roots of the polynomial:", roots)
