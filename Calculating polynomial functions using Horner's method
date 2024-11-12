@@ -1,0 +1,21 @@
+def horner_method(coefficients, x):
+    """
+    Evaluates a polynomial at a given x using Horner's method.
+    :param coefficients: List or array of polynomial coefficients in descending order
+    :param x: The value at which to evaluate the polynomial
+    :return: The result of the polynomial evaluated at x
+    """
+    result = coefficients[0]
+    for coeff in coefficients[1:]:
+        result = result * x + coeff
+    return result
+
+# サンプル多項式の係数 (例: 3x^3 - 6x^2 + 2x - 1)
+coefficients = [3, -6, 2, -1]
+
+# 計算するxの値
+x_value = 2
+
+# 多項式の評価
+result = horner_method(coefficients, x_value)
+print(f"The value of the polynomial at x = {x_value} is: {result}")
