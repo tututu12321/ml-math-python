@@ -1,0 +1,71 @@
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv1D, MaxPooling1D, Flatten, Dense, Dropout
+from tensorflow.keras.utils import to_categorical
+from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+
+# 1. データセットの生成
+# サンプルデータ: 正弦波、矩形波、三角波などをカテゴリとして使用
+def generate_signal_data(num_samples=1000, timesteps=100):
+    X = []
+    y = []
+    for _ in range(num_samples):
+        category = np.random.choice([0, 1, 2])  # 0: sin, 1: square, 2: triangle
+        t = np.linspace(0, 1, timesteps)
+        if category == 0:
+            signal = np.sin(2 * np.pi * 5 * t) + 0.1 * np.random.normal(size=timesteps)  # 正弦波
+        elif category == 1:
+            signal = np.sign(np.sin(2 * np.pi * 5 * t)) + 0.1 * np.random.normal(size=timesteps)  # 矩形波
+        else:
+            signal = np.abs((t % 0.2) - 0.1) * 20 + 0.1 * np.random.normal(size=timesteps)  # 三角波
+        X.append(signal)
+        y.append(category)
+    return np.array(X), np.array(y)
+
+# データ生成とラベルのカテゴリ化
+X, y = generate_signal_data()
+X = X.reshape(-1, 100, 1)  # CNN用にデータをリシェイプ
+y = to_categorical(y, 3)   # ラベルをone-hotエンコード
+
+# 訓練データとテストデータに分割
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 2. CNNモデルの構築
+model = Sequential([
+    Conv1D(32, kernel_size=3, activation='relu', input_shape=(100, 1)),
+    MaxPooling1D(pool_size=2),
+    Conv1D(64, kernel_size=3, activation='relu'),
+    MaxPooling1D(pool_size=2),
+    Flatten(),
+    Dense(128, activation='relu'),
+    Dropout(0.5),
+    Dense(3, activation='softmax')
+])
+
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+# 3. モデルの訓練
+history = model.fit(X_train, y_train, epochs=20, batch_size=32, validation_data=(X_test, y_test))
+
+# 4. モデルの評価
+test_loss, test_accuracy = model.evaluate(X_test, y_test)
+print(f"Test Accuracy: {test_accuracy:.2f}")
+
+# 5. 訓練過程の可視化
+plt.plot(history.history['accuracy'], label='Train Accuracy')
+plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.legend()
+plt.title("Model Training Accuracy")
+plt.show()
+
+plt.plot(history.history['loss'], label='Train Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+plt.title("Model Training Loss")
+plt.show()
