@@ -1,0 +1,16 @@
+import numpy as np
+
+# パラメータ設定
+N = 5  # 入力の数（例として5つの入力）
+V_inj = np.array([0.2, 0.4, 0.6, 0.8, 1.0])  # 各入力電圧 V_inj（V）
+R_j = np.array([100e6, 100e6, 100e6, 100e6, 100e6])  # 各抵抗 R_j（Ω）
+R_f = 100e6  # フィードバック抵抗 R_f（Ω）
+
+# 出力電圧の計算
+V_out = -R_f * np.sum(V_inj / R_j)
+print(f"出力電圧 V_out: {V_out:.2f} V")
+
+# 消費エネルギーの計算
+tau = 1e-6  # タイムコンスタント τ（秒）
+E_W = tau * np.sum(V_inj**2 / R_j)
+print(f"消費エネルギー E_W: {E_W:.2e} J")
