@@ -1,0 +1,56 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# CMOSの特性を模倣したアクティベーション関数（しきい値を超えると出力が1）
+def cmos_activation(x, threshold=0.5):
+    return 1 if x > threshold else 0
+
+# ニューラルネットワークの構造
+input_neurons = 2   # 入力層のニューロン数
+hidden_neurons = 2  # 隠れ層のニューロン数
+output_neurons = 1  # 出力層のニューロン数
+
+# 重みとバイアスの初期化
+np.random.seed(0)
+weights_input_hidden = np.random.uniform(-1, 1, (input_neurons, hidden_neurons))
+weights_hidden_output = np.random.uniform(-1, 1, (hidden_neurons, output_neurons))
+bias_hidden = np.random.uniform(-1, 1, (1, hidden_neurons))
+bias_output = np.random.uniform(-1, 1, (1, output_neurons))
+
+# 入力データとターゲットデータ（例：XORゲートの学習）
+inputs = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+targets = np.array([[0], [1], [1], [0]])  # XORゲートの出力
+
+# 学習率とエポック数の設定
+learning_rate = 0.1
+epochs = 10000
+threshold = 0.5  # CMOS特性に基づくしきい値
+
+# 学習ループ
+for epoch in range(epochs):
+    # フォワードパス
+    hidden_layer_input = np.dot(inputs, weights_input_hidden) + bias_hidden
+    hidden_layer_output = np.vectorize(cmos_activation)(hidden_layer_input, threshold)
+
+    output_layer_input = np.dot(hidden_layer_output, weights_hidden_output) + bias_output
+    predicted_output = np.vectorize(cmos_activation)(output_layer_input, threshold)
+
+    # 誤差の計算
+    error = targets - predicted_output
+
+    # 重みとバイアスの更新（誤差に基づく単純なバックプロパゲーション）
+    weights_hidden_output += learning_rate * hidden_layer_output.T.dot(error)
+    weights_input_hidden += learning_rate * inputs.T.dot(error.dot(weights_hidden_output.T) * hidden_layer_output)
+    bias_output += learning_rate * np.sum(error, axis=0, keepdims=True)
+    bias_hidden += learning_rate * np.sum(error.dot(weights_hidden_output.T) * hidden_layer_output, axis=0, keepdims=True)
+
+# 学習結果の表示
+print("最終出力（学習後）：")
+print(predicted_output)
+
+# エポックごとのエラー表示
+plt.plot(error)
+plt.xlabel("Epochs")
+plt.ylabel("Error")
+plt.title("Training Error over Epochs")
+plt.show()
