@@ -1,0 +1,50 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 1. パラメータ設定
+num_neurons = 4  # ニューロン数
+C = np.array([1, 1, 1, 1])  # キャパシタンス C_i の設定
+R = np.array([1, 1, 1, 1])  # 抵抗 R_i の設定
+r_ij = np.array([[0, 1, 1, 1], 
+                 [1, 0, 1, 1], 
+                 [1, 1, 0, 1], 
+                 [1, 1, 1, 0]])  # 相互抵抗行列 r_{ij}
+
+# アクティベーション関数 f(u)（シグモイド関数）
+def activation_function(u):
+    return 1 / (1 + np.exp(-u))
+
+# 時間パラメータの設定
+dt = 0.01  # 時間ステップ
+time_steps = 100  # シミュレーションの時間ステップ数
+
+# ニューロンの初期状態
+u = np.random.uniform(-1, 1, num_neurons)  # ランダムな初期値
+history_u = [u.copy()]  # 各ステップでの u の履歴
+
+# 2. シミュレーションループ
+for _ in range(time_steps):
+    du_dt = np.zeros(num_neurons)
+    
+    # 微分方程式に基づく u_i の変化率計算
+    for i in range(num_neurons):
+        sum_term = sum(activation_function(u[j]) / r_ij[i, j] for j in range(num_neurons) if j != i)
+        du_dt[i] = (-u[i] / R[i] + sum_term) / C[i]
+
+    # 状態の更新
+    u += du_dt * dt
+    history_u.append(u.copy())
+
+# 3. 結果のプロット
+history_u = np.array(history_u)
+
+plt.figure(figsize=(10, 6))
+for i in range(num_neurons):
+    plt.plot(history_u[:, i], label=f"Neuron {i+1}")
+
+plt.xlabel("Time Step")
+plt.ylabel("u (State)")
+plt.title("Hopfield Network State Evolution")
+plt.legend()
+plt.grid(True)
+plt.show()
