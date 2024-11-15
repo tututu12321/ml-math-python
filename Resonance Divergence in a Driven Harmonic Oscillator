@@ -1,0 +1,28 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Parameters
+omega_0 = 1.0  # Natural frequency (resonance frequency)
+omega = 1.0    # Driving frequency (set equal to omega_0 for resonance)
+F_0 = 1.0      # Amplitude of the driving force
+t_max = 50     # Maximum time
+num_points = 1000  # Number of points for simulation
+
+# Time array
+t = np.linspace(0, t_max, num_points)
+
+# Response function: Resonance divergence
+# x(t) = (F_0 / 2m * omega_0) * t * sin(omega_0 * t)
+m = 1.0  # Mass of the system
+x = (F_0 / (2 * m * omega_0)) * t * np.sin(omega_0 * t)
+
+# Plot the result
+plt.figure(figsize=(10, 6))
+plt.plot(t, x, label=r'Resonance: $x(t) = \frac{F_0}{2m\omega_0} t \sin(\omega_0 t)$')
+plt.title("Resonance Divergence in a Driven Harmonic Oscillator")
+plt.xlabel("Time (t)")
+plt.ylabel("Displacement (x)")
+plt.axhline(0, color='gray', linestyle='--', linewidth=0.8)
+plt.grid()
+plt.legend()
+plt.show()
