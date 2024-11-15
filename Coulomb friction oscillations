@@ -1,0 +1,60 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# パラメータ設定
+x0 = 80  # 初期値 x(0)
+d = 1    # 停止条件の閾値
+omega = 1  # 周波数パラメータ
+
+# データ保存用リスト
+n_values = []
+x_values = []
+
+# 初期値設定
+n = 0
+x = x0
+
+# 反復計算
+while abs(x) >= d:
+    # 符号を変更 (偶数 n は +, 奇数 n は -)
+    signed_x = x if n % 2 == 0 else -x
+    
+    # 現在のステップのデータを保存
+    n_values.append(n * np.pi / omega)  # 横軸データ (n × π/ω)
+    x_values.append(signed_x)  # 符号付き縦軸データ x(n)
+    print(f"n = {n}, x(n) = {signed_x}")  # 各ステップを表示
+
+    # 次のステップの計算
+    x = x - 4 * d
+    n += 1
+
+# 最後のデータを保存
+signed_x = x if n % 2 == 0 else -x
+n_values.append(n * np.pi / omega)
+x_values.append(signed_x)
+print(f"n = {n}, x(n) = {signed_x}")  # 最終ステップを表示
+
+# 矩形波データの準備
+rect_n_values = []
+rect_x_values = []
+for i in range(len(n_values) - 1):
+    rect_n_values.extend([n_values[i], n_values[i + 1]])
+    rect_x_values.extend([x_values[i], x_values[i]])
+
+# プロット
+plt.figure(figsize=(10, 6))
+
+# 矩形波のプロット
+plt.plot(rect_n_values, rect_x_values, linestyle='-', color='blue', label='x(n) as Rectangular Wave')
+
+# 停止条件の赤い破線
+plt.axhline(y=d, color='red', linestyle='--', linewidth=0.8, label=f"|x| = {d}")
+plt.axhline(y=-d, color='red', linestyle='--', linewidth=0.8)
+
+# グラフの装飾
+plt.title("Iteration of x(n+1) = x(n) - 4d (Rectangular Wave)")
+plt.xlabel(r"$n \times \frac{\pi}{\omega}$")
+plt.ylabel("x(n) (Rectangular Wave)")
+plt.grid(True)
+plt.legend()
+plt.show()
