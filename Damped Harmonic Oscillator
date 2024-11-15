@@ -1,0 +1,53 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def solve_damped_oscillator(m, k, c, x0, x_initial, v_initial, t):
+    """
+    Solves the motion of a damped harmonic oscillator.
+    
+    Parameters:
+    m         - Mass of the object
+    k         - Spring constant
+    c         - Damping coefficient
+    x0        - Equilibrium position
+    x_initial - Initial displacement from equilibrium position
+    v_initial - Initial velocity
+    t         - Time vector (array of time points)
+    
+    Returns:
+    x - Position of the object at each time point in t
+    """
+    # Calculate angular frequency and damping parameters
+    omega = np.sqrt(k / m)                # Natural angular frequency
+    alpha = c / (2 * m)                   # Damping factor
+    omega_d = np.sqrt(omega**2 - alpha**2)  # Damped angular frequency
+
+    # Calculate constants A and B based on initial conditions
+    A = x_initial - x0
+    B = (v_initial + alpha * A) / omega_d
+
+    # Calculate position x(t) for each time in t
+    x = x0 + np.exp(-alpha * t) * (A * np.cos(omega_d * t) + B * np.sin(omega_d * t))
+    return x
+
+# Example parameters
+m = 1.0               # Mass (kg)
+k = 10.0              # Spring constant (N/m)
+c = 1.0               # Damping coefficient
+x0 = 0.0              # Equilibrium position
+x_initial = 1.0       # Initial displacement (m)
+v_initial = 0.0       # Initial velocity (m/s)
+t = np.linspace(0, 10, 1000)  # Time vector from 0 to 10 seconds
+
+# Calculate position x(t)
+x = solve_damped_oscillator(m, k, c, x0, x_initial, v_initial, t)
+
+# Plot the result
+plt.figure(figsize=(10, 6))
+plt.plot(t, x, label="Damped x(t)")
+plt.title("Position x(t) of the Damped Harmonic Oscillator")
+plt.xlabel("Time (s)")
+plt.ylabel("Position x(t)")
+plt.grid(True)
+plt.legend()
+plt.show()
