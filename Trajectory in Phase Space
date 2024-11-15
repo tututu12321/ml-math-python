@@ -1,0 +1,47 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import solve_ivp
+
+# Define the Hamiltonian
+def hamiltonian(q, p):
+    # Example: Simple harmonic oscillator H = p^2 / (2m) + (kq^2) / 2
+    m = 1  # Mass
+    k = 1  # Spring constant
+    return p**2 / (2 * m) + (k * q**2) / 2
+
+# Define the canonical equations
+def canonical_equations(t, y):
+    q, p = y
+    m = 1  # Mass
+    k = 1  # Spring constant
+    dqdt = p / m  # ∂H/∂p
+    dpdt = -k * q  # -∂H/∂q
+    return [dqdt, dpdt]
+
+# Initial conditions
+q0 = 1.0  # Initial position
+p0 = 0.0  # Initial momentum
+y0 = [q0, p0]
+
+# Time range for simulation
+t_span = (0, 10)  # Time from 0 to 10 seconds
+t_eval = np.linspace(t_span[0], t_span[1], 1000)  # Points to evaluate
+
+# Solve the equations
+solution = solve_ivp(canonical_equations, t_span, y0, t_eval=t_eval)
+
+# Extract results
+q = solution.y[0]  # Position
+p = solution.y[1]  # Momentum
+
+# Plot the trajectory in phase space
+plt.figure(figsize=(8, 6))
+plt.plot(q, p, label='Trajectory in Phase Space')
+plt.title("Phase Space Trajectory")
+plt.xlabel("Position (q)")
+plt.ylabel("Momentum (p)")
+plt.axhline(0, color='gray', linestyle='--', linewidth=0.8)
+plt.axvline(0, color='gray', linestyle='--', linewidth=0.8)
+plt.grid()
+plt.legend()
+plt.show()
