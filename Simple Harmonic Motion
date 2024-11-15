@@ -1,0 +1,87 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def simple_harmonic_motion(m, k, A, alpha, x0, t):
+    """
+    Calculates displacement, velocity, acceleration, and energy of a simple harmonic oscillator.
+    
+    Parameters:
+    m     - Mass of the object
+    k     - Spring constant
+    A     - Amplitude of oscillation
+    alpha - Phase constant
+    x0    - Equilibrium position
+    t     - Time vector (array of time points)
+    
+    Returns:
+    x, v, a, energy - Displacement, velocity, acceleration, and energy at each time point in t
+    """
+    # Calculate angular frequency
+    omega = np.sqrt(k / m)
+    
+    # Displacement from equilibrium
+    X = A * np.sin(omega * t + alpha)
+    x = x0 + X  # Absolute position
+
+    # Velocity
+    v = A * omega * np.cos(omega * t + alpha)
+
+    # Acceleration
+    a = -A * omega**2 * np.sin(omega * t + alpha)
+
+    # Energy (constant over time for a simple harmonic oscillator)
+    kinetic_energy = 0.5 * m * v**2
+    potential_energy = 0.5 * k * X**2
+    energy = kinetic_energy + potential_energy
+
+    return x, v, a, energy
+
+# Parameters
+m = 1.0               # Mass (kg)
+k = 10.0              # Spring constant (N/m)
+A = 1.0               # Amplitude (m)
+alpha = 0.0           # Phase constant (radians)
+x0 = 0.0              # Equilibrium position
+t = np.linspace(0, 10, 1000)  # Time vector from 0 to 10 seconds
+
+# Calculate motion parameters
+x, v, a, energy = simple_harmonic_motion(m, k, A, alpha, x0, t)
+
+# Plot results
+
+# Plot displacement x(t)
+plt.figure(figsize=(10, 8))
+plt.subplot(4, 1, 1)
+plt.plot(t, x, label="Displacement x(t)", color="blue")
+plt.title("Simple Harmonic Motion")
+plt.xlabel("Time (s)")
+plt.ylabel("Displacement x(t)")
+plt.grid(True)
+plt.legend()
+
+# Plot velocity v(t)
+plt.subplot(4, 1, 2)
+plt.plot(t, v, label="Velocity v(t)", color="orange")
+plt.xlabel("Time (s)")
+plt.ylabel("Velocity v(t)")
+plt.grid(True)
+plt.legend()
+
+# Plot acceleration a(t)
+plt.subplot(4, 1, 3)
+plt.plot(t, a, label="Acceleration a(t)", color="green")
+plt.xlabel("Time (s)")
+plt.ylabel("Acceleration a(t)")
+plt.grid(True)
+plt.legend()
+
+# Plot energy conservation
+plt.subplot(4, 1, 4)
+plt.plot(t, energy, label="Total Energy", color="purple")
+plt.xlabel("Time (s)")
+plt.ylabel("Energy")
+plt.grid(True)
+plt.legend()
+
+plt.tight_layout()
+plt.show()
