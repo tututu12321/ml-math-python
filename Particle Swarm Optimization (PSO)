@@ -1,0 +1,110 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# --- 目的関数 ---
+def objective_function(x):
+    """
+    最小化したい目的関数。
+    例: 二次関数 f(x) = (x1 - 1)^2 + (x2 - 0.6)^2 + 1
+    """
+    return (x[0] - 1)**2 + (x[1] - 0.6)**2 + 1
+
+# --- PSOのクラス ---
+class PSO:
+    def __init__(self, n_particles, n_dimensions, bounds, inertia=0.5, cognitive=1.5, social=1.5, max_iter=100):
+        """
+        粒子群最適化のパラメータを初期化。
+        - n_particles: 粒子の数
+        - n_dimensions: 探索空間の次元数
+        - bounds: 探索範囲 [(min, max), (min, max)]
+        - inertia: 慣性係数
+        - cognitive: 認知係数
+        - social: 社会係数
+        - max_iter: 最大反復回数
+        """
+        self.n_particles = n_particles
+        self.n_dimensions = n_dimensions
+        self.bounds = np.array(bounds)
+        self.inertia = inertia
+        self.cognitive = cognitive
+        self.social = social
+        self.max_iter = max_iter
+
+        # 粒子の初期位置と速度
+        self.positions = np.random.uniform(self.bounds[:, 0], self.bounds[:, 1], (n_particles, n_dimensions))
+        self.velocities = np.random.uniform(-1, 1, (n_particles, n_dimensions))
+        self.best_positions = self.positions.copy()  # 各粒子の最良位置
+        self.best_scores = np.array([objective_function(p) for p in self.positions])  # 各粒子の最良スコア
+        self.global_best_position = self.best_positions[np.argmin(self.best_scores)]  # グローバル最良位置
+        self.global_best_score = np.min(self.best_scores)  # グローバル最良スコア
+
+    def optimize(self):
+        """
+        粒子群最適化を実行。
+        """
+        for iter in range(self.max_iter):
+            for i in range(self.n_particles):
+                # 速度の更新
+                r1, r2 = np.random.rand(self.n_dimensions), np.random.rand(self.n_dimensions)
+                self.velocities[i] = (
+                    self.inertia * self.velocities[i]
+                    + self.cognitive * r1 * (self.best_positions[i] - self.positions[i])
+                    + self.social * r2 * (self.global_best_position - self.positions[i])
+                )
+
+                # 位置の更新
+                self.positions[i] += self.velocities[i]
+
+                # 範囲外の粒子を修正
+                self.positions[i] = np.clip(self.positions[i], self.bounds[:, 0], self.bounds[:, 1])
+
+                # スコアの計算
+                score = objective_function(self.positions[i])
+
+                # 個体の最良位置を更新
+                if score < self.best_scores[i]:
+                    self.best_scores[i] = score
+                    self.best_positions[i] = self.positions[i]
+
+            # グローバル最良位置を更新
+            min_idx = np.argmin(self.best_scores)
+            if self.best_scores[min_idx] < self.global_best_score:
+                self.global_best_score = self.best_scores[min_idx]
+                self.global_best_position = self.best_positions[min_idx]
+
+            # 進捗を表示
+            print(f"Iteration {iter + 1}/{self.max_iter}, Best Score: {self.global_best_score:.6f}")
+
+        return self.global_best_position, self.global_best_score
+
+# --- 実行例 ---
+if __name__ == "__main__":
+    # パラメータ設定
+    n_particles = 30  # 粒子数
+    n_dimensions = 2  # 次元数
+    bounds = [(-5, 5), (-5, 5)]  # 探索範囲
+    max_iter = 100  # 最大反復回数
+
+    # PSOの実行
+    pso = PSO(n_particles, n_dimensions, bounds, max_iter=max_iter)
+    best_position, best_score = pso.optimize()
+
+    print(f"Best Position: {best_position}")
+    print(f"Best Score: {best_score}")
+
+    # 結果をプロット
+    x = np.linspace(bounds[0][0], bounds[0][1], 100)
+    y = np.linspace(bounds[1][0], bounds[1][1], 100)
+    X, Y = np.meshgrid(x, y)
+    Z = (X - 1)**2 + (Y - 0.6)**2 + 1
+
+    plt.figure(figsize=(10, 6))
+    plt.contourf(X, Y, Z, levels=50, cmap="viridis")
+    plt.colorbar(label="Objective Function Value")
+    plt.scatter(pso.positions[:, 0], pso.positions[:, 1], color="red", label="Particles")
+    plt.scatter(best_position[0], best_position[1], color="blue", label="Best Position", edgecolor="white")
+    plt.title("Particle Swarm Optimization (PSO)")
+    plt.xlabel("x1")
+    plt.ylabel("x2")
+    plt.legend()
+    plt.show()
