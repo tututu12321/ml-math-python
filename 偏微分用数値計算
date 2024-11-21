@@ -1,0 +1,64 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# --- パラメータ設定 ---
+L = 1.0            # 空間の長さ
+T = 0.1            # シミュレーション時間
+nx = 50            # 空間の分割数
+nt = 100           # 時間のステップ数
+dx = L / (nx - 1)  # 空間ステップ
+dt = T / nt        # 時間ステップ
+alpha = 0.01       # 拡散係数
+
+# CFL条件を確認
+assert dt <= dx**2 / (2 * alpha), "CFL条件を満たしていません！"
+
+# --- 初期条件設定 ---
+x = np.linspace(0, L, nx)
+u_init = np.sin(np.pi * x)  # 初期条件 u(x, 0) = sin(pi*x)
+
+# --- 結果格納用 ---
+u_explicit = u_init.copy()
+u_implicit = u_init.copy()
+u_crank_nicolson = u_init.copy()
+
+# --- 行列生成（陰解法 & クランク・ニコルソン法） ---
+A = np.zeros((nx, nx))
+B = np.zeros((nx, nx))
+
+for i in range(1, nx - 1):
+    A[i, i - 1] = -alpha * dt / dx**2
+    A[i, i] = 1 + 2 * alpha * dt / dx**2
+    A[i, i + 1] = -alpha * dt / dx**2
+
+    B[i, i - 1] = alpha * dt / (2 * dx**2)
+    B[i, i] = 1 - alpha * dt / dx**2
+    B[i, i + 1] = alpha * dt / (2 * dx**2)
+
+# --- 数値解法の実装 ---
+for n in range(nt):
+    # --- 陽解法 ---
+    u_next = u_explicit.copy()
+    for i in range(1, nx - 1):
+        u_next[i] = u_explicit[i] + alpha * dt / dx**2 * (u_explicit[i - 1] - 2 * u_explicit[i] + u_explicit[i + 1])
+    u_explicit = u_next
+
+    # --- 陰解法 ---
+    u_implicit[1:-1] = np.linalg.solve(A[1:-1, 1:-1], u_implicit[1:-1])
+
+    # --- クランク・ニコルソン法 ---
+    b = B @ u_crank_nicolson
+    u_crank_nicolson[1:-1] = np.linalg.solve(A[1:-1, 1:-1], b[1:-1])
+
+# --- 結果のプロット ---
+plt.figure(figsize=(12, 6))
+plt.plot(x, u_init, label="Initial Condition", color="black", linestyle="dashed")
+plt.plot(x, u_explicit, label="Explicit Method", color="red")
+plt.plot(x, u_implicit, label="Implicit Method", color="blue")
+plt.plot(x, u_crank_nicolson, label="Crank-Nicolson Method", color="green")
+plt.xlabel("x (Space)")
+plt.ylabel("u (Temperature)")
+plt.title("Numerical Solutions of Diffusion Equation")
+plt.legend()
+plt.grid()
+plt.show()
