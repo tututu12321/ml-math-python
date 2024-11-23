@@ -1,0 +1,59 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Parameters
+A = 100  # Amplitude (100V)
+f = 60   # Frequency (60Hz)
+sampling_rate = 10000  # Sampling rate in Hz (high enough for smooth plotting)
+t = np.linspace(0, 1, sampling_rate)  # Time vector for 1 second
+
+# Generate the original AC sine wave (100V, 60Hz)
+V_original = A * np.sin(2 * np.pi * f * t)
+
+# Quantize the waveform to 4 bits (16 discrete levels)
+num_bits = 4
+num_levels = 2 ** num_bits  # 16 discrete levels
+V_min = -A  # Minimum voltage
+V_max = A   # Maximum voltage
+
+# Normalize the original signal to [0, 1]
+V_normalized = (V_original - V_min) / (V_max - V_min)
+
+# Quantize by scaling to the number of levels and then scaling back
+V_quantized = np.round(V_normalized * (num_levels - 1)) / (num_levels - 1)
+V_quantized = V_quantized * (V_max - V_min) + V_min  # Rescale to original voltage range
+
+# Calculate the derivative of the original and quantized waveforms
+dV_original = np.gradient(V_original, t)
+dV_quantized = np.gradient(V_quantized, t)
+
+# Plot the results
+plt.figure(figsize=(12, 10))
+
+# Plot the original and quantized waveforms
+plt.subplot(3, 1, 1)
+plt.plot(t, V_original, label="Original AC Sine Wave (100V, 60Hz)")
+plt.plot(t, V_quantized, label="Quantized Waveform (4-bit)", linestyle='dashed')
+plt.title('Original AC Sine Wave and 4-bit Quantized Waveform')
+plt.xlabel('Time (seconds)')
+plt.ylabel('Voltage (V)')
+plt.legend()
+
+# Plot the derivative of the original waveform
+plt.subplot(3, 1, 2)
+plt.plot(t, dV_original, label="Derivative of Original AC Waveform")
+plt.title('Derivative of Original AC Sine Wave (100V, 60Hz)')
+plt.xlabel('Time (seconds)')
+plt.ylabel('dV/dt (V/s)')
+plt.legend()
+
+# Plot the derivative of the quantized waveform
+plt.subplot(3, 1, 3)
+plt.plot(t, dV_quantized, label="Derivative of Quantized Waveform", linestyle='dashed')
+plt.title('Derivative of Quantized Waveform (4-bit)')
+plt.xlabel('Time (seconds)')
+plt.ylabel('dV/dt (V/s)')
+plt.legend()
+
+plt.tight_layout()
+plt.show()
