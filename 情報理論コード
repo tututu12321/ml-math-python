@@ -1,0 +1,101 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import mutual_info_score
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
+from scipy.stats import entropy
+
+# Example data: Iris dataset for classification
+data = load_iris()
+X = data.data
+y = data.target
+
+# Encoding labels
+le = LabelEncoder()
+y_encoded = le.fit_transform(y)
+
+# Split into training and testing data
+X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=0.3, random_state=42)
+
+# --- 1. Entropy (Shannon's Entropy)
+def calculate_entropy(data):
+    """
+    Calculate the Shannon entropy for a given data set.
+    """
+    return entropy(np.bincount(data) / len(data), base=2)
+
+entropy_y = calculate_entropy(y_encoded)
+print(f"Entropy of y (Target Variable): {entropy_y}")
+
+# --- 2. Mutual Information (Information shared between X and y)
+def mutual_information(X, y):
+    """
+    Calculate mutual information between two variables.
+    """
+    return mutual_info_score(y, X)
+
+# Compute mutual information between the first feature and target
+mutual_info = mutual_information(X_train[:, 0], y_train)  # Checking MI for the first feature with target
+print(f"Mutual Information between the first feature and target: {mutual_info}")
+
+# --- 3. Cross-Entropy between true and predicted labels (for classification)
+def cross_entropy(true, pred):
+    """
+    Calculate cross-entropy between true and predicted values.
+    """
+    # Clip the predicted probabilities to avoid log(0)
+    pred = np.clip(pred, 1e-10, 1 - 1e-10)
+    return -np.sum(true * np.log(pred))
+
+# Example of cross-entropy for predicted probabilities
+# Assuming perfect model prediction (predicted probabilities match the true labels exactly)
+pred_proba = np.eye(len(np.unique(y_encoded)))[y_train]  # One-hot encoded predictions (for perfect case)
+cross_entropy_loss = cross_entropy(pred_proba, pred_proba)  # Ideal case
+print(f"Cross-Entropy Loss (Ideal Model): {cross_entropy_loss}")
+
+# --- 4. KL Divergence (Kullback-Leibler Divergence between two distributions)
+def kl_divergence(p, q):
+    """
+    Calculate KL Divergence between two distributions p and q.
+    """
+    return np.sum(p * np.log(p / q))
+
+# Example of KL divergence between two normal distributions
+p = np.array([0.4, 0.6])  # Actual distribution
+q = np.array([0.5, 0.5])  # Predicted distribution
+kl_div = kl_divergence(p, q)
+print(f"KL Divergence between two distributions: {kl_div}")
+
+# --- 5. Optimization (Exploration vs. Exploitation in Reinforcement Learning)
+def epsilon_greedy(Q, epsilon=0.1):
+    """
+    Epsilon-Greedy algorithm for exploration-exploitation balance.
+    """
+    if np.random.rand() < epsilon:
+        return np.random.choice(len(Q))  # Explore: Choose a random action
+    else:
+        return np.argmax(Q)  # Exploit: Choose the best known action
+
+# Example Q-values (action values)
+Q_values = np.array([1.0, 2.5, 1.2])  # For simplicity, 3 actions
+chosen_action = epsilon_greedy(Q_values, epsilon=0.2)
+print(f"Chosen action based on epsilon-greedy policy: {chosen_action}")
+
+# --- 6. Decision Tree Model to visualize how information theory is applied
+clf = DecisionTreeClassifier(criterion='entropy', random_state=42)
+clf.fit(X_train, y_train)
+
+# Visualizing the tree (showing how information gain is used for feature selection)
+plt.figure(figsize=(12, 8))
+from sklearn.tree import plot_tree
+plot_tree(clf, filled=True, feature_names=data.feature_names, class_names=le.classes_.astype(str))
+plt.title("Decision Tree (Entropy-based Information Gain)")
+plt.show()
+
+# --- Summary of results:
+print(f"Mutual Information between first feature and target: {mutual_info}")
+print(f"Cross-Entropy Loss (ideal model): {cross_entropy_loss}")
+print(f"KL Divergence between two distributions: {kl_div}")
+print(f"Chosen action with epsilon-greedy: {chosen_action}")
