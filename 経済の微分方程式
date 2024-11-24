@@ -1,0 +1,81 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# First-order Difference Equation: Logistic Map
+def first_order_difference(r, x0, n):
+    x = np.zeros(n)
+    x[0] = x0
+    for t in range(1, n):
+        x[t] = r * x[t - 1] * (1 - x[t - 1])
+    return x
+
+# Solow Growth Model
+def solow_model(alpha, delta, s, n, k0, T):
+    k = np.zeros(T)
+    k[0] = k0
+    for t in range(1, T):
+        k[t] = (1 - delta) * k[t - 1] + s * k[t - 1]**alpha - n * k[t - 1]
+    return k
+
+# Chaos in Economic Growth Model
+def chaotic_growth_model(r, x0, n):
+    x = np.zeros(n)
+    x[0] = x0
+    for t in range(1, n):
+        x[t] = r * x[t - 1] * (1 - x[t - 1])
+    return x
+
+# ===========================================
+# 1. First-order Difference Equation
+# ===========================================
+r = 2.5  # Growth rate
+x0 = 0.2  # Initial value
+n = 50  # Time steps
+
+x = first_order_difference(r, x0, n)
+plt.figure(figsize=(8, 5))
+plt.plot(range(n), x, marker='o', label=f'r = {r}')
+plt.xlabel('Time (t)')
+plt.ylabel('State (x_t)')
+plt.title('First-order Difference Equation: Logistic Map')
+plt.legend()
+plt.grid()
+plt.show()
+
+# ===========================================
+# 2. Solow Growth Model
+# ===========================================
+alpha = 0.3  # Capital elasticity of production
+delta = 0.1  # Depreciation rate
+s = 0.2      # Savings rate
+n = 0.02     # Population growth rate
+k0 = 1.0     # Initial capital stock
+T = 100      # Time steps
+
+k = solow_model(alpha, delta, s, n, k0, T)
+plt.figure(figsize=(8, 5))
+plt.plot(range(T), k, label="Capital Stock (k_t)")
+plt.xlabel('Time (t)')
+plt.ylabel('Capital Stock (k_t)')
+plt.title('Solow Growth Model')
+plt.legend()
+plt.grid()
+plt.show()
+
+# ===========================================
+# 3. Chaos in Economic Growth Model
+# ===========================================
+r_values = [2.5, 3.5, 3.9]  # Growth rates showing chaos
+x0 = 0.2  # Initial value
+n = 100  # Time steps
+
+plt.figure(figsize=(10, 6))
+for r in r_values:
+    x = chaotic_growth_model(r, x0, n)
+    plt.plot(range(n), x, label=f'r = {r}')
+plt.xlabel('Time (t)')
+plt.ylabel('State (x_t)')
+plt.title('Chaos in Economic Growth Model')
+plt.legend()
+plt.grid()
+plt.show()
