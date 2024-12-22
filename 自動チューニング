@@ -1,0 +1,59 @@
+# 必要なライブラリのインポート
+import pycaret
+import matplotlib.pyplot as plt
+import seaborn as sns
+from pycaret.datasets import get_data
+from pycaret.classification import *
+from sklearn.metrics import confusion_matrix, accuracy_score
+
+# データのロード（Irisデータセットを使用）
+data = get_data('iris')
+
+# PyCaretのセットアップ（ターゲット変数を'species'に設定）
+setup(data, target='species', session_id=42)
+
+# モデルの比較と最適なモデルの選択
+best_model = compare_models()
+
+# 最適なモデルの評価
+evaluate_model(best_model)
+
+# モデルのチューニング（オプション）
+tuned_model = tune_model(best_model)
+
+# モデルの再評価
+evaluate_model(tuned_model)
+
+# モデルを保存
+save_model(tuned_model, 'tuned_iris_model')
+
+# 新しいデータに基づいて予測
+predictions = predict_model(tuned_model, data=data)
+
+# 予測結果の表示
+print(predictions.head())
+
+# 混同行列をプロットして予測結果の評価
+conf_matrix = confusion_matrix(data['species'], predictions['Label'])
+plt.figure(figsize=(8, 6))
+sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues', xticklabels=data['species'].unique(), yticklabels=data['species'].unique())
+plt.title("Confusion Matrix for Tuned Model")
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.show()
+
+# 正確度の計算
+accuracy = accuracy_score(data['species'], predictions['Label'])
+print(f"Accuracy of the tuned model: {accuracy:.4f}")
+
+# モデルの特徴量重要度をプロット（例えば、決定木などのモデルの場合）
+plot_model(tuned_model, plot='feature')
+
+# 予測結果をプロットする
+plt.figure(figsize=(10, 6))
+sns.scatterplot(x=predictions['PCA1'], y=predictions['PCA2'], hue=predictions['Label'], palette='Set1')
+plt.title('Predictions Visualization (PCA1 vs PCA2)')
+plt.xlabel('Principal Component 1')
+plt.ylabel('Principal Component 2')
+plt.legend(title='Predicted Species')
+plt.show()
