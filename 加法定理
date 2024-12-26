@@ -1,0 +1,31 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Define parameters
+A = 1.0       # Amplitude
+omega = 2.0   # Angular frequency
+phi = np.pi/4 # Phase angle (in radians)
+t = np.linspace(0, 10, 1000)  # Time vector
+
+# Displacement equation
+x = A * np.sin(omega * t + phi)
+
+# Apply the addition formula: sin(a + b) = sin(a)cos(b) + cos(a)sin(b)
+sin_part = np.sin(omega * t) * np.cos(phi)
+cos_part = np.cos(omega * t) * np.sin(phi)
+x_addition_formula = sin_part + cos_part
+
+# Verify the equivalence of the original and addition formula-based equations
+difference = np.abs(x - x_addition_formula).max()
+print(f"Maximum difference between the two expressions: {difference:.2e}")
+
+# Plot results
+plt.figure(figsize=(10, 6))
+plt.plot(t, x, label=r"$x = A\sin(\omega t + \phi)$", color='blue')
+plt.plot(t, x_addition_formula, '--', label="Using Addition Formula", color='red')
+plt.title("Displacement Equation with Addition Formula")
+plt.xlabel("Time (t)")
+plt.ylabel("Displacement (x)")
+plt.legend()
+plt.grid()
+plt.show()
