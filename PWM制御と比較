@@ -1,0 +1,85 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 定数の設定
+f_carrier = 2000  # キャリア信号の周波数 (Hz)
+f_mod = 50        # モジュレーション信号の周波数 (Hz)
+V_E = 2           # 振幅 (キャリア信号の最大振幅)
+
+# 時間軸の設定
+t = np.linspace(0, 1 / f_mod, 1000)  # モジュレーション信号1周期分
+
+# モジュレーション信号 (三相)
+v_commu = V_E * np.sin(2 * np.pi * f_mod * t)
+v_commv = V_E * np.sin(2 * np.pi * f_mod * t - 2 * np.pi / 3)
+v_commw = V_E * np.sin(2 * np.pi * f_mod * t + 2 * np.pi / 3)
+
+# キャリア信号 (三角波: -2から2の範囲)
+v_tri = 8 * (np.abs(np.mod(t * f_carrier, 1) - 0.5)) - 2
+
+# PWM生成
+v_u = (v_commu >= v_tri).astype(int)
+v_v = (v_commv >= v_tri).astype(int)
+v_w = (v_commw >= v_tri).astype(int)
+
+# PWM波形の引き算（差を取る）
+v_u_diff = v_u - np.roll(v_u, 1)  # v_u とその1つ前の値との差
+v_v_diff = v_v - np.roll(v_v, 1)  # v_v とその1つ前の値との差
+v_w_diff = v_w - np.roll(v_w, 1)  # v_w とその1つ前の値との差
+v_v_diff_w = v_v - v_w           # v_v と v_w の差
+
+# プロット
+plt.figure(figsize=(10, 14))
+
+# モジュレーション信号とキャリア信号
+plt.subplot(7, 1, 1)
+plt.plot(t, v_commu, label='$v_{commu}$', color='blue')
+plt.plot(t, v_commv, label='$v_{commv}$', color='red')
+plt.plot(t, v_commw, label='$v_{commw}$', color='green')
+plt.plot(t, v_tri, label='$v_{tri}$', color='black', linestyle='dashed')
+plt.title('Modulation and Carrier Signals')
+plt.legend(loc='upper right')
+plt.grid()
+
+# PWM信号
+plt.subplot(7, 1, 2)
+plt.step(t, v_u, label='$v_u$', color='blue')
+plt.title('PWM Signal for $v_u$')
+plt.ylim(-0.2, 1.2)
+plt.grid()
+
+plt.subplot(7, 1, 3)
+plt.step(t, v_v, label='$v_v$', color='red')
+plt.title('PWM Signal for $v_v$')
+plt.ylim(-0.2, 1.2)
+plt.grid()
+
+plt.subplot(7, 1, 4)
+plt.step(t, v_w, label='$v_w$', color='green')
+plt.title('PWM Signal for $v_w$')
+plt.ylim(-0.2, 1.2)
+plt.grid()
+
+# PWM信号の引き算（v_uの差をプロット）
+plt.subplot(7, 1, 5)
+plt.step(t, v_u_diff, label='$v_u - v_u(shift)$', color='blue')
+plt.title('Difference of PWM Signal for $v_u$')
+plt.ylim(-2, 2)
+plt.grid()
+
+# PWM信号の引き算（v_vの差をプロット）
+plt.subplot(7, 1, 6)
+plt.step(t, v_v_diff, label='$v_v - v_v(shift)$', color='red')
+plt.title('Difference of PWM Signal for $v_v$')
+plt.ylim(-2, 2)
+plt.grid()
+
+# PWM信号の引き算（v_v - v_w の差をプロット）
+plt.subplot(7, 1, 7)
+plt.step(t, v_v_diff_w, label='$v_v - v_w$', color='purple')
+plt.title('Difference of PWM Signal for $v_v - v_w$')
+plt.ylim(-2, 2)
+plt.grid()
+
+plt.tight_layout()
+plt.show()
