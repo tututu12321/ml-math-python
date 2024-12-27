@@ -1,0 +1,97 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, accuracy_score
+
+# 半導体デバイスの特性 (Characteristics of Semiconductor Devices)
+
+# トランジスタ（NPN）の特性（シミュレーション）
+# 電圧（V）と電流（I）の関係（簡略化したモデル）
+voltages = np.linspace(0, 5, 100)  # 入力電圧（0Vから5Vまで）
+current_transistor = 0.02 * (np.exp(voltages / 0.026) - 1)  # NPNトランジスタの電流特性（ダイオードモデル）
+
+# ダイオードの特性（シミュレーション）
+current_diode = 0.01 * (np.exp(voltages / 0.026) - 1)  # ダイオードの電流特性（簡略化されたモデル）
+
+# トランジスタのデータとダイオードのデータを統合
+device_type = np.array(['transistor'] * len(voltages) + ['diode'] * len(voltages))  # デバイスの種類
+voltages_combined = np.concatenate([voltages, voltages])  # 電圧データ
+currents_combined = np.concatenate([current_transistor, current_diode])  # 電流データ
+
+# 2. 機械学習による特性の予測
+# 2.1. 線形回帰による電流予測（トランジスタとダイオードに対して）
+X = voltages_combined.reshape(-1, 1)  # 入力（電圧）
+y = currents_combined  # 出力（電流）
+
+# トレーニングデータとテストデータに分割
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 線形回帰モデルの作成と学習
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# 予測と評価
+y_pred = model.predict(X_test)
+mse = mean_squared_error(y_test, y_pred)
+
+# 結果表示
+print(f"電流予測の最小二乗誤差 (MSE): {mse}")
+
+# 2.2. ダイオードとトランジスタの分類（デバイスの種類予測）
+# デバイスの種類を予測するために分類モデルを使用
+device_labels = np.array([0] * len(voltages) + [1] * len(voltages))  # 0: トランジスタ、1: ダイオード
+X_class = voltages_combined.reshape(-1, 1)  # 入力（電圧）
+
+# トレーニングデータとテストデータに分割
+X_train_class, X_test_class, y_train_class, y_test_class = train_test_split(X_class, device_labels, test_size=0.2, random_state=42)
+
+# ランダムフォレストを使用してデバイスの分類
+model_class = RandomForestClassifier(n_estimators=100, random_state=42)
+model_class.fit(X_train_class, y_train_class)
+
+# 予測と評価
+y_pred_class = model_class.predict(X_test_class)
+accuracy = accuracy_score(y_test_class, y_pred_class)
+
+# 結果表示
+print(f"デバイスの分類精度 (Accuracy): {accuracy}")
+
+# 3. 結果の可視化 (Visualization of the results)
+
+# 電流と電圧の関係をプロット (Plot the current-voltage characteristics)
+plt.figure(figsize=(8, 6))
+plt.plot(voltages, current_transistor, label="Transistor Current", color='red')
+plt.plot(voltages, current_diode, label="Diode Current", color='blue')
+plt.title("Current-Voltage Characteristics of Transistor and Diode")
+plt.xlabel("Voltage (V)")
+plt.ylabel("Current (A)")
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+# 回帰予測結果のプロット (Plot the regression prediction)
+plt.figure(figsize=(8, 6))
+plt.scatter(X_test, y_test, color='blue', label="Test Data")
+plt.plot(X_test, y_pred, color='red', label="Predicted Current", linestyle='dashed')
+plt.title("Predicted Current vs Actual Current")
+plt.xlabel("Voltage (V)")
+plt.ylabel("Current (A)")
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+
+# 4. デバイス分類の結果可視化 (Visualization of device classification results)
+plt.figure(figsize=(8, 6))
+plt.scatter(X_test_class, y_test_class, color='blue', label="Actual Device Types")
+plt.scatter(X_test_class, y_pred_class, color='red', label="Predicted Device Types", marker='x')
+plt.title("Predicted Device Type (Transistor vs Diode)")
+plt.xlabel("Voltage (V)")
+plt.ylabel("Device Type (0 = Transistor, 1 = Diode)")
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.show()
