@@ -1,0 +1,84 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 定数の設定 (Setting constants)
+Vdd = 5.0  # 電源電圧 (Supply voltage)
+V_Tn = 1.0  # NMOSのしきい値電圧 (Threshold voltage for NMOS)
+V_Tp = -1.0  # PMOSのしきい値電圧 (Threshold voltage for PMOS)
+
+# 定数の設定 (Setting constants for mobility and oxide capacitance)
+mu_n = 600e-4  # NMOSの移動度 (Electron mobility for NMOS)
+mu_p = 300e-4  # PMOSの移動度 (Hole mobility for PMOS)
+C_ox = 3.45e-3  # 酸化膜容量 (Oxide capacitance)
+
+# NMOSとPMOSのWとLを定義 (Define W and L for NMOS and PMOS)
+W_n = 10e-6  # NMOSのチャンネル幅 (Channel width for NMOS)
+L_n = 2e-6   # NMOSのチャンネル長 (Channel length for NMOS)
+W_p = 20e-6  # PMOSのチャンネル幅 (Channel width for PMOS)
+L_p = 2e-6   # PMOSのチャンネル長 (Channel length for PMOS)
+
+# βnとβpの計算 (Calculate βn and βp)
+beta_n = mu_n * C_ox * (W_n / L_n)
+beta_p = mu_p * C_ox * (W_p / L_p)
+
+# 計算結果を表示 (Display calculated values)
+print(f"βn (NMOS) = {beta_n}")
+print(f"βp (PMOS) = {beta_p}")
+
+# しきい値電圧Vthの計算 (Calculate Vth based on the provided formula)
+Vth = (Vdd + V_Tp + np.sqrt(beta_n / beta_p) * V_Tn) / (1 + np.sqrt(beta_n / beta_p))
+
+# しきい値電圧を表示 (Display calculated Vth)
+print(f"しきい値電圧 Vth = {Vth}")
+
+# ゲインの計算 (Calculate gain using the provided formula)
+gmp = 1e-3  # PMOS transconductance (S)
+gmn = 1e-3  # NMOS transconductance (S)
+rop = 10e3  # PMOS output resistance (ohms)
+ron = 10e3  # NMOS output resistance (ohms)
+gain = (gmp + gmn) / (1/rop + 1/ron)
+
+# ゲインを表示 (Display calculated gain)
+print(f"ゲイン Gain = {gain}")
+
+# ロジスティック関数を使ったCMOSインバーターの出力 (CMOS inverter output using logistic function)
+def logistic_inverter(Vin, Vdd, Vth, gain):
+    return Vdd * (1 / (1 + np.exp(gain * (Vth - Vin))))  # ロジスティック関数
+
+# 入力電圧とゲインの設定 (Input voltages and gains)
+Vin2 = 1.0  # 入力電圧2 (V)
+Vin3 = 2.0  # 入力電圧3 (V)
+Vin4 = 3.0  # 入力電圧4 (V)
+
+G1 = 1.1  # ゲイン1 (Gain 1)
+G2 = 0.1  # ゲイン2 (Gain 2)
+G3 = 0.5  # ゲイン3 (Gain 3)
+
+# Vin1の計算 (Calculate Vin1)
+Vin1 = Vin2 * G1 + Vin3 * G2 + Vin4 * G3
+
+# 最終的なVinの計算 (Calculate the final Vin)
+Vin = Vin1  # ここではVinの計算結果をそのまま使用
+
+# CMOSインバーターの出力電圧の計算 (Calculate output voltage of CMOS inverter)
+Vout = logistic_inverter(Vin, Vdd, Vth, gain)
+
+# 結果の表示 (Display the result)
+print(f"最終的な入力電圧 Vin = {Vin} V")
+print(f"CMOSインバーターの出力電圧 Vout = {Vout} V")
+
+# 入力電圧と出力電圧の関係をプロット (Plot the relationship between input and output voltages)
+Vin_range = np.linspace(0, Vdd, 100)
+Vout_range = logistic_inverter(Vin_range, Vdd, Vth, gain)
+
+plt.figure(figsize=(8, 6))
+plt.plot(Vin_range, Vout_range, label="CMOS Inverter Output (Logistic Function)", color='blue')
+plt.axvline(x=Vin, color='red', linestyle='--', label=f"Vin = {Vin} V")
+plt.axhline(y=Vout, color='green', linestyle='--', label=f"Vout = {Vout:.2f} V")
+plt.title("Input Voltage Gain Analog Circuit CMOS Perceptron")  # プロットのタイトルを変更
+plt.xlabel("Input Voltage (Vin) [V]")
+plt.ylabel("Output Voltage (Vout) [V]")
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.show()
