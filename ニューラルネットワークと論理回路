@@ -1,0 +1,212 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# --- 基本的な論理ゲート ---
+
+def AND_gate(A, B):
+    return A & B
+
+def OR_gate(A, B):
+    return A | B
+
+def NOT_gate(A):
+    return ~A & 1  # 1ビットのNOT操作
+
+def NAND_gate(A, B):
+    return ~(A & B) & 1
+
+def NOR_gate(A, B):
+    return ~(A | B) & 1
+
+def XOR_gate(A, B):
+    return A ^ B
+
+def XNOR_gate(A, B):
+    return ~(A ^ B) & 1
+
+# --- フリップフロップ (Dフリップフロップ) ---
+def D_flip_flop(D, clk, Q_prev):
+    """ Dフリップフロップの動作: クロックが立ち上がると入力DをQに反映 """
+    if clk == 1:  # クロック信号が立ち上がり
+        return D
+    else:
+        return Q_prev  # クロック信号が0のとき、状態を保持
+
+# --- カウンタ (2ビットカウンタ) ---
+def counter(clk, reset, count_prev):
+    """ 2ビットカウンタ: クロック信号でカウントアップ """
+    if reset == 1:  # リセット信号が1ならカウントをリセット
+        return 0
+    else:
+        return (count_prev + 1) % 4  # 2ビットカウント、最大4までカウント
+
+# --- ニューラルネットワークの実装 ---
+
+# シグモイド関数とその導関数
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+def sigmoid_derivative(x):
+    return x * (1 - x)
+
+# ニューラルネットワークのクラス
+class NeuralNetwork:
+    def __init__(self, input_size, hidden_size, output_size):
+        # 重みの初期化
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.output_size = output_size
+        
+        # 入力層と隠れ層の間の重み
+        self.W1 = np.random.rand(self.input_size, self.hidden_size)
+        self.b1 = np.random.rand(self.hidden_size)
+        
+        # 隠れ層と出力層の間の重み
+        self.W2 = np.random.rand(self.hidden_size, self.output_size)
+        self.b2 = np.random.rand(self.output_size)
+
+    def feedforward(self, X):
+        # 入力層 -> 隠れ層
+        self.hidden = sigmoid(np.dot(X, self.W1) + self.b1)
+        
+        # 隠れ層 -> 出力層
+        self.output = sigmoid(np.dot(self.hidden, self.W2) + self.b2)
+        
+        return self.output
+
+    def backpropagate(self, X, y, learning_rate):
+        # 出力層の誤差
+        output_error = y - self.output
+        output_delta = output_error * sigmoid_derivative(self.output)
+        
+        # 隠れ層の誤差
+        hidden_error = output_delta.dot(self.W2.T)
+        hidden_delta = hidden_error * sigmoid_derivative(self.hidden)
+        
+        # 重みとバイアスの更新
+        self.W2 += self.hidden.T.dot(output_delta) * learning_rate
+        self.b2 += np.sum(output_delta, axis=0) * learning_rate
+        
+        self.W1 += X.T.dot(hidden_delta) * learning_rate
+        self.b1 += np.sum(hidden_delta, axis=0) * learning_rate
+
+    def train(self, X, y, epochs, learning_rate):
+        # トレーニングループ
+        for epoch in range(epochs):
+            self.feedforward(X)
+            self.backpropagate(X, y, learning_rate)
+            if epoch % 1000 == 0:
+                loss = np.mean(np.square(y - self.output))  # 平均二乗誤差
+                print(f'Epoch {epoch}, Loss: {loss}')
+
+    def predict(self, X):
+        return self.feedforward(X)
+
+# --- シミュレーションとプロット ---
+
+# 入力信号を定義
+time = np.linspace(0, 10, 1000)  # 時間軸 (0秒から10秒まで)
+clk = np.array([int(t % 2 == 0) for t in time])  # クロック信号（2Hz）
+reset = np.array([int(t % 5 == 0) for t in time])  # リセット信号（5秒ごとにリセット）
+
+# 初期値
+A = np.random.randint(0, 2, size=len(time))  # ランダムな入力A
+B = np.random.randint(0, 2, size=len(time))  # ランダムな入力B
+Q_prev = 0  # Dフリップフロップの初期状態
+count_prev = 0  # 2ビットカウンタの初期状態
+
+# ゲート出力を計算
+AND_output = AND_gate(A, B)
+OR_output = OR_gate(A, B)
+NOT_output = NOT_gate(A)
+NAND_output = NAND_gate(A, B)
+NOR_output = NOR_gate(A, B)
+XOR_output = XOR_gate(A, B)
+XNOR_output = XNOR_gate(A, B)
+
+# フリップフロップ (Dフリップフロップ) 出力を計算
+D_output = np.array([D_flip_flop(A[i], clk[i], Q_prev) for i in range(len(time))])
+
+# 2ビットカウンタの出力を計算
+counter_output = np.array([counter(clk[i], reset[i], count_prev) for i in range(len(time))])
+
+# --- ニューラルネットワークの学習 ---
+
+# 学習データとして、XOR問題のデータを使う
+X_train = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])  # XOR入力
+y_train = np.array([[0], [1], [1], [0]])  # XOR出力
+
+# ニューラルネットワークの初期化
+nn = NeuralNetwork(input_size=2, hidden_size=4, output_size=1)
+
+# 学習
+nn.train(X_train, y_train, epochs=10000, learning_rate=0.1)
+
+# 予測
+predictions = nn.predict(X_train)
+print("\nPredictions:")
+print(predictions)
+
+# 出力のプロット
+plt.plot(range(len(predictions)), predictions, label='Predictions', marker='o')
+plt.plot(range(len(y_train)), y_train, label='True Labels', linestyle='dashed')
+plt.xlabel('Data Index')
+plt.ylabel('Output')
+plt.legend()
+plt.title('Neural Network Predictions vs True Labels')
+plt.show()
+
+# --- プロット ---
+
+plt.figure(figsize=(12, 10))
+
+# ANDゲートの出力
+plt.subplot(4, 2, 1)
+plt.plot(time, AND_output, label='AND Output', color='blue')
+plt.title('AND Gate Output')
+plt.xlabel('Time [s]')
+plt.ylabel('Output')
+plt.grid(True)
+
+# ORゲートの出力
+plt.subplot(4, 2, 2)
+plt.plot(time, OR_output, label='OR Output', color='red')
+plt.title('OR Gate Output')
+plt.xlabel('Time [s]')
+plt.ylabel('Output')
+plt.grid(True)
+
+# NOTゲートの出力
+plt.subplot(4, 2, 3)
+plt.plot(time, NOT_output, label='NOT Output', color='green')
+plt.title('NOT Gate Output')
+plt.xlabel('Time [s]')
+plt.ylabel('Output')
+plt.grid(True)
+
+# NANDゲートの出力
+plt.subplot(4, 2, 4)
+plt.plot(time, NAND_output, label='NAND Output', color='orange')
+plt.title('NAND Gate Output')
+plt.xlabel('Time [s]')
+plt.ylabel('Output')
+plt.grid(True)
+
+# フリップフロップの出力
+plt.subplot(4, 2, 5)
+plt.plot(time, D_output, label='D Flip-Flop Output', color='purple')
+plt.title('D Flip-Flop Output')
+plt.xlabel('Time [s]')
+plt.ylabel('Output')
+plt.grid(True)
+
+# 2ビットカウンタの出力
+plt.subplot(4, 2, 6)
+plt.plot(time, counter_output, label='2-bit Counter Output', color='brown')
+plt.title('2-bit Counter Output')
+plt.xlabel('Time [s]')
+plt.ylabel('Output')
+plt.grid(True)
+
+plt.tight_layout()
+plt.show()
