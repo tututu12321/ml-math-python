@@ -1,0 +1,64 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import interpolate
+
+# シグモイド関数 (Sigmoid function)
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+# 入力とゲインの設定 (Inputs and gains)
+input1 = 0.1  # 入力1
+input2 = 0.1  # 入力2
+input3 = 0.3  # 入力3
+
+gain1 = 1  # ゲイン1
+gain2 = 1  # ゲイン2
+gain3 = 1  # ゲイン3
+
+# xの計算 (Calculate x)
+x = input1 * gain1 + input2 * gain2 + input3 * gain3
+
+# シグモイド関数を使ってxを補間 (Use sigmoid to interpolate x)
+x_min = -10
+x_max = 10
+precision = 0.001  # 精度をさらに向上させる (Increase precision)
+
+# ルックアップテーブルを作成 (Create the LUT)
+x_values = np.arange(x_min, x_max, precision)
+y_values = sigmoid(x_values)
+
+# スプライン補間を用いた補間関数 (Spline interpolation)
+spline = interpolate.interp1d(x_values, y_values, kind='cubic', fill_value="extrapolate")
+
+# xに対応するシグモイドの補間結果を得る (Get the sigmoid result for x)
+sigmoid_result = spline(x)
+
+# 結果表示 (Display the results)
+print(f"x = {x}")
+print(f"Sigmoid result for x = {sigmoid_result}")
+
+# ルックアップテーブルの表示 (Display the LUT)
+lut = dict(zip(x_values, y_values))
+
+# より多くのテスト値 (More test values for better interpolation demonstration)
+test_values = np.linspace(x_min, x_max, 100)  # 100点に増やす
+lut_results = [spline(val) for val in test_values]
+
+# 結果表示 (Display the results)
+for test_val, result in zip(test_values[:10], lut_results[:10]):  # 最初の10個だけ表示
+    print(f"LUT result for x={test_val}: {result}")
+
+# LUT補間結果のプロット (Plot the LUT interpolation results)
+Vin_range = np.linspace(x_min, x_max, 1000)
+Vout_range = [spline(x) for x in Vin_range]  # LUTを使用した結果
+
+plt.figure(figsize=(8, 6))
+plt.plot(Vin_range, Vout_range, label="LUT Interpolation", color='red')
+plt.scatter(test_values, lut_results, color='blue', label="LUT Results at Test Points", s=10)
+plt.title("LUT Interpolation for Sigmoid Function (More Points)")
+plt.xlabel("x")
+plt.ylabel("Sigmoid(x)")
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.show()
