@@ -1,0 +1,53 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Constants
+f_carrier = 20000  # High carrier frequency for PWM (Hz)
+f_mod = 50         # Modulation signal frequency (Hz)
+V_E = 1            # Amplitude of the modulation signal
+
+# Time vector for one period of modulation signal
+t = np.linspace(0, 1 / f_mod, 1000)
+
+# Modulation signal (sine wave)
+v_mod = V_E * np.sin(2 * np.pi * f_mod * t)
+
+# PWM signal based on sine wave with 3 levels (-1, 0, 1)
+v_pwm = np.zeros_like(v_mod)  # Initialize PWM signal array
+
+# Define thresholds
+upper_threshold = 0.5
+lower_threshold = -0.5
+
+# Generate high-frequency carrier signal
+v_carrier = np.sin(2 * np.pi * f_carrier * t)  # High-frequency carrier signal for PWM
+
+# Assign PWM signal values based on modulation signal
+v_pwm[v_mod > upper_threshold] = 1       # PWM = 1 when sine wave > 0.5
+v_pwm[(v_mod >= lower_threshold) & (v_mod <= upper_threshold)] = 0  # PWM = 0 when sine wave between -0.5 and 0.5
+v_pwm[v_mod < lower_threshold] = -1      # PWM = -1 when sine wave < -0.5
+
+# Plot Modulation and PWM Signals
+plt.figure(figsize=(12, 8))
+
+# Plot Modulation signal (sine wave)
+plt.subplot(2, 1, 1)
+plt.plot(t, v_mod, label='Modulation Signal (Sine Wave)', color='black')
+plt.title('Modulation Signal (Sine Wave)')
+plt.xlabel('Time')
+plt.ylabel('Amplitude')
+plt.grid(True)
+plt.legend()
+
+# Plot PWM signal with high-frequency switching
+plt.subplot(2, 1, 2)
+plt.step(t, v_pwm, label='PWM Signal', where='mid', color='green')
+plt.title('PWM Signal with High Frequency Carrier')
+plt.xlabel('Time')
+plt.ylabel('PWM Level')
+plt.grid(True)
+plt.legend()
+
+# Adjust layout and display the plot
+plt.tight_layout()
+plt.show()
