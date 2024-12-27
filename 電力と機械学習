@@ -1,0 +1,61 @@
+import numpy as np
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, confusion_matrix
+import matplotlib.pyplot as plt
+
+# 1. 仮想の電力システムデータ生成
+np.random.seed(42)
+
+# 特徴量（負荷、電圧、温度、設備の状態など）
+n_samples = 1000
+load = np.random.normal(500, 50, n_samples)  # 負荷（kW）
+voltage = np.random.normal(240, 10, n_samples)  # 電圧（V）
+temperature = np.random.normal(70, 5, n_samples)  # 温度（℃）
+status = np.random.choice([0, 1], size=n_samples)  # 設備の状態（0:正常, 1:故障）
+
+# 異常（故障）が発生する確率
+fault_probability = 0.1
+faults = np.random.choice([0, 1], size=n_samples, p=[1 - fault_probability, fault_probability])
+
+# データフレームを作成
+data = pd.DataFrame({
+    'load': load,
+    'voltage': voltage,
+    'temperature': temperature,
+    'status': status,
+    'fault': faults  # 故障状態（0:正常, 1:故障）
+})
+
+# 2. 特徴量とラベルの分割
+X = data[['load', 'voltage', 'temperature', 'status']]
+y = data['fault']
+
+# 3. トレーニングデータとテストデータに分割
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# 4. ランダムフォレストモデルの訓練
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+
+# 5. モデルの予測
+y_pred = model.predict(X_test)
+
+# 6. 精度の評価
+accuracy = accuracy_score(y_test, y_pred)
+conf_matrix = confusion_matrix(y_test, y_pred)
+
+# 結果の表示
+print(f"Accuracy: {accuracy * 100:.2f}%")
+print("Confusion Matrix:")
+print(conf_matrix)
+
+# 7. 可視化（特徴量の重要度）
+feature_importances = model.feature_importances_
+features = X.columns
+plt.barh(features, feature_importances)
+plt.title("Feature Importances")
+plt.xlabel("Importance")
+plt.ylabel("Features")
+plt.show()
