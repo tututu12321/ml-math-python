@@ -1,0 +1,47 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import MinMaxScaler
+
+# 1. 仮想的なセンサーデータを生成（加速度センサーの例）
+np.random.seed(42)
+time = np.linspace(0, 10, 100)  # 時間軸
+acceleration = np.sin(time) + 0.1 * np.random.randn(100)  # センサーデータ（ノイズを加えたサイン波）
+
+# 2. 欠損値をランダムに挿入
+acceleration[::10] = np.nan  # 10データごとに欠損値を挿入
+
+# 3. 欠損値の補完
+# 前方補完（NaNを前の値で補完）
+acceleration_filled = pd.Series(acceleration).fillna(method='ffill').to_numpy()
+
+# 4. データのスムージング（移動平均）
+window_size = 5
+acceleration_smoothed = np.convolve(acceleration_filled, np.ones(window_size)/window_size, mode='valid')
+
+# 5. 正規化（Min-Maxスケーリング）
+scaler = MinMaxScaler(feature_range=(0, 1))
+acceleration_normalized = scaler.fit_transform(acceleration_smoothed.reshape(-1, 1)).flatten()
+
+# 6. データの可視化
+plt.figure(figsize=(10, 6))
+plt.subplot(3, 1, 1)
+plt.plot(time, acceleration, label="Raw Data")
+plt.title("Raw Acceleration Data")
+plt.xlabel("Time")
+plt.ylabel("Acceleration")
+
+plt.subplot(3, 1, 2)
+plt.plot(time[:len(acceleration_smoothed)], acceleration_smoothed, label="Smoothed Data", color='green')
+plt.title("Smoothed Acceleration Data")
+plt.xlabel("Time")
+plt.ylabel("Acceleration")
+
+plt.subplot(3, 1, 3)
+plt.plot(time[:len(acceleration_normalized)], acceleration_normalized, label="Normalized Data", color='red')
+plt.title("Normalized Acceleration Data")
+plt.xlabel("Time")
+plt.ylabel("Normalized Acceleration")
+
+plt.tight_layout()
+plt.show()
