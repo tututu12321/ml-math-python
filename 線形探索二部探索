@@ -1,0 +1,57 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 放物線の定義 (例: y = x^2 - 4x + 5)
+def parabola(x):
+    return x**2 - 4*x + 5
+
+# 線形探索で最小値を求める
+def linear_search(func, x_range, step=0.1):
+    x_min = x_range[0]
+    y_min = func(x_min)
+    x_vals = np.arange(x_range[0], x_range[1], step)
+    for x in x_vals:
+        y = func(x)
+        if y < y_min:
+            x_min, y_min = x, y
+    return x_min, y_min
+
+# 二分探索で最小値を求める
+def binary_search(func, x_range, tol=1e-5):
+    a, b = x_range
+    while b - a > tol:
+        mid1 = a + (b - a) / 3
+        mid2 = b - (b - a) / 3
+        if func(mid1) < func(mid2):
+            b = mid2
+        else:
+            a = mid1
+    x_min = (a + b) / 2
+    y_min = func(x_min)
+    return x_min, y_min
+
+# 範囲を設定
+x_range = (-1, 5)
+
+# 線形探索と二分探索で最小値を求める
+x_min_linear, y_min_linear = linear_search(parabola, x_range)
+x_min_binary, y_min_binary = binary_search(parabola, x_range)
+
+# グラフをプロット
+x_vals = np.linspace(x_range[0], x_range[1], 500)
+y_vals = parabola(x_vals)
+
+plt.figure(figsize=(10, 6))
+plt.plot(x_vals, y_vals, label="y = x^2 - 4x + 5", color="blue")
+plt.scatter(x_min_linear, y_min_linear, color="red", label=f"Linear Search Min: ({x_min_linear:.2f}, {y_min_linear:.2f})")
+plt.scatter(x_min_binary, y_min_binary, color="green", label=f"Binary Search Min: ({x_min_binary:.2f}, {y_min_binary:.2f})")
+plt.title("Parabola and Minimum Search")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.legend()
+plt.grid()
+plt.show()
+
+# 結果を表示
+print(f"Linear Search Minimum: x = {x_min_linear:.2f}, y = {y_min_linear:.2f}")
+print(f"Binary Search Minimum: x = {x_min_binary:.2f}, y = {y_min_binary:.2f}")
