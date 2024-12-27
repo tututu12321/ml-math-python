@@ -1,0 +1,52 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 定数の設定
+f = 5  # サイン波の周波数 (Hz)
+T = 1 / f  # サイン波の周期 (秒)
+sampling_rate = 10000  # サンプリング周波数 (Hz)
+
+# 時間軸の設定
+t = np.linspace(0, T, sampling_rate)  # 1周期の時間軸
+
+# サイン波の生成
+sine_wave = np.sin(2 * np.pi * f * t)
+
+# 1サンプル遅らせたサイン波の生成
+sine_wave_delayed = np.roll(sine_wave, 1)
+
+# サイン波と遅延サイン波の差分
+difference = sine_wave - sine_wave_delayed
+
+# プロット
+plt.figure(figsize=(12, 8))
+
+# サイン波
+plt.subplot(3, 1, 1)
+plt.plot(t, sine_wave, label='Original Sine Wave', color='blue')
+plt.title('Original Sine Wave')
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude')
+plt.grid(True)
+plt.legend()
+
+# 遅延サイン波
+plt.subplot(3, 1, 2)
+plt.plot(t, sine_wave_delayed, label='Delayed Sine Wave (1 Sample)', color='red')
+plt.title('Delayed Sine Wave (1 Sample Delay)')
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude')
+plt.grid(True)
+plt.legend()
+
+# 差分
+plt.subplot(3, 1, 3)
+plt.plot(t, difference, label='Difference', color='green')
+plt.title('Difference Between Original and Delayed Sine Wave')
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude')
+plt.grid(True)
+plt.legend()
+
+plt.tight_layout()
+plt.show()
