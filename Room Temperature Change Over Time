@@ -1,0 +1,29 @@
+from scipy.integrate import odeint
+
+# Given values
+H = 100  # Heater power in watts (arbitrary value)
+W = 0.2  # Heat loss coefficient in watts per degree Celsius (arbitrary value)
+C = 200  # Heat capacity in J/°C (arbitrary value)
+theta_0 = 20  # Ambient temperature in °C
+theta_initial = 5  # Initial room temperature in °C
+
+# Differential equation
+def temperature_change(theta_r, t, H, W, theta_0, C):
+    return (H + W * (theta_0 - theta_r)) / C
+
+# Time vector (from 0 to 3600 seconds, representing 1 hour)
+t = np.linspace(0, 3600, 100)
+
+# Solve ODE
+theta_t = odeint(temperature_change, theta_initial, t, args=(H, W, theta_0, C))
+
+# Plotting the result
+plt.figure(figsize=(8, 6))
+plt.plot(t, theta_t, 'r-', label=r'$\theta_r(t)$ (Room Temperature)')
+plt.title('Room Temperature Change Over Time')
+plt.xlabel('Time (seconds)')
+plt.ylabel('Room Temperature (°C)')
+plt.grid(True)
+plt.legend()
+plt.tight_layout()
+plt.show()
