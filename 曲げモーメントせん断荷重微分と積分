@@ -1,0 +1,41 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Define the length of the beam and position
+L = 10  # Length of the beam
+x = np.linspace(0, L, 1000)
+
+# Define a point load P at position x0
+P = 100  # Point load in N
+x0 = 5   # Position of point load in meters
+
+# Calculate Shear Force V(x) due to a point load P
+V = np.piecewise(x, [x < x0, x >= x0], [0, P])
+
+# Calculate Bending Moment M(x) by integrating shear force
+M = np.cumsum(V) * (x[1] - x[0])  # Numerical integration
+
+# Plot the results
+plt.figure(figsize=(10, 6))
+
+# Shear Force plot
+plt.subplot(2, 1, 1)
+plt.plot(x, V, label='Shear Force V(x)', color='b')
+plt.axvline(x=x0, color='r', linestyle='--', label='Point Load Location')
+plt.title('Shear Force (V(x))')
+plt.xlabel('Position along the beam (m)')
+plt.ylabel('Shear Force (N)')
+plt.legend()
+
+# Bending Moment plot
+plt.subplot(2, 1, 2)
+plt.plot(x, M, label='Bending Moment M(x)', color='g')
+plt.axvline(x=x0, color='r', linestyle='--', label='Point Load Location')
+plt.title('Bending Moment (M(x))')
+plt.xlabel('Position along the beam (m)')
+plt.ylabel('Bending Moment (Nm)')
+plt.legend()
+
+# Show the plots
+plt.tight_layout()
+plt.show()
