@@ -1,0 +1,30 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Given values
+L1 = 50  # Sound level for one source in dB
+I0 = 1   # Reference intensity
+
+# Sound intensity levels for 2 and 4 sources
+L2 = 10 * np.log10(2) + L1  # For two sources
+L4 = 10 * np.log10(4) + L1  # For four sources
+
+# Number of sound sources
+sources = [1, 2, 4]
+levels = [L1, L2, L4]
+
+# Plotting the sound intensity levels
+plt.figure(figsize=(8, 6))
+plt.bar(sources, levels, color='orange', width=0.6)
+
+# Adding labels and title
+plt.title('Sound Intensity Levels for Different Numbers of Sources')
+plt.xlabel('Number of Sound Sources')
+plt.ylabel('Sound Intensity Level (dB)')
+plt.xticks(sources, ['1', '2', '4'])
+plt.ylim([0, max(levels) + 10])
+plt.grid(True)
+
+# Displaying the plot
+plt.tight_layout()
+plt.show()
