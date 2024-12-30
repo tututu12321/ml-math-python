@@ -1,0 +1,25 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Given values
+H = 4e3  # Heater power in watts (4 kW)
+W = 0.2  # Heat loss coefficient in kW/J
+C = 200  # Heat capacity in kJ/K
+theta_0 = 0  # Initial room temperature in Celsius
+
+# Time array (from 0 to 1000 seconds)
+t = np.linspace(0, 1000, 1000)
+
+# Room temperature as a function of time
+theta_r = theta_0 + (H / W) * (1 - np.exp(-W / C * t))
+
+# Plotting
+plt.figure(figsize=(8, 6))
+plt.plot(t, theta_r, label=r'$\theta_r(t) = \theta_0 + \frac{H}{W} \left(1 - e^{-\frac{W}{C} t}\right)$')
+plt.title('Room Temperature Over Time')
+plt.xlabel('Time (s)')
+plt.ylabel('Room Temperature (°C)')
+plt.legend()
+plt.grid(True)
+plt.tight_layout()
+plt.show()
