@@ -1,0 +1,59 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+from statsmodels.tsa.holtwinters import ExponentialSmoothing
+
+# 時系列データの生成（例）
+np.random.seed(42)
+time = np.arange(100)
+data = np.sin(time * 0.1) + np.random.normal(0, 0.5, size=len(time))  # 正弦波 + ノイズ
+
+# 移動平均法（Moving Average）
+window = 5
+moving_avg = np.convolve(data, np.ones(window)/window, mode='valid')
+
+# 指数平滑法（Exponential Smoothing）
+alpha = 0.3  # 平滑化係数
+exp_smoothing = [data[0]]  # 初期値
+for i in range(1, len(data)):
+    exp_smoothing.append(alpha * data[i] + (1 - alpha) * exp_smoothing[i-1])
+exp_smoothing = np.array(exp_smoothing)
+
+# Holt-Winters法
+holt_winters = ExponentialSmoothing(data, trend='add', seasonal='add', seasonal_periods=12).fit()
+holt_winters_pred = holt_winters.fittedvalues
+
+# カーネル平滑法（Kernel Smoothing）
+from scipy.stats import gaussian_kde
+kde = gaussian_kde(data, bw_method=0.1)  # バンド幅を指定
+x_vals = np.linspace(min(time), max(time), len(time))
+kernel_smooth = kde(x_vals)
+
+# プロット
+plt.figure(figsize=(12, 8))
+
+# オリジナルデータ
+plt.subplot(2, 2, 1)
+plt.plot(time, data, label='Original Data')
+plt.title('Original Data')
+
+# 移動平均法
+plt.subplot(2, 2, 2)
+plt.plot(time[window-1:], moving_avg, label='Moving Average', color='orange')
+plt.plot(time, data, label='Original Data', color='lightgray', alpha=0.5)
+plt.title('Moving Average')
+
+# 指数平滑法
+plt.subplot(2, 2, 3)
+plt.plot(time, exp_smoothing, label='Exponential Smoothing', color='green')
+plt.plot(time, data, label='Original Data', color='lightgray', alpha=0.5)
+plt.title('Exponential Smoothing')
+
+# Holt-Winters法
+plt.subplot(2, 2, 4)
+plt.plot(time, holt_winters_pred, label='Holt-Winters', color='red')
+plt.plot(time, data, label='Original Data', color='lightgray', alpha=0.5)
+plt.title('Holt-Winters Smoothing')
+
+plt.tight_layout()
+plt.show()
