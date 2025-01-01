@@ -1,0 +1,56 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
+
+# サンプルデータ生成（オシロスコープ風：正弦波 + ノイズ）
+np.random.seed(42)
+
+# 時間軸のデータ（0から1秒までの1000点）
+time = np.linspace(0, 1, 1000)
+
+# 正弦波信号（振幅=1, 周波数=5Hz）
+signal = np.sin(2 * np.pi * 5 * time) 
+
+# ノイズの追加（標準偏差=0.2の正規分布ノイズ）
+noisy_signal = signal + np.random.normal(0, 0.2, len(time))
+
+# オシロスコープ風のサンプルデータをプロット
+plt.figure(figsize=(10, 6))
+plt.plot(time, noisy_signal, label='Noisy Signal')
+plt.title('Oscilloscope-style Signal with Noise')
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude')
+plt.grid(True)
+plt.legend()
+plt.show()
+
+# フィッティング関数：正弦波の関数を定義
+def sine_wave(t, amplitude, frequency, phase, offset):
+    return amplitude * np.sin(2 * np.pi * frequency * t + phase) + offset
+
+# 初期推定値
+initial_guess = [1, 5, 0, 0]  # [振幅, 周波数, 位相, オフセット]
+
+# curve_fitを使ってデータにフィット
+params, covariance = curve_fit(sine_wave, time, noisy_signal, p0=initial_guess)
+
+# フィットした結果
+fitted_signal = sine_wave(time, *params)
+
+# フィッティング結果をプロット
+plt.figure(figsize=(10, 6))
+plt.plot(time, noisy_signal, label='Noisy Signal', alpha=0.6)
+plt.plot(time, fitted_signal, label='Fitted Signal', color='red', linewidth=2)
+plt.title('Fitting Oscilloscope-style Signal with Sine Wave')
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# フィッティング結果のパラメータを表示
+print(f"Fitted Parameters:")
+print(f"Amplitude: {params[0]:.3f}")
+print(f"Frequency: {params[1]:.3f} Hz")
+print(f"Phase: {params[2]:.3f} rad")
+print(f"Offset: {params[3]:.3f}")
