@@ -1,0 +1,49 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.pipeline import make_pipeline
+
+# 円の半径 (単位: メートル)
+r = 1  # 例えば1m
+
+# サンプリング周波数 (Hz)
+sampling_frequency = 100  # サンプリング周波数100Hz
+
+# サンプル数 (4πの範囲でサンプリング)
+t_max = 4 * np.pi
+sampling_time = 1 / sampling_frequency  # サンプリング間隔
+t_samples = np.arange(0, t_max, sampling_time)  # サンプル点の時間
+
+# サイクロイド曲線の媒介変数表示
+x_samples = r * (t_samples - np.sin(t_samples))
+y_samples = r * (1 - np.cos(t_samples))
+
+# サイクロイド曲線の近似
+# 多項式回帰 (次数を増やすことで精度向上)
+poly_degree = 10  # 高次の多項式を使用
+poly_features = PolynomialFeatures(degree=poly_degree)
+
+# 多項式回帰でxとyを予測
+poly_regressor_x = make_pipeline(poly_features, RandomForestRegressor(n_estimators=200))
+poly_regressor_y = make_pipeline(poly_features, RandomForestRegressor(n_estimators=200))
+
+# モデルにデータを適合させる
+poly_regressor_x.fit(t_samples.reshape(-1, 1), x_samples)
+poly_regressor_y.fit(t_samples.reshape(-1, 1), y_samples)
+
+# より細かいtの範囲で予測値を取得
+t_fine = np.linspace(0, t_max, 1000)
+x_pred = poly_regressor_x.predict(t_fine.reshape(-1, 1))
+y_pred = poly_regressor_y.predict(t_fine.reshape(-1, 1))
+
+# プロット
+plt.plot(x_samples, y_samples, label="Sampled Cycloid Curve", color="blue")  # サンプル点
+plt.plot(x_pred, y_pred, label="Predicted Cycloid Curve (Polynomial + RF)", color="green", linestyle="--")  # 予測されたサイクロイド曲線
+plt.title('Cycloid Curve with Polynomial Regression and Random Forest')
+plt.xlabel('x (meters)')
+plt.ylabel('y (meters)')
+plt.grid(True)
+plt.axis('equal')
+plt.legend()
+plt.show()
