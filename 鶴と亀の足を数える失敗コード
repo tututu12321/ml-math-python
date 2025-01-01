@@ -1,0 +1,72 @@
+# 必要なライブラリのインストール
+!pip install opencv-python-headless tensorflow tensorflow-hub matplotlib
+
+# 必要なライブラリのインポート
+import cv2
+import numpy as np
+import tensorflow as tf
+import tensorflow_hub as hub
+import matplotlib.pyplot as plt
+from google.colab import files
+
+# 画像のアップロード
+uploaded = files.upload()
+
+# アップロードした画像を読み込む
+image_path = list(uploaded.keys())[0]
+image = cv2.imread(image_path)
+image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+# 解像度を変更して画像の精度を向上させる（例: 640x640）
+image_resized = cv2.resize(image_rgb, (640, 640))
+
+# 物体検出モデルの読み込み（SSD MobileNet V2）
+model = hub.load("https://tfhub.dev/tensorflow/ssd_mobilenet_v2/2")
+
+# 画像をTensorに変換
+input_tensor = tf.convert_to_tensor(image_resized)
+input_tensor = input_tensor[tf.newaxis,...]
+
+# 物体検出を実行
+result = model(input_tensor)
+
+# 検出されたバウンディングボックスを取得
+boxes = result['detection_boxes'].numpy()
+classes = result['detection_classes'].numpy()
+scores = result['detection_scores'].numpy()
+
+# Non-Maximum Suppression (NMS) を使用して重複を排除
+# スコア閾値を0.3に設定して、より多くの物体を検出する
+nms_indices = tf.image.non_max_suppression(
+    boxes[0], scores[0], max_output_size=50, iou_threshold=0.5, score_threshold=0.3)
+
+# 白色判定用の関数（RGB平均値が200以上で白色に近いと判定）
+def is_white_object(cropped_image):
+    mean_color = np.mean(cropped_image, axis=(0, 1))
+    return np.all(mean_color > 200)  # 平均RGBが200以上なら白に近いと判定
+
+# 検出結果のバウンディングボックスを描画
+for idx in nms_indices:
+    box = boxes[0][idx]
+    class_id = int(classes[0][idx])
+    score = scores[0][idx]
+
+    # バウンディングボックスの座標を取得
+    y1, x1, y2, x2 = box
+    (startX, startY, endX, endY) = (int(x1 * image.shape[1]), int(y1 * image.shape[0]), 
+                                    int(x2 * image.shape[1]), int(y2 * image.shape[0]))
+    cv2.rectangle(image_rgb, (startX, startY), (endX, endY), (0, 255, 0), 2)
+
+    # バウンディングボックス内の物体を切り出し
+    cropped_img = image_rgb[startY:endY, startX:endX]
+    
+    # 白色判定
+    if is_white_object(cropped_img):
+        print(f"Object {class_id} is white (score: {score:.2f})")
+    else:
+        print(f"Object {class_id} is not white (score: {score:.2f})")
+
+# 結果の画像を表示
+plt.imshow(image_rgb)
+plt.axis('off')
+plt.show()
