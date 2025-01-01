@@ -1,0 +1,102 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 定義した活性化関数をプロットする関数
+def plot_activation_function(func, x_range, title, xlabel='x', ylabel='f(x)'):
+    x = np.linspace(x_range[0], x_range[1], 400)
+    y = func(x)
+    
+    plt.figure(figsize=(6, 4))
+    plt.plot(x, y, label=title)
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.grid(True)
+    plt.legend()
+    plt.show()
+
+# 1. Sigmoid
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+# 2. Tanh
+def tanh(x):
+    return np.tanh(x)
+
+# 3. ReLU
+def relu(x):
+    return np.maximum(0, x)
+
+# 4. Leaky ReLU
+def leaky_relu(x, alpha=0.01):
+    return np.where(x > 0, x, alpha * x)
+
+# 5. PReLU (Parametric ReLU)
+def prelu(x, alpha=0.01):
+    return np.where(x > 0, x, alpha * x)
+
+# 6. ELU (Exponential Linear Unit)
+def elu(x, alpha=1.0):
+    return np.where(x > 0, x, alpha * (np.exp(x) - 1))
+
+# 7. Swish
+def swish(x, beta=1.0):
+    return x / (1 + np.exp(-beta * x))
+
+# 8. Softplus
+def softplus(x):
+    return np.log(1 + np.exp(x))
+
+# 9. Maxout
+def maxout(x, n=3):
+    return np.maximum.reduce([x] * n)
+
+# 10. GELU (Gaussian Error Linear Unit)
+def gelu(x):
+    return 0.5 * x * (1 + np.tanh(np.sqrt(2 / np.pi) * (x + 0.044715 * x**3)))
+
+# 11. Hard Sigmoid
+def hard_sigmoid(x):
+    return np.clip(0.2 * x + 0.5, 0, 1)
+
+# 12. Hard Tanh
+def hard_tanh(x):
+    return np.clip(x, -1, 1)
+
+# 13. LogSigmoid
+def logsigmoid(x):
+    return np.log(1 / (1 + np.exp(-x)))
+
+# 14. Mish
+def mish(x):
+    return x * np.tanh(np.log(1 + np.exp(x)))
+
+# 15. Softmax
+def softmax(x):
+    exp_x = np.exp(x - np.max(x))  # for numerical stability
+    return exp_x / np.sum(exp_x)
+
+# 16. Thresholded ReLU
+def thresholded_relu(x, theta=0):
+    return np.where(x > theta, x, 0)
+
+# 17. Bent Identity
+def bent_identity(x):
+    return np.sqrt(x**2 + 1) - 1
+
+# 各活性化関数のプロット
+plot_activation_function(sigmoid, (-10, 10), 'Sigmoid')
+plot_activation_function(tanh, (-10, 10), 'Tanh')
+plot_activation_function(relu, (-10, 10), 'ReLU')
+plot_activation_function(leaky_relu, (-10, 10), 'Leaky ReLU')
+plot_activation_function(prelu, (-10, 10), 'PReLU')
+plot_activation_function(elu, (-10, 10), 'ELU')
+plot_activation_function(swish, (-10, 10), 'Swish')
+plot_activation_function(softplus, (-10, 10), 'Softplus')
+plot_activation_function(gelu, (-10, 10), 'GELU')
+plot_activation_function(hard_sigmoid, (-10, 10), 'Hard Sigmoid')
+plot_activation_function(hard_tanh, (-10, 10), 'Hard Tanh')
+plot_activation_function(logsigmoid, (-10, 10), 'LogSigmoid')
+plot_activation_function(mish, (-10, 10), 'Mish')
+plot_activation_function(thresholded_relu, (-10, 10), 'Thresholded ReLU')
+plot_activation_function(bent_identity, (-10, 10), 'Bent Identity')
