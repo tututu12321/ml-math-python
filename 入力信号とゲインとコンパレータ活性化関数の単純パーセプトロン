@@ -1,0 +1,29 @@
+import numpy as np
+
+# 入力信号、ゲイン、バイアス
+input_signal_1 = np.array([0.1, 0.5, 0.8, 1.0, 0.3])  # 入力信号1
+input_signal_2 = np.array([0.2, 0.4, 0.6, 0.9, 0.7])  # 入力信号2
+gain_1 = 1.5  # ゲイン1
+gain_2 = 2.0  # ゲイン2
+bias = 0.5    # バイアス
+
+# しきい値
+threshold = 1.0
+
+# 各計算ステップを表示
+
+# 入力信号1とゲイン1の積
+input_signal_1_times_gain_1 = input_signal_1 * gain_1
+print("input_signal_1 * gain_1:", input_signal_1_times_gain_1)
+
+# 入力信号2とゲイン2の積
+input_signal_2_times_gain_2 = input_signal_2 * gain_2
+print("input_signal_2 * gain_2:", input_signal_2_times_gain_2)
+
+# 各ステップの合計計算（入力信号×ゲイン + バイアス）
+total = input_signal_1_times_gain_1 + input_signal_2_times_gain_2 + bias
+print("Total (input_signal_1 * gain_1 + input_signal_2 * gain_2 + bias):", total)
+
+# コンパレータ機能：合計としきい値を比較して0または1を出力
+output = np.where(total >= threshold, 1, 0)
+print("Output (0 or 1 based on threshold):", output)
