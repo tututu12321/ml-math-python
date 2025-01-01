@@ -1,0 +1,42 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+
+# サンプルデータ生成（y = 4x - 3 にノイズを加える）
+np.random.seed(42)
+x = np.linspace(-10, 10, 100).reshape(-1, 1)  # xの値（-10から10の範囲で100点）
+y_true = 4 * x - 3  # y = 4x - 3 の理論的な値
+y_noisy = y_true + np.random.normal(0, 2, size=x.shape)  # ノイズを加える（標準偏差2の正規分布）
+
+# ノイズありデータのプロット
+plt.scatter(x, y_noisy, color='blue', label='Noisy Data')
+plt.plot(x, y_true, color='red', label='True Line (y = 4x - 3)', linestyle='--')
+plt.title('Linear Data with Noise and True Line')
+plt.xlabel('x')
+plt.ylabel('y')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# 線形回帰
+model = LinearRegression()
+model.fit(x, y_noisy)  # ノイズありデータで学習
+
+# 回帰直線の予測
+y_pred = model.predict(x)
+
+# 線形回帰結果のプロット
+plt.scatter(x, y_noisy, color='blue', label='Noisy Data')
+
+# 回帰直線の表示
+slope = model.coef_[0]  # 傾き（スカラー）
+intercept = model.intercept_  # 切片（スカラー）
+
+# フィットした直線をプロット
+
+plt.title('Linear Regression Fit')
+plt.xlabel('x')
+plt.ylabel('y')
+plt.legend()
+plt.grid(True)
+plt.show()
