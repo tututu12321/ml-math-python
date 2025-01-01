@@ -1,0 +1,59 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import convolve
+
+# 1. 畳み込み積分の定義
+def convolution_integral(x, h):
+    return convolve(x, h, mode='full')
+
+# 2. CNNの畳み込み層の模擬
+def cnn_convolution(input_image, kernel):
+    return convolve(input_image, kernel, mode='valid')
+
+# 3. 伝達関数の畳み込み
+def transfer_function_convolution(input_signal, transfer_function):
+    return convolve(input_signal, transfer_function, mode='full')
+
+# 畳み込み積分の例
+# x: 入力信号、h: フィルター
+x = np.linspace(-5, 5, 100)
+h = np.exp(-x**2)  # ガウス関数をフィルターとして使用
+y_convolution = convolution_integral(x, h)
+
+# CNNの畳み込み層の例（画像とカーネル）
+input_image = np.random.randn(10, 10)  # ランダムな画像
+kernel = np.array([[1, 0, -1], [1, 0, -1], [1, 0, -1]])  # エッジ検出用カーネル
+cnn_output = cnn_convolution(input_image, kernel)
+
+# 伝達関数の畳み込みの例
+input_signal = np.sin(x)  # 入力信号としてサイン波
+transfer_function = np.exp(-x**2)  # 伝達関数としてガウス関数
+output_signal = transfer_function_convolution(input_signal, transfer_function)
+
+# 伝達関数の畳み込み結果に合わせてxの範囲を調整
+x_for_output_signal = np.linspace(-10, 10, len(output_signal))
+
+# プロット
+fig, axes = plt.subplots(3, 1, figsize=(10, 12))
+
+# 畳み込み積分のプロット
+axes[0].plot(np.linspace(-10, 10, len(y_convolution)), y_convolution)
+axes[0].set_title('Convolution Integral')
+axes[0].set_xlabel('t')
+axes[0].set_ylabel('y(t)')
+axes[0].grid(True)
+
+# CNNの畳み込みのプロット
+axes[1].imshow(cnn_output, cmap='gray')
+axes[1].set_title('CNN Convolution Output (Feature Map)')
+axes[1].axis('off')
+
+# 伝達関数の畳み込みのプロット
+axes[2].plot(x_for_output_signal, output_signal)
+axes[2].set_title('Transfer Function Convolution')
+axes[2].set_xlabel('t')
+axes[2].set_ylabel('Output Signal')
+axes[2].grid(True)
+
+plt.tight_layout()
+plt.show()
