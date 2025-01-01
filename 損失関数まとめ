@@ -1,0 +1,72 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 定義した損失関数をプロットする関数
+def plot_loss_function(func, x_range, title, xlabel='x', ylabel='Loss'):
+    x = np.linspace(x_range[0], x_range[1], 400)
+    y = func(x)
+    
+    plt.figure(figsize=(6, 4))
+    plt.plot(x, y, label=title)
+    plt.title(title)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.grid(True)
+    plt.legend()
+    plt.show()
+
+# 1. Mean Squared Error (MSE)
+def mse(x):
+    return np.square(x)
+
+# 2. Mean Absolute Error (MAE)
+def mae(x):
+    return np.abs(x)
+
+# 3. Hinge Loss
+def hinge_loss(x):
+    return np.maximum(0, 1 - x)
+
+# 4. Cross-Entropy Loss (Binary)
+def binary_cross_entropy(x):
+    return -x * np.log(x + 1e-8) - (1 - x) * np.log(1 - x + 1e-8)
+
+# 5. Categorical Cross-Entropy Loss
+def categorical_cross_entropy(x, y):
+    return -y * np.log(x + 1e-8)
+
+# 6. Huber Loss
+def huber_loss(x, delta=1.0):
+    return np.where(np.abs(x) <= delta, 0.5 * x**2, delta * (np.abs(x) - 0.5 * delta))
+
+# 7. Kullback-Leibler Divergence (KL Divergence)
+def kl_divergence(p, q):
+    return np.sum(p * np.log(p / (q + 1e-8)), axis=0)
+
+# 8. Log-Cosh Loss
+def log_cosh(x):
+    return np.log(np.cosh(x))
+
+# 9. Poisson Loss
+def poisson_loss(x):
+    return x - np.log(x + 1e-8)
+
+# 10. Quantile Loss
+def quantile_loss(x, tau=0.5):
+    return np.maximum(tau * x, (tau - 1) * x)
+
+# 11. Hamming Loss
+def hamming_loss(x, y):
+    return np.mean(np.not_equal(x, y))
+
+# 各損失関数のプロット
+plot_loss_function(mse, (-10, 10), 'Mean Squared Error (MSE)')
+plot_loss_function(mae, (-10, 10), 'Mean Absolute Error (MAE)')
+plot_loss_function(hinge_loss, (-10, 10), 'Hinge Loss')
+plot_loss_function(binary_cross_entropy, (0.01, 0.99), 'Binary Cross-Entropy Loss')
+# Categorical Cross-Entropy requires two inputs (probabilities), so we skip plotting for simplicity
+# plot_loss_function(categorical_cross_entropy, (0.01, 0.99), 'Categorical Cross-Entropy Loss')
+plot_loss_function(huber_loss, (-10, 10), 'Huber Loss')
+plot_loss_function(log_cosh, (-10, 10), 'Log-Cosh Loss')
+plot_loss_function(poisson_loss, (0.01, 10), 'Poisson Loss')
+plot_loss_function(quantile_loss, (-10, 10), 'Quantile Loss')
