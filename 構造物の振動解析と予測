@@ -1,0 +1,50 @@
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import classification_report, accuracy_score
+import matplotlib.pyplot as plt
+
+# 偽の振動データ（特徴量：振幅、周波数、加速度など）
+np.random.seed(42)
+amplitude = np.random.normal(10, 2, 1000)  # 振幅
+frequency = np.random.normal(5, 0.5, 1000)  # 周波数
+acceleration = np.random.normal(20, 5, 1000)  # 加速度
+
+# 健全性ラベル（0: 健全、1: 異常）
+labels = np.random.randint(0, 2, 1000)
+
+# データフレームに変換
+data = pd.DataFrame({
+    'amplitude': amplitude,
+    'frequency': frequency,
+    'acceleration': acceleration,
+    'health_status': labels
+})
+
+# 特徴量とラベルを分ける
+X = data[['amplitude', 'frequency', 'acceleration']]
+y = data['health_status']
+
+# トレーニングとテストデータに分割
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# ランダムフォレストで予測モデルを構築
+model = RandomForestClassifier(random_state=42)
+model.fit(X_train, y_train)
+
+# テストデータで予測
+y_pred = model.predict(X_test)
+
+# 精度の評価
+print("Accuracy:", accuracy_score(y_test, y_pred))
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+
+# 振動データの散布図
+plt.figure(figsize=(10, 6))
+plt.scatter(amplitude, acceleration, c=labels, cmap='coolwarm', alpha=0.7)
+plt.title('Vibration Data: Amplitude vs Acceleration')
+plt.xlabel('Amplitude')
+plt.ylabel('Acceleration')
+plt.colorbar(label='Health Status')
+plt.show()
