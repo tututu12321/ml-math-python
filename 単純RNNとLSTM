@@ -1,0 +1,85 @@
+import numpy as np
+import tensorflow as tf
+import matplotlib.pyplot as plt
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import SimpleRNN, LSTM, Dense
+from tensorflow.keras.optimizers import Adam
+
+# データ生成（サンプル：正弦波）
+def generate_data(seq_length=100, n_samples=1000):
+    X = np.linspace(0, 50, seq_length * n_samples)  # 正弦波用のデータ生成
+    y = np.sin(X)  # 正弦波
+    X = np.array([y[i:i+seq_length] for i in range(len(y)-seq_length)])  # 入力シーケンスを作成
+    y = np.array([y[i+seq_length] for i in range(len(y)-seq_length)])  # ターゲット値を作成
+    return X, y
+
+# 学習用データの準備
+seq_length = 50
+n_samples = 1000  # サンプル数
+X, y = generate_data(seq_length=seq_length, n_samples=n_samples)
+
+# データの形状を確認
+print(f"X.shape: {X.shape}, y.shape: {y.shape}")
+
+# データの形状をRNNに入力できる形に変換
+X = X.reshape((X.shape[0], X.shape[1], 1))  # (サンプル数, 時系列の長さ, 特徴量)
+y = y.reshape((y.shape[0], 1))  # (サンプル数, 予測するターゲット値)
+
+# モデルの構築（単純RNN）
+model_rnn = Sequential([
+    SimpleRNN(50, activation='relu', input_shape=(seq_length, 1)),
+    Dense(1)
+])
+
+# モデルのコンパイル
+model_rnn.compile(optimizer=Adam(), loss='mean_squared_error')
+
+# RNNモデルの学習
+history_rnn = model_rnn.fit(X, y, epochs=10, batch_size=32, verbose=1)
+
+# モデルの構築（LSTM）
+model_lstm = Sequential([
+    LSTM(50, activation='relu', input_shape=(seq_length, 1)),
+    Dense(1)
+])
+
+# モデルのコンパイル
+model_lstm.compile(optimizer=Adam(), loss='mean_squared_error')
+
+# LSTMモデルの学習
+history_lstm = model_lstm.fit(X, y, epochs=10, batch_size=32, verbose=1)
+
+# 学習履歴のプロット
+plt.figure(figsize=(12, 6))
+
+# RNNの損失
+plt.subplot(1, 2, 1)
+plt.plot(history_rnn.history['loss'], label='RNN Loss', color='blue')
+plt.title('RNN Loss')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+
+# LSTMの損失
+plt.subplot(1, 2, 2)
+plt.plot(history_lstm.history['loss'], label='LSTM Loss', color='orange')
+plt.title('LSTM Loss')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+
+plt.tight_layout()
+plt.show()
+
+# 予測の比較
+rnn_pred = model_rnn.predict(X)
+lstm_pred = model_lstm.predict(X)
+
+# 予測結果のプロット
+plt.figure(figsize=(10, 6))
+plt.plot(y, label='True Values', color='black')
+plt.plot(rnn_pred, label='RNN Predictions', color='blue')
+plt.plot(lstm_pred, label='LSTM Predictions', color='orange')
+plt.title('RNN vs LSTM Predictions')
+plt.xlabel('Time Steps')
+plt.ylabel('Value')
+plt.legend()
+plt.show()
