@@ -1,0 +1,37 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+
+# 二次関数のデータ生成（y = x^2）
+np.random.seed(42)
+X = np.linspace(-3, 3, 100).reshape(-1, 1)  # xの値
+y = X**2 + np.random.normal(0, 0.5, size=X.shape)  # y = x^2 にノイズを加える
+
+# 二次関数のデータをプロット
+plt.scatter(X, y, color='blue', label='Data points')
+plt.title('Quadratic Function with Noise')
+plt.xlabel('X')
+plt.ylabel('y')
+plt.grid(True)
+plt.show()
+
+# K-meansクラスタリング
+kmeans = KMeans(n_clusters=2, random_state=42)  # クラスタ数を2に設定
+X_combined = np.concatenate((X, y), axis=1)  # Xとyを結合して2次元データにする
+kmeans.fit(X_combined)
+
+# クラスタリング結果
+labels = kmeans.labels_
+
+# クラスタリング結果をプロット
+plt.scatter(X, y, c=labels, cmap='viridis', label='Clustered Data')
+plt.title('K-means Clustering on Quadratic Data')
+plt.xlabel('X')
+plt.ylabel('y')
+plt.colorbar(label='Cluster')
+plt.grid(True)
+plt.show()
+
+# クラスタの中心を表示
+centers = kmeans.cluster_centers_
+centers
