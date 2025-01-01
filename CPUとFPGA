@@ -1,0 +1,27 @@
+import numpy as np
+import time
+
+# CPUの計算（汎用計算処理）
+def cpu_computation(data):
+    result = np.sum(data ** 2)  # 例: 配列の2乗和を計算
+    return result
+
+# FPGAの計算（並列処理を模倣）
+def fpga_computation(data):
+    result = np.sum(data ** 2)  # FPGAで並列処理のシミュレーション（基本的な演算）
+    return result
+
+# 計算データ（ランダムなデータ）
+data = np.random.rand(1000000)
+
+# CPUで計算
+start_time = time.time()
+cpu_result = cpu_computation(data)
+cpu_time = time.time() - start_time
+print(f"CPU計算結果: {cpu_result}, 処理時間: {cpu_time:.4f}秒")
+
+# FPGAで計算
+start_time = time.time()
+fpga_result = fpga_computation(data)
+fpga_time = time.time() - start_time
+print(f"FPGA計算結果: {fpga_result}, 処理時間: {fpga_time:.4f}秒")
