@@ -1,0 +1,116 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report, roc_curve, auc
+
+# 新しい特徴量を加えたデータの生成（修正）
+X, y = make_classification(n_samples=1000, n_features=4, n_informative=2, n_redundant=1, n_classes=2, random_state=42)
+
+# 訓練データとテストデータに分割
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 6.1.2 各分類法の適用
+# ロジスティック回帰
+log_reg = LogisticRegression()
+log_reg.fit(X_train, y_train)
+y_pred_log_reg = log_reg.predict(X_test)
+accuracy_log_reg = accuracy_score(y_test, y_pred_log_reg)
+
+# k-近傍法 (KNN)
+knn = KNeighborsClassifier()
+knn.fit(X_train, y_train)
+y_pred_knn = knn.predict(X_test)
+accuracy_knn = accuracy_score(y_test, y_pred_knn)
+
+# サポートベクターマシン (SVM)
+svm = SVC()
+svm.fit(X_train, y_train)
+y_pred_svm = svm.predict(X_test)
+accuracy_svm = accuracy_score(y_test, y_pred_svm)
+
+# 決定木
+tree = DecisionTreeClassifier()
+tree.fit(X_train, y_train)
+y_pred_tree = tree.predict(X_test)
+accuracy_tree = accuracy_score(y_test, y_pred_tree)
+
+# 結果表示
+print(f"Logistic Regression Accuracy: {accuracy_log_reg}")
+print(f"KNN Accuracy: {accuracy_knn}")
+print(f"SVM Accuracy: {accuracy_svm}")
+print(f"Decision Tree Accuracy: {accuracy_tree}")
+
+# 6.2 予測精度の評価
+# インサンプル精度
+y_pred_train_log_reg = log_reg.predict(X_train)
+accuracy_train_log_reg = accuracy_score(y_train, y_pred_train_log_reg)
+
+y_pred_train_knn = knn.predict(X_train)
+accuracy_train_knn = accuracy_score(y_train, y_pred_train_knn)
+
+y_pred_train_svm = svm.predict(X_train)
+accuracy_train_svm = accuracy_score(y_train, y_pred_train_svm)
+
+y_pred_train_tree = tree.predict(X_train)
+accuracy_train_tree = accuracy_score(y_train, y_pred_train_tree)
+
+# アウトサンプル精度（すでに計算済み）
+print(f"Train Accuracy (Logistic Regression): {accuracy_train_log_reg}")
+print(f"Test Accuracy (Logistic Regression): {accuracy_log_reg}")
+print(f"Train Accuracy (KNN): {accuracy_train_knn}")
+print(f"Test Accuracy (KNN): {accuracy_knn}")
+print(f"Train Accuracy (SVM): {accuracy_train_svm}")
+print(f"Test Accuracy (SVM): {accuracy_svm}")
+print(f"Train Accuracy (Decision Tree): {accuracy_train_tree}")
+print(f"Test Accuracy (Decision Tree): {accuracy_tree}")
+
+# 6.2.2 データの意味を考えた予測の評価法
+# 混同行列
+cm_log_reg = confusion_matrix(y_test, y_pred_log_reg)
+cm_knn = confusion_matrix(y_test, y_pred_knn)
+cm_svm = confusion_matrix(y_test, y_pred_svm)
+cm_tree = confusion_matrix(y_test, y_pred_tree)
+
+print("Confusion Matrix (Logistic Regression):\n", cm_log_reg)
+print("Confusion Matrix (KNN):\n", cm_knn)
+print("Confusion Matrix (SVM):\n", cm_svm)
+print("Confusion Matrix (Decision Tree):\n", cm_tree)
+
+# クラスごとの詳細な性能指標（精度、再現率、F1スコア）
+print("Classification Report (Logistic Regression):\n", classification_report(y_test, y_pred_log_reg))
+print("Classification Report (KNN):\n", classification_report(y_test, y_pred_knn))
+print("Classification Report (SVM):\n", classification_report(y_test, y_pred_svm))
+print("Classification Report (Decision Tree):\n", classification_report(y_test, y_pred_tree))
+
+# ROC曲線とAUC
+fpr_log_reg, tpr_log_reg, _ = roc_curve(y_test, log_reg.predict_proba(X_test)[:, 1])
+roc_auc_log_reg = auc(fpr_log_reg, tpr_log_reg)
+
+fpr_knn, tpr_knn, _ = roc_curve(y_test, knn.predict_proba(X_test)[:, 1])
+roc_auc_knn = auc(fpr_knn, tpr_knn)
+
+fpr_svm, tpr_svm, _ = roc_curve(y_test, svm.decision_function(X_test))
+roc_auc_svm = auc(fpr_svm, tpr_svm)
+
+fpr_tree, tpr_tree, _ = roc_curve(y_test, tree.predict_proba(X_test)[:, 1])
+roc_auc_tree = auc(fpr_tree, tpr_tree)
+
+# ROC曲線をプロット
+plt.figure()
+plt.plot(fpr_log_reg, tpr_log_reg, color='blue', lw=2, label=f'Logistic Regression (AUC = {roc_auc_log_reg:.2f})')
+plt.plot(fpr_knn, tpr_knn, color='green', lw=2, label=f'KNN (AUC = {roc_auc_knn:.2f})')
+plt.plot(fpr_svm, tpr_svm, color='red', lw=2, label=f'SVM (AUC = {roc_auc_svm:.2f})')
+plt.plot(fpr_tree, tpr_tree, color='orange', lw=2, label=f'Decision Tree (AUC = {roc_auc_tree:.2f})')
+plt.plot([0, 1], [0, 1], color='gray', linestyle='--')
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('Receiver Operating Characteristic (ROC) Curve')
+plt.legend(loc='lower right')
+plt.show()
