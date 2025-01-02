@@ -1,0 +1,114 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from tensorflow.keras import datasets, layers, models
+from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.datasets import mnist
+
+# §7.1 画像の特徴を抽出する方法
+# CNNの畳み込み層は画像から特徴を抽出します。以下の例では、簡単なCNNを構築してMNISTデータセットを使います。
+
+# データのロードと前処理
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+x_train = x_train.reshape((x_train.shape[0], 28, 28, 1)).astype('float32') / 255
+x_test = x_test.reshape((x_test.shape[0], 28, 28, 1)).astype('float32') / 255
+y_train = to_categorical(y_train)
+y_test = to_categorical(y_test)
+
+# CNNモデルの構築
+def create_cnn_model():
+    model = models.Sequential([
+        layers.Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 1)),  # 畳み込み層
+        layers.MaxPooling2D((2, 2)),  # プーリング層
+        layers.Conv2D(64, (3, 3), activation='relu'),  # 畳み込み層
+        layers.MaxPooling2D((2, 2)),  # プーリング層
+        layers.Conv2D(64, (3, 3), activation='relu'),  # 畳み込み層
+        layers.Flatten(),  # 平坦化
+        layers.Dense(64, activation='relu'),  # 全結合層
+        layers.Dense(10, activation='softmax')  # 出力層
+    ])
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    return model
+
+model = create_cnn_model()
+
+# モデルの訓練
+history = model.fit(x_train, y_train, epochs=5, batch_size=64, validation_data=(x_test, y_test))
+
+# §7.2 パディング
+# パディングは、入力画像の周囲にゼロを追加して、畳み込み後の画像サイズを調整する方法です。
+# Kerasの畳み込み層では、'same'パディングを使うと、入力と出力のサイズが同じになります。
+
+model_with_padding = models.Sequential([
+    layers.Conv2D(32, (3, 3), activation='relu', padding='same', input_shape=(28, 28, 1)),
+    layers.MaxPooling2D((2, 2)),
+    layers.Conv2D(64, (3, 3), activation='relu', padding='same'),
+    layers.MaxPooling2D((2, 2)),
+    layers.Flatten(),
+    layers.Dense(64, activation='relu'),
+    layers.Dense(10, activation='softmax')
+])
+model_with_padding.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+# 訓練と評価
+history_padding = model_with_padding.fit(x_train, y_train, epochs=5, batch_size=64, validation_data=(x_test, y_test))
+
+# §7.3 プーリング層
+# プーリング層は画像のサイズを縮小し、特徴量を圧縮します。MaxPooling層を使用します。
+
+# すでに上記のモデルでMaxPooling層を使用していますが、ここでも明示的に説明します。
+# MaxPoolingは画像の特徴を保持しながら、画像のサイズを縮小します。
+
+# §7.4 どのようなフィルターが働いているのか？
+# 畳み込み層のフィルターは、画像の特定のパターンや特徴を抽出します。
+# 以下では、最初の畳み込み層のフィルターを可視化します。
+
+filters = model.layers[0].get_weights()[0]
+print(f"Filter shape: {filters.shape}")
+
+# 最初の畳み込み層のフィルターをプロット
+fig, axes = plt.subplots(4, 8, figsize=(12, 6))
+axes = axes.ravel()
+
+for i in range(32):  # 畳み込み層のフィルター数（32）
+    ax = axes[i]
+    ax.imshow(filters[:, :, 0, i], cmap='gray')
+    ax.axis('off')
+
+plt.tight_layout()
+plt.show()
+
+# §7.5 手書き数字の認識
+# 既にMNISTデータセットを使用して、手書き数字の認識を行っています。
+
+# §7.6 自分が書いた手書き数字を正しく認識するか？
+# 手書き数字画像をアップロードして認識する場合、モデルに対して入力画像を同様に前処理して、予測を行います。
+
+from tensorflow.keras.preprocessing import image
+
+# 画像を読み込んで前処理
+def predict_handwritten_digit(img_path):
+    img = image.load_img(img_path, target_size=(28, 28), color_mode='grayscale')
+    img_array = image.img_to_array(img)
+    img_array = np.expand_dims(img_array, axis=0)  # バッチ次元を追加
+    img_array = img_array.astype('float32') / 255  # 正規化
+
+    prediction = model.predict(img_array)
+    return np.argmax(prediction)
+
+# 使用例（画像のパスを指定）
+# print(predict_handwritten_digit('handwritten_digit.png'))
+
+# §7.7 Kerasが保有するデータセット
+# Kerasはいくつかのデータセットを組み込みで提供しています。MNISTやCIFAR-10などが例です。
+
+# §7.8 畳み込みニューラルネットワークとImageNet
+# ImageNetのような大規模なデータセットを使用する場合、ResNetやVGGなどの事前学習されたモデルを使用できます。
+# 以下のコードは、ImageNetで事前学習されたResNet50を使用する例です。
+
+from tensorflow.keras.applications import ResNet50
+
+# ResNet50の事前学習されたモデルをロード（ImageNetで学習されたモデル）
+resnet_model = ResNet50(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
+
+# モデルの概要を表示
+resnet_model.summary()
