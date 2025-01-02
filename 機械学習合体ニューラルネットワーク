@@ -1,0 +1,117 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.metrics import mean_squared_error, accuracy_score
+from sklearn.datasets import make_classification
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout
+
+# Generate data for regression (linear regression)
+np.random.seed(42)
+X = np.random.rand(100, 1) * 10
+y = 3 * X.squeeze() + np.random.randn(100) * 3  # y = 3x + noise
+
+# Split data into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Linear Regression model training
+model = LinearRegression()
+model.fit(X_train, y_train)
+y_pred = model.predict(X_test)
+
+# Evaluate the regression model
+mse = mean_squared_error(y_test, y_pred)
+print(f"Mean Squared Error (Regression): {mse}")
+
+# Plot regression results
+plt.scatter(X_test, y_test, color='blue', label='True Data')
+plt.plot(X_test, y_pred, color='red', label='Predicted Data')
+plt.legend()
+plt.title('Linear Regression')
+plt.show()
+
+# Generate data for classification (logistic regression)
+X, y = make_classification(n_samples=100, n_features=2, n_classes=2, random_state=42, n_informative=2, n_redundant=0)
+
+# Split data into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Logistic Regression model training
+log_reg = LogisticRegression()
+log_reg.fit(X_train, y_train)
+
+# Evaluate the classification model
+y_pred = log_reg.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy (Logistic Regression): {accuracy}")
+
+# Plot classification results
+plt.scatter(X_test[:, 0], X_test[:, 1], c=y_test, cmap='coolwarm')
+plt.title('Logistic Regression Classification')
+plt.show()
+
+# Generate data for neural network (binary classification)
+X, y = make_classification(n_samples=1000, n_features=20, n_classes=2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Neural network model definition
+model_nn = Sequential([
+    Dense(64, activation='relu', input_dim=X_train.shape[1]),
+    Dense(32, activation='relu'),
+    Dense(1, activation='sigmoid')  # Sigmoid activation for binary classification
+])
+
+model_nn.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+# Train the neural network model
+model_nn.fit(X_train, y_train, epochs=10, batch_size=32)
+
+# Evaluate the neural network model
+loss, accuracy = model_nn.evaluate(X_test, y_test)
+print(f"Accuracy (Neural Network): {accuracy}")
+
+# Generate data for AND gate learning using a single neuron
+X_and = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+y_and = np.array([0, 1, 1, 0])  # AND gate output
+
+# Initialize weights and bias
+weights = np.random.randn(2)
+bias = np.random.randn()
+
+# Learning rate
+lr = 0.1
+
+# Training loop for the AND gate with a single neuron
+for epoch in range(100):
+    for i in range(len(X_and)):
+        # Calculate output
+        output = np.dot(X_and[i], weights) + bias
+        predicted = 1 if output >= 0 else 0
+
+        # Calculate error
+        error = y_and[i] - predicted
+
+        # Update weights and bias
+        weights += lr * error * X_and[i]
+        bias += lr * error
+
+    if epoch % 10 == 0:
+        print(f"Epoch {epoch}: Weights: {weights}, Bias: {bias}")
+
+print(f"Final Weights: {weights}, Bias: {bias}")
+
+# Define and train a deeper neural network model
+deep_model = Sequential([
+    Dense(128, activation='relu', input_dim=X_train.shape[1]),
+    Dropout(0.3),
+    Dense(64, activation='relu'),
+    Dense(1, activation='sigmoid')
+])
+
+deep_model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+# Train and evaluate the deep learning model
+deep_model.fit(X_train, y_train, epochs=30, batch_size=32)
+loss, accuracy = deep_model.evaluate(X_test, y_test)
+print(f"Deep Learning Model Accuracy: {accuracy}")
