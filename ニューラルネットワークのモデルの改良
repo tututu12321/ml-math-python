@@ -1,0 +1,150 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score
+import tensorflow as tf
+from tensorflow.keras import layers, models, optimizers
+
+# §6.1 Matplotlibによる学習過程のグラフ化
+def plot_training_history(history):
+    # 損失関数と精度のグラフ化
+    plt.figure(figsize=(12, 6))
+
+    # 損失関数
+    plt.subplot(1, 2, 1)
+    plt.plot(history.history['loss'], label='Training Loss')
+    plt.plot(history.history['val_loss'], label='Validation Loss')
+    plt.title('Loss during training')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.legend()
+
+    # 精度
+    plt.subplot(1, 2, 2)
+    plt.plot(history.history['accuracy'], label='Training Accuracy')
+    plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+    plt.title('Accuracy during training')
+    plt.xlabel('Epochs')
+    plt.ylabel('Accuracy')
+    plt.legend()
+
+    plt.tight_layout()
+    plt.show()
+
+# §6.2 損失値のグラフ化
+# 損失関数は上記のplot_training_historyで可視化されます。
+
+# §6.3 ドロップアウト
+# ドロップアウトをニューラルネットワークに追加
+def create_model_with_dropout(input_dim):
+    model = models.Sequential([
+        layers.Dense(128, activation='relu', input_dim=input_dim),
+        layers.Dropout(0.2),  # ドロップアウト率 20%
+        layers.Dense(64, activation='relu'),
+        layers.Dropout(0.2),
+        layers.Dense(1, activation='sigmoid')
+    ])
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+    return model
+
+# §6.4 損失関数の選択
+# 'binary_crossentropy'を選択しているが、異なるタスクでは損失関数が異なります。
+
+# §6.5 Optimizer はどのようにオプティマイズするのか？
+# オプティマイザーの選択（'adam' など）
+def create_model_with_optimizer(input_dim, optimizer_choice='adam'):
+    model = models.Sequential([
+        layers.Dense(128, activation='relu', input_dim=input_dim),
+        layers.Dense(64, activation='relu'),
+        layers.Dense(1, activation='sigmoid')
+    ])
+    if optimizer_choice == 'adam':
+        optimizer = optimizers.Adam(learning_rate=0.001)
+    elif optimizer_choice == 'sgd':
+        optimizer = optimizers.SGD(learning_rate=0.01)
+    else:
+        optimizer = optimizers.RMSprop(learning_rate=0.001)
+    
+    model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
+    return model
+
+# §6.6 モメンタムはどう働く？
+# モメンタムを使ったOptimizer（SGD+モメンタム）
+def create_model_with_momentum(input_dim):
+    model = models.Sequential([
+        layers.Dense(128, activation='relu', input_dim=input_dim),
+        layers.Dense(64, activation='relu'),
+        layers.Dense(1, activation='sigmoid')
+    ])
+    optimizer = optimizers.SGD(learning_rate=0.01, momentum=0.9)  # モメンタムを使用
+    model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
+    return model
+
+# §6.7 ネステロフのモメンタム加速勾配法
+# ネステロフ加速勾配法（NAG）を使ったOptimizer
+def create_model_with_nesterov(input_dim):
+    model = models.Sequential([
+        layers.Dense(128, activation='relu', input_dim=input_dim),
+        layers.Dense(64, activation='relu'),
+        layers.Dense(1, activation='sigmoid')
+    ])
+    optimizer = optimizers.SGD(learning_rate=0.01, momentum=0.9, nesterov=True)  # Nesterov
+    model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
+    return model
+
+# §6.8 別のアプローチ――Adagrad
+# Adagradの使用例
+def create_model_with_adagrad(input_dim):
+    model = models.Sequential([
+        layers.Dense(128, activation='relu', input_dim=input_dim),
+        layers.Dense(64, activation='relu'),
+        layers.Dense(1, activation='sigmoid')
+    ])
+    optimizer = optimizers.Adagrad(learning_rate=0.01)
+    model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
+    return model
+
+# §6.9 RMSprop――Adagradの改良
+# RMSpropの使用例
+def create_model_with_rmsprop(input_dim):
+    model = models.Sequential([
+        layers.Dense(128, activation='relu', input_dim=input_dim),
+        layers.Dense(64, activation='relu'),
+        layers.Dense(1, activation='sigmoid')
+    ])
+    optimizer = optimizers.RMSprop(learning_rate=0.001)
+    model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
+    return model
+
+# §6.10 Adam――2つのアプローチのハイブリッド
+# Adamを使った最適化
+def create_model_with_adam(input_dim):
+    model = models.Sequential([
+        layers.Dense(128, activation='relu', input_dim=input_dim),
+        layers.Dense(64, activation='relu'),
+        layers.Dense(1, activation='sigmoid')
+    ])
+    optimizer = optimizers.Adam(learning_rate=0.001)
+    model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
+    return model
+
+# データの準備
+X, y = make_classification(n_samples=1000, n_features=20, n_classes=2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# モデルの選択（例: Adam optimizerを使う）
+model = create_model_with_adam(X_train.shape[1])
+
+# モデルの訓練
+history = model.fit(X_train, y_train, validation_data=(X_test, y_test), epochs=100, batch_size=32)
+
+# §6.1 学習過程のグラフ化
+plot_training_history(history)
+
+# 評価
+y_pred = model.predict(X_test)
+y_pred_class = (y_pred > 0.5).astype(int)
+print(f"Accuracy: {accuracy_score(y_test, y_pred_class)}")
+print(f"Confusion Matrix:\n{confusion_matrix(y_test, y_pred_class)}")
