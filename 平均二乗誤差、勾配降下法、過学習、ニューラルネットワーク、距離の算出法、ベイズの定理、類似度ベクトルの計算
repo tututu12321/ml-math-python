@@ -1,0 +1,143 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.metrics import mean_squared_error, accuracy_score, confusion_matrix
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics.pairwise import cosine_similarity
+
+
+# §3.1 Mean Squared Error (MSE) Calculation
+def mean_squared_error_custom(y_true, y_pred):
+    return np.mean((y_true - y_pred) ** 2)
+
+# Example for MSE
+y_true = np.array([3, -0.5, 2, 7])
+y_pred = np.array([2.5, 0.0, 2, 8])
+mse = mean_squared_error_custom(y_true, y_pred)
+print(f"Mean Squared Error: {mse}")
+
+# §3.2 Gradient Descent and Weight Updates
+def gradient_descent(X, y, weights, learning_rate, epochs):
+    m = len(y)
+    for epoch in range(epochs):
+        y_pred = np.dot(X, weights)
+        gradient = -2/m * np.dot(X.T, (y - y_pred))
+        weights = weights - learning_rate * gradient
+        if epoch % 100 == 0:
+            loss = np.mean((y - y_pred) ** 2)
+            print(f"Epoch {epoch}, Loss: {loss}")
+    return weights
+
+# Generating sample data for gradient descent
+X = np.array([[1, 1], [1, 2], [2, 2], [2, 3]])
+y = np.dot(X, np.array([1, 2])) + 3
+weights = np.array([0.0, 0.0])  # Initial weights
+learning_rate = 0.01
+epochs = 1000
+optimized_weights = gradient_descent(X, y, weights, learning_rate, epochs)
+print(f"Optimized weights: {optimized_weights}")
+
+# §3.3 Overfitting: Linear vs Polynomial Regression
+from sklearn.preprocessing import PolynomialFeatures
+
+# Generating data
+np.random.seed(0)
+X = np.random.rand(10, 1) * 10
+y = 2 * X + 1 + np.random.randn(10, 1) * 2
+
+# Splitting data into train and test
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Linear regression
+lin_reg = LinearRegression()
+lin_reg.fit(X_train, y_train)
+y_pred_train = lin_reg.predict(X_train)
+y_pred_test = lin_reg.predict(X_test)
+
+# Polynomial regression (overfitting)
+poly = PolynomialFeatures(degree=15)
+X_poly_train = poly.fit_transform(X_train)
+X_poly_test = poly.transform(X_test)
+
+poly_reg = LinearRegression()
+poly_reg.fit(X_poly_train, y_train)
+y_pred_train_poly = poly_reg.predict(X_poly_train)
+y_pred_test_poly = poly_reg.predict(X_poly_test)
+
+print(f"Linear Regression Test MSE: {mean_squared_error(y_test, y_pred_test)}")
+print(f"Polynomial Regression Test MSE: {mean_squared_error(y_test, y_pred_test_poly)}")
+
+# Plotting the results
+plt.scatter(X, y, color='blue')
+plt.plot(X_train, y_pred_train, color='red', label='Linear Model')
+plt.plot(X_train, y_pred_train_poly, color='green', label='Polynomial Model')
+plt.legend()
+plt.show()
+
+# §3.4 Neural Network: Matrix Operations and Activation Functions
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+def neural_network(X, weights, bias):
+    return sigmoid(np.dot(X, weights) + bias)
+
+# Data for neural network
+X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+y = np.array([0, 1, 1, 0])  # XOR problem
+
+# Initial weights and bias
+weights = np.random.rand(2)
+bias = np.random.rand(1)
+
+# Predict using the neural network
+output = neural_network(X, weights, bias)
+print(f"Network output: {output}")
+
+# §3.5 Calculating Various Distances
+def euclidean_distance(x, y):
+    return np.sqrt(np.sum((x - y) ** 2))
+
+def manhattan_distance(x, y):
+    return np.sum(np.abs(x - y))
+
+def cosine_similarity_custom(x, y):
+    return cosine_similarity([x], [y])[0][0]
+
+# Vectors for distance calculation
+x = np.array([1, 2, 3])
+y = np.array([4, 5, 6])
+
+print(f"Euclidean Distance: {euclidean_distance(x, y)}")
+print(f"Manhattan Distance: {manhattan_distance(x, y)}")
+print(f"Cosine Similarity: {cosine_similarity_custom(x, y)}")
+
+# §3.6 Email Spam Classification using Naive Bayes
+texts = ["cheap pills", "win a lottery", "hello how are you", "meeting tomorrow"]
+labels = [1, 1, 0, 0]  # 1: Spam, 0: Not Spam
+
+vectorizer = CountVectorizer()
+X = vectorizer.fit_transform(texts)
+
+# Naive Bayes classifier
+model = GaussianNB()
+model.fit(X.toarray(), labels)
+
+# New email for prediction
+new_email = ["win free money"]
+new_email_vector = vectorizer.transform(new_email).toarray()
+prediction = model.predict(new_email_vector)
+print(f"Prediction: {'Spam' if prediction[0] == 1 else 'Not Spam'}")
+
+# §3.7 Calculating Similarity Vectors using Word2Vec (example)
+word_vectors = {
+    "apple": np.array([1, 2, 3]),
+    "orange": np.array([4, 5, 6]),
+    "banana": np.array([7, 8, 9])
+}
+
+word1, word2 = "apple", "orange"
+similarity = cosine_similarity_custom(word_vectors[word1], word_vectors[word2])
+print(f"Cosine similarity between '{word1}' and '{word2}': {similarity}")
