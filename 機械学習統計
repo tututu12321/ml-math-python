@@ -1,0 +1,118 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import norm
+import seaborn as sns
+import sympy as sp
+
+# 6.1 確率の概念：サイコロを振る確率
+# サイコロの目が1, 2, 3, 4, 5, 6のいずれかに等しい確率
+dice_probs = np.ones(6) / 6
+
+# プロット
+plt.figure(figsize=(6, 4))
+plt.bar(range(1, 7), dice_probs, color='orange')
+plt.title("Probability Distribution of a Die Roll")
+plt.xlabel("Face of Die")
+plt.ylabel("Probability")
+plt.xticks(range(1, 7))
+plt.grid(True)
+plt.show()
+
+# 6.2 平均値と期待値
+# 例: サイコロの期待値
+dice_values = np.array([1, 2, 3, 4, 5, 6])
+expected_value = np.sum(dice_values * dice_probs)
+
+print(f"Expected Value (Mean) of a Die Roll: {expected_value}")
+
+# 6.3 分散と標準偏差
+# サイコロの分散と標準偏差を計算
+variance = np.sum(dice_probs * (dice_values - expected_value)**2)
+std_deviation = np.sqrt(variance)
+
+print(f"Variance of a Die Roll: {variance}")
+print(f"Standard Deviation of a Die Roll: {std_deviation}")
+
+# 6.4 正規分布とべき乗則
+# 正規分布のプロット
+x_vals = np.linspace(-5, 5, 400)
+normal_vals = norm.pdf(x_vals, 0, 1)
+
+# プロット
+plt.plot(x_vals, normal_vals, label="Standard Normal Distribution")
+plt.title("Normal Distribution")
+plt.xlabel("x")
+plt.ylabel("Density")
+plt.grid(True)
+plt.legend()
+plt.show()
+
+# べき乗則のプロット
+x_vals_power = np.linspace(1, 100, 100)
+power_law = x_vals_power ** -2.5  # べき乗則
+
+plt.plot(x_vals_power, power_law, label="Power Law x^-2.5")
+plt.title("Power Law Distribution")
+plt.xlabel("x")
+plt.ylabel("Density")
+plt.grid(True)
+plt.legend()
+plt.show()
+
+# 6.5 共分散
+# 例: 2つの変数の共分散
+x = np.random.randn(1000)
+y = 2 * x + np.random.randn(1000)  # xに基づいたy
+covariance = np.cov(x, y)[0, 1]
+
+print(f"Covariance between x and y: {covariance}")
+
+# 6.6 相関係数
+correlation = np.corrcoef(x, y)[0, 1]
+print(f"Correlation between x and y: {correlation}")
+
+# 6.7 条件付き確率とベイズの定理
+# 例: サイコロの目が2である場合の条件付き確率
+p_A = 1/6  # P(A) サイコロが2
+p_B = 1/6  # P(B) サイコロの目が偶数
+p_A_and_B = 1/6  # P(A and B) サイコロが2かつ偶数
+
+# ベイズの定理
+p_A_given_B = p_A_and_B / p_B
+print(f"P(A|B) = {p_A_given_B}")
+
+# 6.8 尤度
+# 例: 正規分布の尤度
+data = np.random.normal(loc=0, scale=1, size=1000)
+mean = np.mean(data)
+std = np.std(data)
+likelihood = np.prod(norm.pdf(data, mean, std))
+
+print(f"Likelihood of the data under normal distribution: {likelihood}")
+
+# 6.9 情報量
+# 例: 確率pにおける情報量
+p = 0.5  # 例えば、コインの表が出る確率
+information_content = -np.log2(p)
+print(f"Information content for probability {p}: {information_content} bits")
+
+# COLUMN 自然言語処理とは
+# 例: 単語ベクトルの可視化
+from sklearn.decomposition import PCA
+
+# サンプル単語ベクトル
+words = ['king', 'queen', 'man', 'woman', 'apple', 'banana']
+word_vectors = np.random.randn(len(words), 50)  # ランダムに生成
+
+# PCAで次元圧縮して可視化
+pca = PCA(n_components=2)
+word_vectors_2d = pca.fit_transform(word_vectors)
+
+plt.scatter(word_vectors_2d[:, 0], word_vectors_2d[:, 1])
+for i, word in enumerate(words):
+    plt.annotate(word, (word_vectors_2d[i, 0], word_vectors_2d[i, 1]))
+plt.title("Word Embeddings Visualized with PCA")
+plt.xlabel("PCA Component 1")
+plt.ylabel("PCA Component 2")
+plt.grid(True)
+plt.show()
