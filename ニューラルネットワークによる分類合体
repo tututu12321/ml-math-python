@@ -1,0 +1,81 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+
+# データの生成 (分類問題)
+# n_informativeを2に設定して、合計の特徴量2に収まるようにする
+X, y = make_classification(n_samples=1000, n_features=2, n_classes=2, 
+                            n_informative=2, n_redundant=0, n_repeated=0, random_state=42)
+
+# 訓練データとテストデータに分割
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 5.1 フィードフォワードニューラルネットワーク
+# フィードフォワードニューラルネットワークの定義
+model_ff = Sequential([
+    Dense(8, activation='relu', input_dim=X_train.shape[1]),
+    Dense(1, activation='sigmoid')  # バイナリ分類のためのシグモイド関数
+])
+
+# モデルのコンパイル
+model_ff.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+# 訓練
+model_ff.fit(X_train, y_train, epochs=20, batch_size=32)
+
+# 評価
+loss, accuracy = model_ff.evaluate(X_test, y_test)
+print(f"フィードフォワードニューラルネットワークの精度: {accuracy}")
+
+# 5.2 3層構造のフィードフォワードニューラルネットワーク
+# 3層構造のニューラルネットワーク
+model_3layer = Sequential([
+    Dense(16, activation='relu', input_dim=X_train.shape[1]),
+    Dense(8, activation='relu'),
+    Dense(1, activation='sigmoid')  # バイナリ分類
+])
+
+# モデルのコンパイル
+model_3layer.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+# 訓練
+model_3layer.fit(X_train, y_train, epochs=20, batch_size=32)
+
+# 評価
+loss, accuracy = model_3layer.evaluate(X_test, y_test)
+print(f"3層構造ニューラルネットワークの精度: {accuracy}")
+
+# 5.3 重みの推定方法と誤差逆伝播法
+# 誤差逆伝播法による重みの推定は、Kerasの内部で自動的に行われます。
+# そのため、特別に手動で実装する必要はありませんが、Kerasの学習過程で誤差逆伝播法を使用していることを理解しておきましょう。
+
+# 訓練過程での損失と精度をプロット
+history = model_3layer.fit(X_train, y_train, epochs=20, batch_size=32)
+
+plt.plot(history.history['accuracy'], label='Accuracy')
+plt.plot(history.history['loss'], label='Loss')
+plt.legend()
+plt.title('Training Process (Accuracy & Loss)')
+plt.show()
+
+# 5.5 ディープラーニングへの入口
+# ディープラーニングモデルの定義
+deep_model = Sequential([
+    Dense(128, activation='relu', input_dim=X_train.shape[1]),
+    Dense(64, activation='relu'),
+    Dense(32, activation='relu'),
+    Dense(1, activation='sigmoid')  # バイナリ分類
+])
+
+# モデルのコンパイル
+deep_model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+# 訓練
+deep_model.fit(X_train, y_train, epochs=30, batch_size=32)
+
+# 評価
+loss, accuracy = deep_model.evaluate(X_test, y_test)
+print(f"ディープラーニングモデルの精度: {accuracy}")
