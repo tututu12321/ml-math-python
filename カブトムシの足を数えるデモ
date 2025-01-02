@@ -1,0 +1,71 @@
+import numpy as np
+import tensorflow as tf
+import matplotlib.pyplot as plt
+import cv2
+from tensorflow.keras.preprocessing import image
+from google.colab import files
+import tensorflow_hub as hub
+import json
+
+# Load the pre-trained MobileNetV2 model from TensorFlow Hub
+module_handle = "https://tfhub.dev/google/tf2-preview/mobilenet_v2/classification/4"
+model = hub.load(module_handle)
+
+# Load the ImageNet labels
+LABELS_URL = "https://storage.googleapis.com/download.tensorflow.org/data/imagenet_class_index.json"
+labels = tf.keras.utils.get_file("imagenet_class_index.json", LABELS_URL)
+
+with open(labels, 'r') as f:
+    class_idx = json.load(f)
+    labels = [class_idx[str(k)][1] for k in range(1000)]
+
+# Function to load and preprocess the image
+def load_and_preprocess_image(image_path):
+    img = cv2.imread(image_path)  # Read the image using OpenCV
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # Convert from BGR to RGB
+    img = cv2.resize(img, (224, 224))  # Resize image to the input size of the model
+    img = np.array(img) / 255.0  # Normalize the image
+    img = tf.convert_to_tensor(img, dtype=tf.float32)  # Cast to tf.float32
+    return img
+
+# Function to make predictions on the image
+def predict_image(img):
+    # The model expects a batch of images, so we add an extra batch dimension
+    img_batch = tf.expand_dims(img, axis=0)
+    predictions = model(img_batch)
+    return predictions
+
+# Function to calculate the number of legs based on the beetle count
+def calculate_legs(predicted_class, beetle_count):
+    # Each beetle has 6 legs, so we multiply the beetle count by 6
+    if "beetle" in labels[predicted_class].lower():  # Check if the prediction is related to beetles
+        return beetle_count * 6
+    else:
+        return "Not a beetle"  # If the prediction is not a beetle, return this message
+
+# Upload the image
+uploaded = files.upload()
+
+# Select the uploaded image file
+image_path = list(uploaded.keys())[0]
+
+# Load and preprocess the image
+img = load_and_preprocess_image(image_path)
+
+# Predict the class of the image
+predictions = predict_image(img)
+
+# Get the predicted label
+predicted_class = np.argmax(predictions)
+
+# Define the number of beetles detected (for demonstration, we'll assume 1 beetle)
+beetle_count = 1  # Adjust this based on the actual count (for example, after counting beetles)
+
+# Calculate the number of legs based on the predicted class
+legs = calculate_legs(predicted_class, beetle_count)
+
+# Output the prediction and the number of legs
+plt.imshow(img)
+plt.title(f"Prediction: {labels[predicted_class]}\nLegs: {legs}")
+plt.axis('off')
+plt.show()
