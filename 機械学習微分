@@ -1,0 +1,100 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import sympy as sp
+
+# 5.1 極限と微分の近似
+def f(x):
+    return x**2 + 3*x + 2
+
+def derivative(f, x, h=1e-5):
+    return (f(x + h) - f(x)) / h
+
+x_vals = np.linspace(-10, 10, 400)
+y_vals = f(x_vals)
+y_prime_vals = derivative(f, x_vals)
+
+# 5.2 連鎖律
+x, y = sp.symbols('x y')
+f_chain = sp.sin(x**2 + y**2)
+f_prime_chain_x = sp.diff(f_chain, x)
+f_prime_chain_y = sp.diff(f_chain, y)
+
+# 5.3 偏微分
+f_partial = x**2 + y**2
+f_prime_x = sp.diff(f_partial, x)
+f_prime_y = sp.diff(f_partial, y)
+
+# 5.4 全微分
+df = sp.diff(f_partial, x) * sp.symbols('dx') + sp.diff(f_partial, y) * sp.symbols('dy')
+
+# 5.5 多変数合成関数の連鎖律
+z = sp.sin(x**2 + y**2)
+dz_dx = sp.diff(z, x)
+dz_dy = sp.diff(z, y)
+
+# 5.6 ネイピア数と自然対数のプロット
+x_vals_ln = np.linspace(0.1, 10, 400)
+e_vals = np.exp(x_vals_ln)  # e^x
+ln_vals = np.log(x_vals_ln)  # ln(x)
+
+# 5.7 最急降下法
+def gradient_descent(x, lr, iterations):
+    for _ in range(iterations):
+        grad = 2 * x - 4  # 関数の微分
+        x = x - lr * grad  # 勾配降下
+    return x
+
+x_current = 10  # 初期点
+learning_rate = 0.1
+iterations = 50
+x_min = gradient_descent(x_current, learning_rate, iterations)
+
+# グラフの作成
+fig, axes = plt.subplots(3, 2, figsize=(12, 12))
+
+# 5.1 極限と微分
+axes[0, 0].plot(x_vals, y_vals, label="f(x) = x^2 + 3x + 2")
+axes[0, 0].plot(x_vals, y_prime_vals, label="Approximate Derivative", linestyle='dashed')
+axes[0, 0].legend()
+axes[0, 0].set_title("Limit and Derivative Approximation")
+axes[0, 0].set_xlabel("x")
+axes[0, 0].set_ylabel("y")
+axes[0, 0].grid(True)
+
+# 5.2 連鎖律
+axes[0, 1].text(0.1, 0.8, f"Derivative with respect to x: {f_prime_chain_x}", fontsize=12)
+axes[0, 1].text(0.1, 0.6, f"Derivative with respect to y: {f_prime_chain_y}", fontsize=12)
+axes[0, 1].set_title("Chain Rule")
+axes[0, 1].axis('off')
+
+# 5.3 偏微分
+axes[1, 0].text(0.1, 0.8, f"Partial Derivative w.r.t x: {f_prime_x}", fontsize=12)
+axes[1, 0].text(0.1, 0.6, f"Partial Derivative w.r.t y: {f_prime_y}", fontsize=12)
+axes[1, 0].set_title("Partial Derivatives")
+axes[1, 0].axis('off')
+
+# 5.4 全微分
+axes[1, 1].text(0.1, 0.8, f"Total Differential: {df}", fontsize=12)
+axes[1, 1].set_title("Total Differential")
+axes[1, 1].axis('off')
+
+# 5.5 多変数合成関数の連鎖律
+axes[2, 0].text(0.1, 0.8, f"dz/dx: {dz_dx}", fontsize=12)
+axes[2, 0].text(0.1, 0.6, f"dz/dy: {dz_dy}", fontsize=12)
+axes[2, 0].set_title("Multivariable Chain Rule")
+axes[2, 0].axis('off')
+
+# 5.6 ネイピア数と自然対数のプロット
+axes[2, 1].plot(x_vals_ln, e_vals, label="e^x")
+axes[2, 1].plot(x_vals_ln, ln_vals, label="ln(x)")
+axes[2, 1].legend()
+axes[2, 1].set_title("Exponential and Logarithmic Functions")
+axes[2, 1].set_xlabel("x")
+axes[2, 1].set_ylabel("y")
+axes[2, 1].grid(True)
+
+plt.tight_layout()
+plt.show()
+
+# 5.7 最急降下法の結果
+print(f"Minimum value found at x = {x_min}")
