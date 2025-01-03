@@ -1,0 +1,34 @@
+def generate_pascals_triangle(n):
+    """
+    パスカルの三角形を生成する関数
+    :param n: 行数
+    :return: パスカルの三角形（リスト形式）
+    """
+    triangle = [[1]]  # 最初の行を初期化
+    for i in range(1, n):
+        row = [1]  # 各行の最初の要素は1
+        for j in range(1, i):
+            # 上の行から2つの数字を加算
+            row.append(triangle[i - 1][j - 1] + triangle[i - 1][j])
+        row.append(1)  # 各行の最後の要素は1
+        triangle.append(row)
+    return triangle
+
+def print_pascals_triangle(triangle):
+    """
+    パスカルの三角形を整形して表示する関数
+    :param triangle: パスカルの三角形（リスト形式）
+    """
+    max_width = len(' '.join(map(str, triangle[-1])))  # 最下行の幅
+    for row in triangle:
+        row_str = ' '.join(map(str, row))
+        print(row_str.center(max_width))  # 中央揃えで表示
+
+# 行数を指定
+n = 30  # 10行分のパスカルの三角形を生成
+
+# パスカルの三角形を生成
+pascals_triangle = generate_pascals_triangle(n)
+
+# 整形して表示
+print_pascals_triangle(pascals_triangle)
