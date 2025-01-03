@@ -1,0 +1,87 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import signal
+
+# パラメータ設定 / Parameter settings
+Kp = 2.0  # 比例ゲイン / Proportional gain
+Ki = 1.0  # 積分ゲイン / Integral gain
+Kd = 0.5  # 微分ゲイン / Derivative gain
+cutoff_freq = 10  # ローパスフィルタのカットオフ周波数 / Cutoff frequency of low-pass filter
+fs = 1000  # サンプリング周波数 / Sampling frequency
+
+# PIDコントローラーの伝達関数 / Transfer function of PID controller
+num_pid = [Kd, Kp, Ki]
+den_pid = [1, 0]
+H_pid = signal.TransferFunction(num_pid, den_pid)
+
+# ローパスフィルタの伝達関数 / Transfer function of low-pass filter
+wc = 2 * np.pi * cutoff_freq
+num_lp = [wc]
+den_lp = [1, wc]
+H_lp = signal.TransferFunction(num_lp, den_lp)
+
+# フィードバック制御システム (PIDなし) / Feedback control system (without PID)
+num_plant = [1]  # プラントの伝達関数（単純なゲイン） / Plant transfer function (simple gain)
+den_plant = [1, 1]
+H_plant = signal.TransferFunction(num_plant, den_plant)
+
+H_open_loop_no_pid = H_plant
+H_feedback_no_pid = signal.TransferFunction(np.polymul(H_open_loop_no_pid.num, H_lp.num),
+                                            np.polyadd(H_open_loop_no_pid.den, np.polymul(H_open_loop_no_pid.num, H_lp.num)))
+
+# フィードバック制御システム (PIDあり) / Feedback control system (with PID)
+H_open_loop_with_pid = signal.TransferFunction(np.polymul(H_pid.num, H_plant.num),
+                                               np.polymul(H_pid.den, H_plant.den))
+H_feedback_with_pid = signal.TransferFunction(np.polymul(H_open_loop_with_pid.num, H_lp.num),
+                                              np.polyadd(H_open_loop_with_pid.den, np.polymul(H_open_loop_with_pid.num, H_lp.num)))
+
+# 周波数応答を計算 / Calculate frequency response
+w, mag_open_no_pid, phase_open_no_pid = signal.bode(H_open_loop_no_pid)
+w, mag_closed_no_pid, phase_closed_no_pid = signal.bode(H_feedback_no_pid)
+w, mag_open_with_pid, phase_open_with_pid = signal.bode(H_open_loop_with_pid)
+w, mag_closed_with_pid, phase_closed_with_pid = signal.bode(H_feedback_with_pid)
+
+# ボード線図のプロット / Plot Bode diagrams
+plt.figure(figsize=(12, 8))
+
+# ゲイン線図 / Magnitude plot
+plt.subplot(2, 1, 1)
+plt.semilogx(w, mag_open_no_pid, label='Open Loop (No PID)')
+plt.semilogx(w, mag_closed_no_pid, label='Closed Loop (No PID)')
+plt.semilogx(w, mag_open_with_pid, label='Open Loop (With PID)')
+plt.semilogx(w, mag_closed_with_pid, label='Closed Loop (With PID)')
+plt.title('Bode Diagram')
+plt.xlabel('Frequency [rad/s]')
+plt.ylabel('Magnitude [dB]')
+plt.legend()
+plt.grid(which="both", linestyle="--", linewidth=0.5)
+
+# 位相線図 / Phase plot
+plt.subplot(2, 1, 2)
+plt.semilogx(w, phase_open_no_pid, label='Open Loop (No PID)')
+plt.semilogx(w, phase_closed_no_pid, label='Closed Loop (No PID)')
+plt.semilogx(w, phase_open_with_pid, label='Open Loop (With PID)')
+plt.semilogx(w, phase_closed_with_pid, label='Closed Loop (With PID)')
+plt.xlabel('Frequency [rad/s]')
+plt.ylabel('Phase [degrees]')
+plt.legend()
+plt.grid(which="both", linestyle="--", linewidth=0.5)
+
+plt.tight_layout()
+plt.show()
+
+# ステップ応答をプロット / Plot step response
+time = np.linspace(0, 10, 1000)
+
+t_out_no_pid, y_out_no_pid = signal.step(H_feedback_no_pid, T=time)
+t_out_with_pid, y_out_with_pid = signal.step(H_feedback_with_pid, T=time)
+
+plt.figure(figsize=(8, 4))
+plt.plot(t_out_no_pid, y_out_no_pid, label='Without PID')
+plt.plot(t_out_with_pid, y_out_with_pid, label='With PID')
+plt.title('Step Response Comparison')
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude')
+plt.legend()
+plt.grid()
+plt.show()
