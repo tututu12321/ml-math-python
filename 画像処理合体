@@ -1,0 +1,89 @@
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ダミー画像を生成（ランダムなグレースケール画像）
+dummy_image = np.random.randint(0, 256, (256, 256), dtype=np.uint8)
+
+# セクション 1: 基礎概念
+# 1.4 カラー画像とグレースケール画像
+# グレースケール画像をカラー化（疑似的なBGR変換）
+color_image = cv2.cvtColor(dummy_image, cv2.COLOR_GRAY2BGR)
+
+plt.figure(figsize=(10, 5))
+plt.subplot(1, 2, 1)
+plt.imshow(color_image)
+plt.title("Color Image (Simulated)")
+plt.subplot(1, 2, 2)
+plt.imshow(dummy_image, cmap="gray")
+plt.title("Grayscale Image")
+plt.show()
+
+# セクション 2: 画像処理の基礎
+# 2.1 画像のヒストグラム
+hist = cv2.calcHist([dummy_image], [0], None, [256], [0, 256])
+plt.figure()
+plt.title("Histogram")
+plt.plot(hist)
+plt.show()
+
+# 2.2 画像のフィルタリング (平均フィルタ)
+blurred_image = cv2.GaussianBlur(dummy_image, (5, 5), 0)
+
+# 2.3 エッジ検出 (Canny)
+edges = cv2.Canny(dummy_image, 100, 200)
+
+plt.figure(figsize=(10, 5))
+plt.subplot(1, 2, 1)
+plt.imshow(blurred_image, cmap="gray")
+plt.title("Blurred Image")
+plt.subplot(1, 2, 2)
+plt.imshow(edges, cmap="gray")
+plt.title("Canny Edges")
+plt.show()
+
+# セクション 3: 幾何学的操作
+# 3.1 画像の拡大・縮小
+resized_image = cv2.resize(dummy_image, None, fx=0.5, fy=0.5, interpolation=cv2.INTER_LINEAR)
+
+# 3.2 画像の回転
+rows, cols = dummy_image.shape
+rotation_matrix = cv2.getRotationMatrix2D((cols / 2, rows / 2), 45, 1)
+rotated_image = cv2.warpAffine(dummy_image, rotation_matrix, (cols, rows))
+
+plt.figure(figsize=(10, 5))
+plt.subplot(1, 2, 1)
+plt.imshow(resized_image, cmap="gray")
+plt.title("Resized Image")
+plt.subplot(1, 2, 2)
+plt.imshow(rotated_image, cmap="gray")
+plt.title("Rotated Image")
+plt.show()
+
+# セクション 4: 色空間と変換
+# 4.3 二値化処理 (大津の方法)
+_, binary_image = cv2.threshold(dummy_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+
+plt.figure()
+plt.imshow(binary_image, cmap="gray")
+plt.title("Binary Image (Otsu's Threshold)")
+plt.show()
+
+# セクション 5: 画像特徴の抽出
+# 5.1 形状特徴量 (輪郭抽出)
+contours, _ = cv2.findContours(binary_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+contour_image = cv2.cvtColor(dummy_image, cv2.COLOR_GRAY2BGR)
+cv2.drawContours(contour_image, contours, -1, (0, 255, 0), 2)
+
+# 5.3 HOG特徴量
+hog = cv2.HOGDescriptor()
+hog_features = hog.compute(dummy_image)
+
+plt.figure(figsize=(10, 5))
+plt.subplot(1, 2, 1)
+plt.imshow(contour_image)
+plt.title("Contours")
+plt.subplot(1, 2, 2)
+plt.plot(hog_features[:100])  # HOG特徴量の一部をプロット
+plt.title("HOG Features")
+plt.show()
