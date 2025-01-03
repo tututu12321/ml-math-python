@@ -1,0 +1,94 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+
+# 定数の設定
+g = 9.81  # 重力加速度 (m/s^2)
+l = 1.0   # 振子の長さ (m)
+m = 1.0   # 振子の質量 (kg)
+b = 0.05  # 摩擦係数 (適当な値を設定)
+
+# PID制御の設定
+Kp = 100.0  # 比例ゲイン
+Ki = 1.0    # 積分ゲイン
+Kd = 10.0   # 微分ゲイン
+theta_target = np.pi  # 目標角度（180°）
+
+# 外乱の大きさ（振幅）
+disturbance_magnitude = 0.1  # 外乱の強さ
+
+# PID制御の積分項を計算
+integral = 0.0
+previous_error = 0.0
+
+# 外部トルク（PID制御）と外乱
+def external_torque(theta, theta_dot, dt):
+    global integral, previous_error
+    error = theta_target - theta  # 目標角度との偏差
+    integral += error * dt  # 積分項
+    derivative = (error - previous_error) / dt  # 微分項
+    previous_error = error  # 現在の誤差を保持
+
+    # PID制御に基づくトルク
+    tau = Kp * error + Ki * integral + Kd * derivative
+
+    # 外乱を加える（ランダム外乱）
+    disturbance = disturbance_magnitude * np.random.randn()  # ランダムな外乱
+    tau += disturbance
+    return tau
+
+# 振子の運動方程式
+def system_dynamics(t, state, dt):
+    theta, theta_dot = state
+    tau_ext = external_torque(theta, theta_dot, dt)  # 外部トルク（外乱を加えたトルク）
+    # 運動方程式
+    dtheta_dt = theta_dot
+    dtheta_dot_dt = (-g / l) * np.sin(theta) - b * theta_dot + tau_ext
+    return np.array([dtheta_dt, dtheta_dot_dt])
+
+# ルンゲ・クッタ法でシステムを解く
+def solve_ode(t_max, dt):
+    t = np.arange(0, t_max, dt)
+    state = np.array([np.pi / 4, 0.0])  # 初期状態（角度：45度、角速度：0）
+    solution = np.zeros((len(t), 2))
+    for i, time in enumerate(t):
+        solution[i] = state
+        k1 = dt * system_dynamics(time, state, dt)
+        k2 = dt * system_dynamics(time + dt / 2, state + k1 / 2, dt)
+        k3 = dt * system_dynamics(time + dt / 2, state + k2 / 2, dt)
+        k4 = dt * system_dynamics(time + dt, state + k3, dt)
+        state = state + (k1 + 2*k2 + 2*k3 + k4) / 6
+    return t, solution
+
+# 解を計算
+t_max = 10  # 最大時間 (秒)
+dt = 0.05   # 時間刻み
+t, solution = solve_ode(t_max, dt)
+
+# アニメーションの設定
+fig, ax = plt.subplots()
+ax.set_xlim(-1.5, 1.5)
+ax.set_ylim(-1.5, 1.5)
+
+line, = ax.plot([], [], 'o-', lw=2)
+time_text = ax.text(0.02, 0.95, '', transform=ax.transAxes)
+
+# アニメーションの初期化
+def init():
+    line.set_data([], [])
+    time_text.set_text('')
+    return line, time_text
+
+# アニメーションの更新
+def update(frame):
+    x = l * np.sin(solution[frame, 0])
+    y = -l * np.cos(solution[frame, 0])
+    line.set_data([0, x], [0, y])
+    time_text.set_text(f'Time = {t[frame]:.2f}s')
+    return line, time_text
+
+# アニメーションの作成
+ani = FuncAnimation(fig, update, frames=len(t), init_func=init, blit=True, interval=dt*1000)
+
+# アニメーションの表示
+plt.show()
