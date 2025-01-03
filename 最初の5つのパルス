@@ -1,0 +1,49 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# パルス信号を1周期分生成する関数
+# Function to generate one cycle of the pulse signal
+def generate_one_cycle(num_pulses, pulse_width, cycle_length):
+    """
+    1周期のパルス信号を生成します
+    Generate one cycle of the pulse signal.
+    
+    Parameters:
+    num_pulses (int): パルスの数 / Number of pulses
+    pulse_width (int): 各パルスの幅 / Width of each pulse
+    cycle_length (int): 1周期の長さ / Length of one cycle
+    
+    Returns:
+    numpy.ndarray: 1周期のパルス信号 / One cycle of the pulse signal
+    """
+    signal = np.zeros(cycle_length)
+    interval = cycle_length // num_pulses  # パルス間の間隔 / Interval between pulses
+    
+    for i in range(num_pulses):
+        start_idx = i * interval
+        end_idx = min(start_idx + pulse_width, cycle_length)
+        # 最初の5回は1、それ以降は-1 / First 5 pulses are 1, the rest are -1
+        signal[start_idx:end_idx] = 1 if i < 5 else -1
+    
+    return signal
+
+# パラメータ設定 / Parameter settings
+num_pulses = 10       # パルスの数 / Number of pulses
+pulse_width = 5       # 各パルスの幅 / Width of each pulse
+cycle_length = 100    # 1周期の長さ / Length of one cycle
+num_cycles = 3        # 繰り返す周期数 / Number of cycles to repeat
+
+# 1周期のパルス信号を生成 / Generate one cycle of the pulse signal
+one_cycle_signal = generate_one_cycle(num_pulses, pulse_width, cycle_length)
+
+# 複数周期の信号を再現 / Repeat the signal for multiple cycles
+repeated_signal = np.tile(one_cycle_signal, num_cycles)
+
+# プロット / Plot
+plt.figure(figsize=(12, 4))
+plt.plot(repeated_signal, drawstyle='steps-pre')
+plt.title(f'Repeated Pulse Signal ({num_cycles} Cycles)')
+plt.xlabel('Time')
+plt.ylabel('Amplitude')
+plt.grid()
+plt.show()
