@@ -1,0 +1,70 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import cvxpy as cp
+
+# 一次遅れ系の伝達関数パラメータ
+K = 1.0  # ゲイン
+tau = 1.0  # 時定数
+
+# システムのサンプリング時間
+dt = 0.1  # サンプリング時間（秒）
+
+# MPCの設定
+N = 20  # 予測ホライズンの長さ（長く設定）
+Q = 10.0  # 目標値に対する重み（大きくして目標値に強く追従させる）
+R = 0.1  # 制御入力の重み
+x_ref = 1.0  # 目標値（設定点）
+
+# 状態空間モデル
+A = np.exp(-dt / tau)  # 連続時間系を離散化
+B = K * (1 - np.exp(-dt / tau))  # 入力の効果
+
+# 初期状態
+x0 = 0.0
+
+# MPCの最適化問題を定義
+x = cp.Variable(N + 1)  # 状態変数
+u = cp.Variable(N)  # 制御入力
+
+# コスト関数
+cost = 0
+constraints = []
+for k in range(N):
+    cost += Q * (x[k] - x_ref)**2 + R * u[k]**2  # 目標値と入力の重み
+    if k > 0:
+        constraints += [x[k] == A * x[k - 1] + B * u[k - 1]]  # 状態遷移の式
+    else:
+        constraints += [x[k] == x0]  # 初期状態
+
+# 最適化問題の定義
+problem = cp.Problem(cp.Minimize(cost), constraints)
+
+# 最適化の解を求める
+problem.solve(solver=cp.OSQP, verbose=True)  # 高精度のソルバーOSQPを指定
+
+# 制御入力と状態のトラジェクトリをプロット
+time = np.arange(N + 1) * dt
+plt.figure(figsize=(10, 6))
+
+# 状態のプロット
+plt.subplot(2, 1, 1)
+plt.plot(time, x.value, label='State (x)')
+plt.axhline(x_ref, color='r', linestyle='--', label='Reference (x_ref)')
+plt.xlabel('Time [s]')
+plt.ylabel('State')
+plt.legend()
+plt.grid()
+
+# 制御入力のプロット
+plt.subplot(2, 1, 2)
+plt.step(time[:-1], u.value, label='Control Input (u)', where='post')
+plt.xlabel('Time [s]')
+plt.ylabel('Control Input')
+plt.legend()
+plt.grid()
+
+plt.tight_layout()
+plt.show()
+
+# 結果の表示
+print(f"最適制御入力: {u.value}")
