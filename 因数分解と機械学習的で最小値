@@ -1,0 +1,81 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 目的関数の定義
+def f1(x, y):
+    return (x + y)**2
+
+def f2(x, y):
+    return (x + y)**3
+
+# 勾配を計算
+def gradient_f1(x, y):
+    df_dx = 2 * (x + y)  # ∂f1/∂x
+    df_dy = 2 * (x + y)  # ∂f1/∂y
+    return np.array([df_dx, df_dy])
+
+def gradient_f2(x, y):
+    df_dx = 3 * (x + y)**2  # ∂f2/∂x
+    df_dy = 3 * (x + y)**2  # ∂f2/∂y
+    return np.array([df_dx, df_dy])
+
+# 勾配降下法
+def gradient_descent(f, gradient, lr=0.01, epochs=100, start=(5, 5)):
+    x, y = start
+    trajectory = [(x, y)]
+    for _ in range(epochs):
+        grad = gradient(x, y)
+        x -= lr * grad[0]
+        y -= lr * grad[1]
+        trajectory.append((x, y))
+    return np.array(trajectory)
+
+# 初期値・学習率・繰り返し回数
+start_point = (5, 5)
+learning_rate = 0.01
+epochs = 100
+
+# 勾配降下法で最小値を求める
+trajectory_f1 = gradient_descent(f1, gradient_f1, lr=learning_rate, epochs=epochs, start=start_point)
+trajectory_f2 = gradient_descent(f2, gradient_f2, lr=learning_rate, epochs=epochs, start=start_point)
+
+# 3Dプロット用のデータを作成
+x = np.linspace(-10, 10, 100)
+y = np.linspace(-10, 10, 100)
+X, Y = np.meshgrid(x, y)
+Z1 = f1(X, Y)
+Z2 = f2(X, Y)
+
+# 3次元プロット
+fig = plt.figure(figsize=(14, 8))
+
+# f1 のプロット
+ax1 = fig.add_subplot(121, projection='3d')
+ax1.plot_surface(X, Y, Z1, cmap='viridis', edgecolor='none', alpha=0.8)
+ax1.plot(trajectory_f1[:, 0], trajectory_f1[:, 1], f1(trajectory_f1[:, 0], trajectory_f1[:, 1]),
+         color='red', marker='o', label='Gradient Descent')
+ax1.set_title(r'$f_1(x, y) = (x + y)^2$', fontsize=14)
+ax1.set_xlabel('x')
+ax1.set_ylabel('y')
+ax1.set_zlabel('f1(x, y)')
+ax1.legend()
+
+# f2 のプロット
+ax2 = fig.add_subplot(122, projection='3d')
+ax2.plot_surface(X, Y, Z2, cmap='plasma', edgecolor='none', alpha=0.8)
+ax2.plot(trajectory_f2[:, 0], trajectory_f2[:, 1], f2(trajectory_f2[:, 0], trajectory_f2[:, 1]),
+         color='red', marker='o', label='Gradient Descent')
+ax2.set_title(r'$f_2(x, y) = (x + y)^3$', fontsize=14)
+ax2.set_xlabel('x')
+ax2.set_ylabel('y')
+ax2.set_zlabel('f2(x, y)')
+ax2.legend()
+
+plt.tight_layout()
+plt.show()
+
+# 最小値の表示
+min_f1 = f1(trajectory_f1[-1, 0], trajectory_f1[-1, 1])
+min_f2 = f2(trajectory_f2[-1, 0], trajectory_f2[-1, 1])
+print(f"f1(x, y) の最小値: {min_f1:.4f} at (x, y) = ({trajectory_f1[-1, 0]:.4f}, {trajectory_f1[-1, 1]:.4f})")
+print(f"f2(x, y) の最小値: {min_f2:.4f} at (x, y) = ({trajectory_f2[-1, 0]:.4f}, {trajectory_f2[-1, 1]:.4f})")
