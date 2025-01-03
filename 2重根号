@@ -1,0 +1,57 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sympy import symbols, sqrt, diff, lambdify
+
+# 変数を定義
+x, y = symbols('x y')
+
+# 数式を定義
+f1 = sqrt((x + y) + 2 * sqrt(x * y))
+f2 = sqrt((x + y) - 2 * sqrt(x * y))
+
+# 偏微分を計算
+f1_dx = diff(f1, x)
+f1_dy = diff(f1, y)
+f2_dx = diff(f2, x)
+f2_dy = diff(f2, y)
+
+print("f1(x, y) =", f1)
+print("∂f1/∂x =", f1_dx)
+print("∂f1/∂y =", f1_dy)
+print("f2(x, y) =", f2)
+print("∂f2/∂x =", f2_dx)
+print("∂f2/∂y =", f2_dy)
+
+# 数式を関数化
+f1_func = lambdify((x, y), f1, 'numpy')
+f2_func = lambdify((x, y), f2, 'numpy')
+
+# プロット用データを作成
+X = np.linspace(1, 10, 100)
+Y = np.linspace(1, 10, 100)
+X, Y = np.meshgrid(X, Y)
+
+Z1 = f1_func(X, Y)
+Z2 = f2_func(X, Y)
+
+# 3次元プロット
+fig = plt.figure(figsize=(14, 6))
+
+# f1 のプロット
+ax1 = fig.add_subplot(121, projection='3d')
+ax1.plot_surface(X, Y, Z1, cmap='viridis', edgecolor='none')
+ax1.set_title(r'$f_1(x, y) = \sqrt{(x + y) + 2\sqrt{xy}}$', fontsize=14)
+ax1.set_xlabel('x')
+ax1.set_ylabel('y')
+ax1.set_zlabel('f1(x, y)')
+
+# f2 のプロット
+ax2 = fig.add_subplot(122, projection='3d')
+ax2.plot_surface(X, Y, Z2, cmap='plasma', edgecolor='none')
+ax2.set_title(r'$f_2(x, y) = \sqrt{(x + y) - 2\sqrt{xy}}$', fontsize=14)
+ax2.set_xlabel('x')
+ax2.set_ylabel('y')
+ax2.set_zlabel('f2(x, y)')
+
+plt.tight_layout()
+plt.show()
