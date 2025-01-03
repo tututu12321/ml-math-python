@@ -1,0 +1,36 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 点 (a, b) を定義
+a, b = 3, 4  # 任意の座標 (a, b)
+
+# 極座標表示
+r = np.sqrt(a**2 + b**2)  # 極座標の半径 r
+theta_rad = np.arctan2(b, a)  # 極座標の角度 θ (ラジアン)
+theta_deg = np.degrees(theta_rad)  # ラジアンを度数法に変換
+
+# オイラーの公式を使用した複素数表現
+euler_representation_rad = f"{r:.2f} * e^(i * {theta_rad:.2f})"
+euler_representation_deg = f"{r:.2f} * e^(i * {theta_deg:.2f}°)"
+
+# 結果の表示
+print(f"Vector: ({a}, {b})")
+print(f"Polar Coordinates: r = {r:.2f}, θ (radians) = {theta_rad:.2f}, θ (degrees) = {theta_deg:.2f}°")
+print(f"Complex Representation (Radians): {euler_representation_rad}")
+print(f"Complex Representation (Degrees): {euler_representation_deg}")
+
+# 複素平面上でベクトルをプロット
+plt.figure(figsize=(8, 8))
+plt.axhline(0, color='black', linewidth=0.5)
+plt.axvline(0, color='black', linewidth=0.5)
+plt.grid(True, linestyle='--', alpha=0.6)
+
+# ベクトルをプロット
+plt.quiver(0, 0, a, b, angles='xy', scale_units='xy', scale=1, color='red', label=f"Vector ({a}, {b})")
+plt.scatter([a], [b], color='red', label=f"Point ({a}, {b})")
+plt.title(r"Complex Plane Representation with Euler's Formula: $re^{i\theta}$")
+plt.xlabel("Real Part")
+plt.ylabel("Imaginary Part")
+plt.legend()
+plt.axis('equal')
+plt.show()
