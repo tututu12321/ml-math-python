@@ -1,0 +1,73 @@
+import numpy as np
+from scipy.integrate import solve_ivp
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+
+# パラメータ設定 / Parameters
+g = 9.81  # 重力加速度 (m/s^2)
+l = 1.0   # 振子の長さ (m)
+m = 0.1   # 振子の質量 (kg)
+M = 1.0   # 台車の質量 (kg)
+b = 0.1   # 摩擦係数
+k_p = 100.0  # PID制御: 比例ゲイン
+k_d = 10.0   # PID制御: 微分ゲイン
+
+# 振子と台車の運動方程式 / Equations of motion
+def inverted_pendulum(t, y):
+    theta, omega, x, v = y
+    u = -k_p * theta - k_d * omega  # PID制御入力 / PID control input
+    sin_theta = np.sin(theta)
+    cos_theta = np.cos(theta)
+    theta_dot = omega
+    omega_dot = (g * sin_theta - cos_theta * (u + m * l * omega**2 * sin_theta)) / \
+                (l * (4/3 - (m * cos_theta**2) / (M + m)))
+    x_dot = v
+    v_dot = (u + m * l * (omega**2 * sin_theta - omega_dot * cos_theta)) / (M + m)
+    return [theta_dot, omega_dot, x_dot, v_dot]
+
+# 初期条件 / Initial conditions
+y0 = [np.pi - 0.1, 0, 0, 0]  # [角度, 角速度, 台車位置, 台車速度]
+t_span = (0, 10)  # シミュレーション時間 / Simulation time
+t_eval = np.linspace(t_span[0], t_span[1], 500)  # 評価タイムステップ / Evaluation time steps
+
+# シミュレーション実行 / Solve the differential equation
+solution = solve_ivp(inverted_pendulum, t_span, y0, t_eval=t_eval)
+
+# 結果の取得 / Extract the results
+theta_vals = solution.y[0]
+x_vals = solution.y[2]
+
+# アニメーション作成 / Create animation
+fig, ax = plt.subplots(figsize=(10, 5))
+ax.set_xlim(-10, 4000)  # 横軸範囲 / Horizontal axis range
+ax.set_ylim(0, 100)  # 縦軸範囲 / Vertical axis range
+ax.set_aspect('auto')
+ax.grid(color='gray', linestyle='--', linewidth=0.5)
+ax.set_xlabel("Position (m)", fontsize=12)
+ax.set_ylabel("Height (m)", fontsize=12)
+ax.set_title("Inverted Pendulum Simulation", fontsize=14)
+
+# 台車と振子のプロット要素 / Cart and Pendulum
+cart, = ax.plot([], [], 's-', lw=4, color='blue', label='Cart')
+pendulum, = ax.plot([], [], 'o-', lw=3, color='red', label='Pendulum')
+ax.legend(fontsize=10)
+
+def init():
+    cart.set_data([], [])
+    pendulum.set_data([], [])
+    return cart, pendulum
+
+def update(frame):
+    x = x_vals[frame] * 10  # スケール調整 / Scale adjustment for x-axis
+    theta = theta_vals[frame]
+    cart_x = [x - 10, x + 10]  # 台車の幅 / Adjust cart width
+    cart_y = [50, 50]
+    pendulum_x = [x, x + l * np.sin(theta) * 50]
+    pendulum_y = [50, 50 - l * np.cos(theta) * 50]
+    cart.set_data(cart_x, cart_y)
+    pendulum.set_data(pendulum_x, pendulum_y)
+    return cart, pendulum
+
+ani = FuncAnimation(fig, update, frames=len(t_eval), init_func=init, blit=True, interval=20)
+
+plt.show()
