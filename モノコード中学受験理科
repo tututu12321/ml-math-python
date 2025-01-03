@@ -1,0 +1,33 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 定数の設定（仮の値）
+constant = 2000  # 定数（仮の値、必要に応じて変更）
+
+# 太さ、長さ、おもりの個数の設定
+thickness = 0.1  # 太さ (例: 0.1 m)
+length = 1.0     # 長さ (例: 1.0 m)
+weight_count = 9  # おもりの個数 (例: 個)
+
+# 振動数の計算
+frequency = constant * (thickness / length) * np.sqrt(weight_count)
+
+# 時間軸の設定（1周期のみ）
+T = 1 / frequency  # 1周期の時間（秒）
+t = np.linspace(0, T, 1000)  # 1周期を1000点で設定
+
+# サイン波の生成
+wave = np.sin(2 * np.pi * frequency * t)
+
+# 結果の表示
+print(f"計算された振動数: {frequency:.2f} Hz")
+
+# サイン波のプロット
+plt.figure(figsize=(10, 6))
+plt.plot(t, wave, label=f"Frequency: {frequency:.2f} Hz")
+plt.title("Sine Wave for One Period")
+plt.xlabel("Time [s]")
+plt.ylabel("Amplitude")
+plt.grid(True)
+plt.legend()
+plt.show()
