@@ -1,0 +1,28 @@
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+
+# データの準備
+emails = [
+    "Congratulations, you've won a free ticket!",
+    "Hello, how are you today?",
+    "Win big prizes in our lottery!",
+    "Are you coming to the meeting?",
+    "Claim your free vacation now!"
+]
+labels = [1, 0, 1, 0, 1]  # 1: Spam, 0: Not Spam
+
+# テキストを数値化
+vectorizer = CountVectorizer()
+X = vectorizer.fit_transform(emails)
+
+# 訓練データとテストデータに分割
+X_train, X_test, y_train, y_test = train_test_split(X, labels, test_size=0.2, random_state=42)
+
+# モデルの作成と訓練
+model = LogisticRegression()
+model.fit(X_train, y_train)
+
+# 予測
+y_pred = model.predict(X_test)
+print("Predicted labels:", y_pred)
