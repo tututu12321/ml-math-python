@@ -1,0 +1,64 @@
+import numpy as np
+from scipy.integrate import solve_ivp
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+
+# 振り子のシステムパラメータ / Parameters for the pendulum system
+g = 9.81  # 重力加速度 (m/s^2) / Gravity
+l = 1.0   # 振り子の長さ (m) / Length of the pendulum
+m = 1.0   # 質量 (kg) / Mass
+b = 0.1   # 減衰係数 / Damping coefficient
+
+# 周期と周波数を計算する / Calculate the period and frequency
+# 理想的な場合（減衰なしの単振り子）を仮定
+T = 2 * np.pi * np.sqrt(l / g)  # 周期 (s) / Period
+f = 1 / T                      # 周波数 (Hz) / Frequency
+print(f"Period: {T:.2f} seconds, Frequency: {f:.2f} Hz")
+
+# 振り子の運動方程式 / Differential equations for the pendulum motion
+def pendulum_equations(t, y):
+    theta, omega = y
+    # 運動方程式 / Equations of motion
+    dydt = [omega, -(b/m)*omega - (g/l)*np.sin(theta)]
+    return dydt
+
+# 初期条件: [角度 (ラジアン), 角速度 (ラジアン/秒)] / Initial conditions
+y0 = [np.pi / 4, 0]
+
+# シミュレーション時間の設定 / Time span for the simulation
+t_span = (0, 10)  # シミュレーション開始から終了時間 (秒) / From 0 to 10 seconds
+t_eval = np.linspace(t_span[0], t_span[1], 300)  # 計算の評価点を設定 / 300 points for evaluation
+
+# 微分方程式を解く / Solve the differential equation
+solution = solve_ivp(pendulum_equations, t_span, y0, t_eval=t_eval)
+
+# 解を抽出 / Extract the solution
+theta = solution.y[0]  # 角変位 / Angular displacement
+time = solution.t       # 時間 / Time
+
+# デカルト座標に変換 / Convert to Cartesian coordinates for animation
+x = l * np.sin(theta)
+y = -l * np.cos(theta)
+
+# アニメーションの作成 / Create the animation
+fig, ax = plt.subplots()
+ax.set_xlim(-1.1, 1.1)  # X軸の範囲 / X-axis range
+ax.set_ylim(-1.1, 1.1)  # Y軸の範囲 / Y-axis range
+ax.set_aspect('equal')  # アスペクト比を固定 / Fixed aspect ratio
+ax.set_title('Pendulum Simulation')  # プロットタイトル / Plot title
+ax.set_xlabel('X (m)')  # X軸ラベル / X-axis label
+ax.set_ylabel('Y (m)')  # Y軸ラベル / Y-axis label
+
+# 振り子の線を描画 / Line representing the pendulum
+line, = ax.plot([], [], 'o-', lw=2)
+
+# アニメーションのフレーム更新関数 / Update function for the animation
+def update(frame):
+    line.set_data([0, x[frame]], [0, y[frame]])  # 振り子の位置を更新 / Update pendulum position
+    return line,
+
+# アニメーションの設定 / Configure the animation
+ani = FuncAnimation(fig, update, frames=len(time), blit=True, interval=30)
+
+# アニメーションを表示 / Show the animation
+plt.show()
