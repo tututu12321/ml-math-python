@@ -1,0 +1,58 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+
+# パラメータ
+g = 9.8  # 重力加速度 (m/s^2)
+L = 1.0  # 振り子の長さ (m)
+theta0_deg = 1  # 初期角度 (度)
+theta0 = np.radians(theta0_deg)  # 初期角度をラジアンに変換
+omega0 = 0.0  # 初期角速度 (rad/s)
+
+# 線形近似の解：θ(t) = θ0 * cos(√(g/L) * t)
+def linear_pendulum_motion(t, theta0, g, L):
+    omega = np.sqrt(g / L)  # 振り子の角周波数
+    return theta0 * np.cos(omega * t)
+
+# 時間の設定
+t_max = 10  # 最大時間 (秒)
+t = np.linspace(0, t_max, 500)  # 時間配列
+
+# 角度の計算
+theta = linear_pendulum_motion(t, theta0, g, L)
+
+# アニメーションの設定
+fig, ax = plt.subplots(figsize=(6, 6))
+ax.set_xlim(-1.2 * L, 1.2 * L)
+ax.set_ylim(-1.2 * L, 1.2 * L)
+
+line, = ax.plot([], [], 'o-', lw=2)
+time_text = ax.text(0.05, 0.95, '', transform=ax.transAxes)
+
+# アニメーションの初期化
+def init():
+    line.set_data([], [])
+    time_text.set_text('')
+    return line, time_text
+
+# アニメーションの更新
+def animate(i):
+    # 現在の角度と位置を取得
+    angle = theta[i]
+    x = L * np.sin(angle)
+    y = -L * np.cos(angle)
+    
+    # 振り子の位置を更新
+    line.set_data([0, x], [0, y])
+    
+    # 時間を表示
+    time_text.set_text(f'time = {t[i]:.2f} s')
+    
+    return line, time_text
+
+# アニメーションの実行
+ani = FuncAnimation(fig, animate, frames=len(t), init_func=init, blit=True, interval=20)
+
+# 表示
+plt.title("Linear Approximation Pendulum Animation (1 Degree)")
+plt.show()
