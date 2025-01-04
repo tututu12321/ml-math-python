@@ -1,0 +1,13 @@
+# Given values
+weight = 50  # おもりの重さ (kg)  - Weight of the object in kilograms
+length = 25  # 振り子の長さ (m)  - Length of the pendulum in meters
+height = 5  # おもりの高さ (m)  - Height of the object in meters
+
+# aの値
+a = 0.00016  # 無次元の定数 (無次元)
+
+# 木片が動いた距離の計算
+distance_moved = weight * length * height * a
+
+# 単位付きで結果を表示
+distance_moved, "単位: メートル (m)"
