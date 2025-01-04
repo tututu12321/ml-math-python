@@ -1,0 +1,59 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from keras.models import Sequential
+from keras.layers import Dense
+from sklearn.preprocessing import StandardScaler
+
+# 1. ノイズを加えたオームの法則データの作成
+np.random.seed(42)
+
+# 抵抗値Rを設定（固定）
+R = 10  # Ohm
+
+# 電流Iを生成
+I = np.linspace(0, 10, 100).reshape(-1, 1)  # 0から10Aの範囲
+
+# オームの法則に基づく電圧Vを計算（理想的な値）
+V_ideal = I * R
+
+# ノイズを加える
+noise = np.random.normal(0, 2, V_ideal.shape)  # 標準偏差2のノイズ
+V_noisy = V_ideal + noise
+
+# 2. データの分割
+X = I  # 入力: 電流
+y = V_noisy  # 出力: ノイズを加えた電圧
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 3. データの標準化
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# 4. ニューラルネットワークモデルの作成
+model = Sequential()
+model.add(Dense(64, input_dim=1, activation='relu'))  # 隠れ層
+model.add(Dense(32, activation='relu'))  # 隠れ層
+model.add(Dense(1))  # 出力層（回帰問題なので1ノード）
+
+# モデルのコンパイル
+model.compile(optimizer='adam', loss='mean_squared_error')
+
+# 5. モデルの学習
+model.fit(X_train, y_train, epochs=200, batch_size=10, verbose=0)
+
+# 6. 予測
+y_pred = model.predict(X_test)
+
+# 7. 結果のプロット
+plt.figure(figsize=(10, 6))
+plt.scatter(X_test, y_test, color='blue', label='True values (Noisy)', alpha=0.6)
+plt.plot(X_test, y_pred, color='red', label='Predicted values')
+plt.title("Neural Network Regression: Ohm's Law with Noise")
+plt.xlabel('Current (A)')
+plt.ylabel('Voltage (V)')
+plt.legend()
+plt.grid(True)
+plt.show()
