@@ -1,0 +1,125 @@
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras import layers, models
+
+# 固定のランダムシード設定
+tf.random.set_seed(42)
+np.random.seed(42)
+
+# 1. 基本的なニューラルネットワークの設計
+def build_basic_nn(input_shape, num_classes):
+    model = models.Sequential([
+        layers.Dense(64, activation='relu', input_shape=(input_shape,)),
+        layers.Dense(32, activation='relu'),
+        layers.Dense(num_classes, activation='softmax')
+    ])
+    model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    return model
+
+# 2. Recurrent Neural Network (RNN) 基本モデル
+def build_rnn(input_shape):
+    model = models.Sequential([
+        layers.SimpleRNN(32, activation='tanh', input_shape=input_shape),
+        layers.Dense(1, activation='sigmoid')
+    ])
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+    return model
+
+# 3. Generative Adversarial Networks (GAN)
+class GAN:
+    def __init__(self, noise_dim):
+        self.noise_dim = noise_dim
+        self.generator = self.build_generator()
+        self.discriminator = self.build_discriminator()
+        self.combined = self.build_combined()
+
+    def build_generator(self):
+        model = models.Sequential([
+            layers.Dense(128, activation='relu', input_shape=(self.noise_dim,)),
+            layers.Dense(256, activation='relu'),
+            layers.Dense(28 * 28, activation='tanh'),
+            layers.Reshape((28, 28))
+        ])
+        return model
+
+    def build_discriminator(self):
+        model = models.Sequential([
+            layers.Flatten(input_shape=(28, 28)),
+            layers.Dense(256, activation='relu'),
+            layers.Dense(1, activation='sigmoid')
+        ])
+        model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+        return model
+
+    def build_combined(self):
+        self.discriminator.trainable = False
+        model = models.Sequential([self.generator, self.discriminator])
+        model.compile(optimizer='adam', loss='binary_crossentropy')
+        return model
+
+# 4. Transfer Learning (転移学習)
+def build_transfer_learning_model(base_model, num_classes):
+    base_model.trainable = False  # Freeze the base model
+    model = models.Sequential([
+        base_model,
+        layers.GlobalAveragePooling2D(),
+        layers.Dense(num_classes, activation='softmax')
+    ])
+    model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+    return model
+
+# 5. Attention Mechanism
+class AttentionLayer(layers.Layer):
+    def call(self, query, key, value):
+        score = tf.matmul(query, key, transpose_b=True)
+        weights = tf.nn.softmax(score, axis=-1)
+        return tf.matmul(weights, value)
+
+# 6. マルチタスク学習の例
+def build_multitask_model(input_shape, num_classes1, num_classes2):
+    # 入力を定義（タプル形式で input_shape を指定）
+    inputs = layers.Input(shape=(input_shape,))
+    x = layers.Dense(64, activation='relu')(inputs)
+    task1_output = layers.Dense(num_classes1, activation='softmax', name='task1')(x)
+    task2_output = layers.Dense(num_classes2, activation='softmax', name='task2')(x)
+    
+    # モデルの定義
+    model = models.Model(inputs, outputs=[task1_output, task2_output])
+    
+    # コンパイル
+    model.compile(
+        optimizer='adam',
+        loss={
+            'task1': 'sparse_categorical_crossentropy',
+            'task2': 'sparse_categorical_crossentropy'
+        },
+        metrics={
+            'task1': 'accuracy',
+            'task2': 'accuracy'
+        }
+    )
+    return model
+
+# 実行例
+if __name__ == "__main__":
+    print("Building basic NN model...")
+    basic_nn = build_basic_nn(input_shape=20, num_classes=3)
+    basic_nn.summary()
+
+    print("\nBuilding RNN model...")
+    rnn = build_rnn(input_shape=(10, 5))
+    rnn.summary()
+
+    print("\nBuilding GAN...")
+    gan = GAN(noise_dim=100)
+    gan.generator.summary()
+    gan.discriminator.summary()
+
+    print("\nBuilding transfer learning model with MobileNetV2...")
+    base_model = tf.keras.applications.MobileNetV2(weights='imagenet', include_top=False, input_shape=(224, 224, 3))
+    transfer_model = build_transfer_learning_model(base_model, num_classes=5)
+    transfer_model.summary()
+
+    print("\nBuilding multitask learning model...")
+    multitask_model = build_multitask_model(input_shape=20, num_classes1=3, num_classes2=4)
+    multitask_model.summary()
