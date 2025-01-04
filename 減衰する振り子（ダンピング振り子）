@@ -1,0 +1,61 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import solve_ivp
+import matplotlib.animation as animation
+
+# パラメータ
+g = 9.8  # 重力加速度 (m/s^2)
+L = 1.0  # 振り子の長さ (m)
+b = 2.1  # 減衰係数
+theta0 = np.pi / 4  # 初期角度 (45度)
+omega0 = 0.0  # 初期角速度 (rad/s)
+
+# 振り子の運動を記述する微分方程式
+def damped_pendulum(t, y):
+    theta, omega = y
+    dydt = [omega, -b * omega - (g / L) * np.sin(theta)]
+    return dydt
+
+# 初期条件
+y0 = [theta0, omega0]
+
+# 時間の範囲
+t_span = (0, 10)  # シミュレーション時間 (秒)
+t_eval = np.linspace(*t_span, 500)  # 解を求める時刻の設定
+
+# 数値解の計算
+sol = solve_ivp(damped_pendulum, t_span, y0, t_eval=t_eval)
+
+# アニメーションの設定
+fig, ax = plt.subplots(figsize=(6, 6))
+ax.set_xlim(-1.2 * L, 1.2 * L)
+ax.set_ylim(-1.2 * L, 1.2 * L)
+
+line, = ax.plot([], [], 'o-', lw=2)
+time_text = ax.text(0.05, 0.95, '', transform=ax.transAxes)
+
+def init():
+    line.set_data([], [])
+    time_text.set_text('')
+    return line, time_text
+
+def animate(i):
+    # 現在の角度と位置を取得
+    theta = sol.y[0, i]
+    x = L * np.sin(theta)
+    y = -L * np.cos(theta)
+    
+    # 振り子の位置を更新
+    line.set_data([0, x], [0, y])
+    
+    # 時間を表示
+    time_text.set_text(f'time = {sol.t[i]:.2f} s')
+    
+    return line, time_text
+
+# アニメーションの実行
+ani = animation.FuncAnimation(fig, animate, frames=len(sol.t), init_func=init, blit=True, interval=20)
+
+# 表示
+plt.title("Damped Pendulum Animation")
+plt.show()
