@@ -1,0 +1,28 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Data for sodium bicarbonate solution and the remaining solid
+sodium_bicarbonate = np.array([0, 20, 40, 60, 80, 100, 120])  # Sodium bicarbonate solution (cm³)
+remaining_solid = np.array([0, 2.4, 4.8, 7.2, 9.2, 10.8, 12.4])  # Remaining solid (g)
+
+# Corresponding BTB solution color (yellow for acidic, blue for alkaline)
+colors = ['yellow', 'yellow', 'yellow', 'blue', 'blue', 'blue', 'blue']
+
+# Plot setup
+plt.figure(figsize=(8, 6))
+
+# Plotting the data with color based on the BTB solution
+for i in range(len(sodium_bicarbonate)):
+    plt.scatter(sodium_bicarbonate[i], remaining_solid[i], color=colors[i], label=f'Volume {sodium_bicarbonate[i]} cm³' if i == 0 or i == 3 else "", s=100)
+
+# Title and labels
+plt.title("Sodium Bicarbonate Solution Volume vs Remaining Solid (with BTB Color)", fontsize=14)
+plt.xlabel("Sodium Bicarbonate Solution Volume (cm³)", fontsize=12)
+plt.ylabel("Remaining Solid Mass (g)", fontsize=12)
+
+# Displaying the grid and the legend
+plt.grid(True)
+plt.legend()
+
+# Display the plot
+plt.show()
