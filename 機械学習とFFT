@@ -1,0 +1,68 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+
+# シグナル生成用関数 / Signal generation function
+def generate_signal(freq, samples=1000, noise_level=0.1):
+    t = np.linspace(0, 1, samples)
+    signal = np.sin(2 * np.pi * freq * t) + noise_level * np.random.randn(samples)
+    return signal
+
+# FFT特徴抽出用関数 / FFT feature extraction function
+def extract_fft_features(signal):
+    fft_result = np.fft.fft(signal)
+    magnitude = np.abs(fft_result)[:len(signal) // 2]  # 正の周波数成分のみ / Positive frequency components
+    return magnitude
+
+# データ生成 / Generate data
+freq1, freq2 = 5, 20  # 2つの異なる周波数 / Two different frequencies
+signals = []
+labels = []
+
+for _ in range(500):  # 各周波数で500サンプル生成 / Generate 500 samples for each frequency
+    signals.append(generate_signal(freq1))
+    labels.append(0)  # クラス0 / Class 0
+    signals.append(generate_signal(freq2))
+    labels.append(1)  # クラス1 / Class 1
+
+signals = np.array(signals)
+labels = np.array(labels)
+
+# FFT特徴抽出 / Extract FFT features
+fft_features = np.array([extract_fft_features(signal) for signal in signals])
+
+# 訓練データとテストデータに分割 / Split into training and testing data
+X_train, X_test, y_train, y_test = train_test_split(fft_features, labels, test_size=0.2, random_state=42)
+
+# ロジスティック回帰モデルで分類 / Classify using Logistic Regression
+model = LogisticRegression(max_iter=1000)
+model.fit(X_train, y_train)
+
+# テストデータで予測 / Predict on test data
+y_pred = model.predict(X_test)
+
+# 精度を表示 / Print accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Classification Accuracy: {accuracy * 100:.2f}%")
+
+# 信号とそのFFTの例をプロット / Plot an example signal and its FFT
+example_signal = signals[0]
+example_fft = extract_fft_features(example_signal)
+
+plt.figure(figsize=(12, 6))
+plt.subplot(1, 2, 1)
+plt.plot(example_signal)
+plt.title("Example Signal")
+plt.xlabel("Time")
+plt.ylabel("Amplitude")
+
+plt.subplot(1, 2, 2)
+plt.plot(example_fft)
+plt.title("FFT of the Signal")
+plt.xlabel("Frequency")
+plt.ylabel("Magnitude")
+
+plt.tight_layout()
+plt.show()
