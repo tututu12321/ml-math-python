@@ -1,0 +1,79 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+
+# パラメータ
+g = 9.8  # 重力加速度 (m/s^2)
+h = 10.0  # 物体の初期高さ (m)
+theta_deg = 30  # 斜面の角度 (度)
+theta = np.radians(theta_deg)  # 角度をラジアンに変換
+L = h / np.sin(theta)  # 斜面の長さ
+
+# 最終速度の計算 (エネルギー保存則)
+v_max = np.sqrt(2 * g * h)
+
+# 斜面を滑り降りる時間の計算
+a = g * np.sin(theta)  # 加速度
+t_max = np.sqrt(2 * L / a)  # 滑り降りる時間
+
+# 放物運動の初期速度（斜面を離れる瞬間の速度）
+vx = v_max * np.cos(theta)  # 水平成分
+vy = v_max * np.sin(theta)  # 鉛直成分
+
+# 時間の設定
+t_total = 2.5  # 総シミュレーション時間（斜面＋台から飛び降りる）
+t = np.linspace(0, t_total, 500)  # 時間配列
+
+# 物体の位置と速度を計算
+x = vx * t  # 水平位置
+y = h + vy * t - 0.5 * g * t**2  # 鉛直位置（放物運動）
+
+# 斜面を滑り降りる部分（時間区間）
+t_slope = np.linspace(0, t_max, 500)
+x_slope = 0.5 * a * t_slope**2  # 斜面を滑り降りる物体の位置
+y_slope = h - (h / L) * x_slope  # 物体の高さ（斜面に沿った位置）
+
+# アニメーションの設定
+fig, ax = plt.subplots(figsize=(6, 6))
+ax.set_xlim(-1.2 * L, 1.2 * L)
+ax.set_ylim(0, h + 5)
+
+# 斜面の表示
+x_slope_line = np.linspace(0, L, 2)
+y_slope_line = h - (h / L) * x_slope_line
+ax.plot(x_slope_line, y_slope_line, color='brown', label='Slope')
+
+# 物体の描画
+ball, = ax.plot([], [], 'ro', markersize=10)
+time_text = ax.text(0.05, 0.95, '', transform=ax.transAxes)
+
+# アニメーションの初期化
+def init():
+    ball.set_data([], [])
+    time_text.set_text('')
+    return ball, time_text
+
+# アニメーションの更新
+def animate(i):
+    if t[i] <= t_max:  # 斜面を滑り降りる部分
+        current_x = x_slope[i]  # 斜面を滑り降りる位置
+        current_y = y_slope[i]  # 高さ
+    else:  # 台から飛び降りる部分
+        idx = i - int(t_max * len(t) / t_total)  # 放物運動開始後のインデックス
+        current_x = x[idx]  # 放物運動の位置
+        current_y = y[idx]  # 放物運動の高さ
+    
+    # 物体の位置を更新
+    ball.set_data(current_x, current_y)
+    
+    # 時間を表示
+    time_text.set_text(f'time = {t[i]:.2f} s')
+    
+    return ball, time_text
+
+# アニメーションの実行
+ani = FuncAnimation(fig, animate, frames=len(t), init_func=init, blit=True, interval=20)
+
+# 表示
+plt.title("Ball Sliding Down a Slope and Jumping Off")
+plt.show()
