@@ -1,0 +1,24 @@
+import random
+
+# グローバルIPの範囲（例：通常、インターネット上のパブリックIP）
+def generate_global_ip():
+    return f"203.0.113.{random.randint(1, 255)}"
+
+# ローカルIPの範囲（例：プライベートネットワーク）
+def generate_local_ip():
+    return f"192.168.{random.randint(0, 255)}.{random.randint(0, 255)}"
+
+# NATによるローカルIP → グローバルIPへの変換
+def nat_translation(local_ip, local_port):
+    global_ip = generate_global_ip()  # 外部のグローバルIPを生成
+    external_port = random.randint(10000, 65000)  # ランダムなポート番号
+    return global_ip, external_port
+
+# シミュレーション
+local_ip = generate_local_ip()
+local_port = random.randint(1024, 65535)
+
+global_ip, external_port = nat_translation(local_ip, local_port)
+
+print(f"ローカルIP: {local_ip}:{local_port}")
+print(f"変換後のグローバルIP: {global_ip}:{external_port}")
