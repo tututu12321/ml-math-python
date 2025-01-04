@@ -1,0 +1,65 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from keras.models import Sequential
+from keras.layers import Dense
+from sklearn.preprocessing import StandardScaler
+import tensorflow as tf
+import librosa.display
+import IPython.display as ipd
+
+# 1. サイン波の生成
+# サンプリング周波数と時間の設定
+fs = 8000  # サンプリング周波数 (8kHz)
+T = 1.0    # 信号の長さ (秒)
+t = np.linspace(0, T, int(T * fs), endpoint=False)  # 時間軸
+
+# サイン波の周波数
+f = 440  # A4の周波数 (440Hz)
+
+# サイン波生成
+y = np.sin(2 * np.pi * f * t)
+
+# 2. サンプルデータを作成 (ノイズを加えたサンプル)
+X = t.reshape(-1, 1)  # 時間データ
+y_noisy = y + np.random.normal(0, 0.1, y.shape)  # ノイズを加えたデータ
+
+# 3. ニューラルネットワークモデルの作成
+model = Sequential()
+model.add(Dense(64, input_dim=1, activation='relu'))  # 隠れ層
+model.add(Dense(32, activation='relu'))  # 隠れ層
+model.add(Dense(1))  # 出力層（回帰問題なので1ノード）
+
+# モデルのコンパイル
+model.compile(optimizer='adam', loss='mean_squared_error')
+
+# 4. データの標準化
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# 5. モデルの学習
+model.fit(X_scaled, y_noisy, epochs=200, batch_size=10, verbose=0)
+
+# 6. 予測（ニューラルネットワークによる再生成）
+y_pred = model.predict(X_scaled)
+
+# 7. プロット
+plt.figure(figsize=(10, 6))
+plt.plot(t, y, label='Original Signal (Sin Wave)', alpha=0.7)
+plt.plot(t, y_noisy, label='Noisy Signal', alpha=0.7)
+plt.plot(t, y_pred, label='Predicted Signal (NN)', alpha=0.7)
+plt.title('Neural Network Regression: Sin Wave with Noise')
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# 8. 音の再生 (オリジナル、ノイズ付き、予測結果)
+# オリジナル信号の再生
+ipd.display(ipd.Audio(y, rate=fs))
+
+# ノイズ付き信号の再生
+ipd.display(ipd.Audio(y_noisy, rate=fs))
+
+# ニューラルネットワークによる予測信号の再生
+ipd.display(ipd.Audio(y_pred.flatten(), rate=fs))
