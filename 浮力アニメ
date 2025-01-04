@@ -1,0 +1,72 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+
+# 物理パラメータ
+g = 9.8  # 重力加速度 (m/s^2)
+rho_water = 1000  # 水の密度 (kg/m^3)
+volume_displaced = 0.05  # 物体が排除する水の体積 (m³)
+object_mass = 5  # 物体の質量 (kg)
+density_object = object_mass / volume_displaced  # 物体の密度 (kg/m^3)
+
+# 水の表面
+water_level = 0  # 水面の位置 (m)
+
+# 物体の初期位置
+object_initial_depth = 0  # 初期位置（水面上） (m)
+object_position = object_initial_depth  # 物体の位置（初期位置）
+
+# 物体の質量を増やすことで沈む速度を加速
+def increase_mass_and_sinking():
+    global object_mass, density_object
+    object_mass += 1  # 質量を増やす
+    density_object = object_mass / volume_displaced  # 新しい密度を計算
+
+# シミュレーションの時間設定
+t_max = 10  # シミュレーション時間 (秒)
+t = np.linspace(0, t_max, 500)  # 時間配列
+
+# 物体の位置の計算
+def calculate_position(t):
+    # 物体の密度が水より大きい場合に沈む
+    if density_object > rho_water:
+        # 物体が沈む加速度
+        acceleration = g  # 沈む加速度は重力に等しい（浮力より重力が強い）
+        velocity = acceleration * t  # 速度
+        return -velocity  # 沈んでいくので位置は負の方向に進む
+    else:
+        return 0  # 浮力が強い場合は沈まない
+
+# アニメーションの設定
+fig, ax = plt.subplots(figsize=(6, 6))
+ax.set_xlim(-1, 1)
+ax.set_ylim(-2, 1)
+
+# 水面の表示
+water_line, = ax.plot([-1, 1], [water_level, water_level], color='blue', lw=3, label="Water Surface")
+
+# 物体の描画
+object_dot, = ax.plot([], [], 'ro', markersize=10, label="Object")
+
+# ラベル設定
+ax.legend()
+
+# アニメーションの初期化
+def init():
+    object_dot.set_data([], [])
+    return object_dot,
+
+# アニメーションの更新
+def animate(i):
+    object_position = calculate_position(t[i])  # 物体の位置を計算
+    if i == 200:  # 物体の質量を増やすタイミング
+        increase_mass_and_sinking()  # 質量を増やす
+    object_dot.set_data(0, object_position)  # 物体の位置を設定
+    return object_dot,
+
+# アニメーションの実行
+ani = FuncAnimation(fig, animate, frames=len(t), init_func=init, blit=True, interval=20)
+
+# 表示
+plt.title("Object Sinking Faster as it Gets Heavier")
+plt.show()
