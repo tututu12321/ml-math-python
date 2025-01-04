@@ -1,0 +1,29 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Time to angle conversion (24 hours in a circle)
+time = np.linspace(0, 24, 1000)  # 0 to 24 hours
+angles = (time / 24) * 2 * np.pi  # Mapping 24 hours to 0 to 2π radians
+
+# Define the boundary between day and night
+radii = np.ones_like(angles)  # Radius of the circle (Earth)
+night_color = 'darkblue'  # Color for night
+day_color = 'yellow'  # Color for day
+
+# Plot setup
+fig = plt.figure(figsize=(6, 6))
+ax = fig.add_subplot(111, projection='polar')
+
+# Plot the day-night boundary
+ax.plot(angles, radii, color='black', lw=2)  # Boundary line
+ax.fill_between(angles, 0, radii, where=(angles < np.pi), color=day_color, alpha=0.5)  # Day
+ax.fill_between(angles, 0, radii, where=(angles >= np.pi), color=night_color, alpha=0.5)  # Night
+
+# Labels
+ax.set_title("Earth's Day-Night Boundary (Polar Coordinates)", va='bottom')
+ax.set_rticks([])  # Remove radial ticks
+ax.set_yticklabels([])  # Remove radial labels
+ax.set_xticks([0, np.pi, 2*np.pi])  # Set angular ticks for 12:00, 0:00, and 12:00
+ax.set_xticklabels(['12:00 (Day)', '00:00 (Night)', '12:00 (Day)'])
+
+plt.show()
