@@ -1,0 +1,61 @@
+import numpy as np
+
+# 入力装置
+def input_device():
+    # ユーザーからのデータ入力（例として数字を入力）
+    return int(input("入力データを入力してください: "))
+
+# 主記憶装置（RAM）
+def main_memory():
+    # 主記憶装置（実際には主記憶に大量のデータが格納される）
+    return np.zeros(16, dtype=int)  # 16ビットのメモリ（簡略化）
+
+# 補助記憶装置（HDD）
+def secondary_storage():
+    # 補助記憶装置（シンプルにデータを保存する）
+    return "データ保存: ハードディスクに格納されました"
+
+# レジスタ
+def register(data):
+    # CPUのレジスタにデータを格納
+    return data  # レジスタにデータを保持
+
+# CPU（中央処理装置）
+def cpu(data, memory):
+    # CPUがメモリからデータをフェッチして処理（加算演算など）
+    result = (data + memory[0]) & 0xFFFF  # 16ビットの加算（オーバーフロー対策）
+    return result
+
+# 出力装置
+def output_device(result):
+    # 計算結果を表示
+    print(f"処理結果: {result}（16ビット加算の結果）")
+
+# 16ビットシステムのシミュレーション
+def simulate_16bit_system():
+    print("16ビットシステムシミュレーション開始")
+    
+    # ユーザーからの入力データ（16ビット以内）
+    input_data = input_device()
+    
+    # 主記憶装置（16ビット）
+    memory = main_memory()
+    
+    # メモリに格納するデータを設定（簡単に最初の位置に1を格納）
+    memory[0] = 10  # 例えば、メモリの0番地に10を格納
+    
+    # レジスタにデータを格納
+    reg_data = register(input_data)
+    
+    # CPUで処理を実行（加算演算）
+    result = cpu(reg_data, memory)
+    
+    # 結果を出力
+    output_device(result)
+
+    # 補助記憶装置（データ保存）
+    storage_result = secondary_storage()
+    print(storage_result)
+
+# シミュレーション実行
+simulate_16bit_system()
