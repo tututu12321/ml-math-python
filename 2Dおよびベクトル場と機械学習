@@ -1,0 +1,60 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import StandardScaler
+
+# ベクトル場の生成
+# 2次元のグリッドを作成
+x, y = np.meshgrid(np.linspace(-5, 5, 20), np.linspace(-5, 5, 20))
+# ベクトル場の計算（ここでは単純な回転ベクトル場）
+u = -y  # x方向のベクトル
+v = x   # y方向のベクトル
+
+# ベクトル場をプロット
+plt.figure(figsize=(6,6))
+plt.quiver(x, y, u, v, color='blue')
+plt.title('Generated Vector Field')
+plt.xlabel('X')
+plt.ylabel('Y')
+plt.grid(True)
+plt.show()
+
+# 機械学習用データの生成（2クラス分類問題）
+# xとyの座標を特徴量とし、簡単な分類を行う
+X = np.c_[x.flatten(), y.flatten()]
+y = (np.sign(x.flatten() * y.flatten()))  # 回転の向きによってクラスを決定
+
+# データセットの分割
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# 特徴量のスケーリング
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# ロジスティック回帰モデルの学習
+model = LogisticRegression()
+model.fit(X_train, y_train)
+
+# テストデータで予測
+y_pred = model.predict(X_test)
+
+# 精度の評価
+accuracy = accuracy_score(y_test, y_pred)
+print(f'Accuracy: {accuracy:.2f}')
+
+# 分類結果をプロット
+xx, yy = np.meshgrid(np.linspace(-5, 5, 100), np.linspace(-5, 5, 100))
+Z = model.predict(scaler.transform(np.c_[xx.flatten(), yy.flatten()])).reshape(xx.shape)
+
+# 決定境界のプロット
+plt.figure(figsize=(6,6))
+plt.contourf(xx, yy, Z, alpha=0.5, cmap='coolwarm')
+plt.scatter(X_test[:, 0], X_test[:, 1], c=y_test, edgecolors='k', marker='o', s=100, label="Test data", cmap='coolwarm')
+plt.title('Classification with Logistic Regression')
+plt.xlabel('X')
+plt.ylabel('Y')
+plt.grid(True)
+plt.show()
