@@ -1,0 +1,60 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.ensemble import RandomForestRegressor
+
+# NMOSとPMOSのモデルパラメータ
+mu_n = 200e-4      # NMOSの移動度 (m^2/Vs)
+Cox = 1e-3         # ゲート酸化膜容量 (F/m^2)
+W = 100e-6         # チャンネル幅 (m)
+L = 0.5e-6         # チャンネル長 (m)
+Vth_n = 0.6        # NMOSのしきい値電圧 (V)
+lambda_n = 0.1     # NMOSのチャネル長変調パラメータ
+
+# VgsとVdsの範囲
+Vgs_values = np.arange(0.6, 1.0, 0.05)  # Vgs (0.6V〜0.9V, 50mVステップ)
+Vds_values = np.linspace(0, 3, 100)     # Vds (0V〜3V, 100ポイント)
+
+# ドレイン電流計算関数
+def calculate_Id_nmos(Vgs, Vds):
+    if Vgs < Vth_n:
+        return 0
+    elif Vds < (Vgs - Vth_n):
+        return mu_n * Cox * W / L * ((Vgs - Vth_n) * Vds - 0.5 * Vds ** 2) * (1 + lambda_n * Vds)
+    else:
+        return 0.5 * mu_n * Cox * W / L * (Vgs - Vth_n) ** 2 * (1 + lambda_n * Vds)
+
+# データ準備（NMOS）
+X = []
+y = []
+
+for Vgs in Vgs_values:
+    for Vds in Vds_values:
+        X.append([Vgs, Vds])
+        y.append(calculate_Id_nmos(Vgs, Vds))
+
+X = np.array(X)
+y = np.array(y)
+
+# ランダムフォレスト回帰モデルの学習
+rf_model = RandomForestRegressor(n_estimators=100, random_state=42)
+rf_model.fit(X, y)
+
+# 予測結果
+y_pred_rf = rf_model.predict(X)
+
+# プロット
+plt.figure(figsize=(12, 6))
+
+# 実際の値と予測値をプロット
+for Vgs in Vgs_values:
+    mask = X[:, 0] == Vgs
+    plt.plot(X[mask, 1], y[mask], label=f'Actual Vgs={Vgs:.2f} V')
+    plt.plot(X[mask, 1], y_pred_rf[mask], '--', label=f'Predicted Vgs={Vgs:.2f} V')
+
+plt.xlabel('$V_{DS}$ (V)')
+plt.ylabel('$I_{D}$ (A)')
+plt.title('NMOS $V_{DS}$-$I_{D}$ Characteristics with Random Forest')
+plt.legend()
+plt.grid()
+plt.tight_layout()
+plt.show()
