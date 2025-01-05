@@ -1,0 +1,82 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+# データの設定（入力値、目標値）
+X = np.array([0.5, 1.5])  # 入力値 (Input)
+y_true = 1.0              # 目標値 (Target)
+
+# 重みとバイアスの初期化
+W = np.array([0.2, -0.3])  # 重み (Weights)
+b = 0.1                    # バイアス (Bias)
+learning_rate = 0.1        # 学習率 (Learning Rate)
+
+# 記録用リスト
+trajectory = []
+
+# 順伝播（Forward Propagation）
+def forward(X, W, b):
+    z = np.dot(X, W) + b      # 線形結合 (Linear combination)
+    y_pred = 1 / (1 + np.exp(-z))  # シグモイド関数 (Sigmoid Activation)
+    print(f"  [順伝播] 線形結合 z = {z:.4f}, 出力 y_pred = {y_pred:.4f}")
+    return y_pred, z
+
+# 誤差関数（Mean Squared Error）
+def compute_loss(y_true, y_pred):
+    loss = 0.5 * (y_true - y_pred) ** 2
+    print(f"  [目的] 目標値 y_true = {y_true:.4f}, 出力値 y_pred = {y_pred:.4f}")
+    print(f"  [誤差計算] Loss = {loss:.4f}")
+    return loss
+
+# 逆伝播（Backward Propagation）
+def backward(X, W, b, y_true, y_pred):
+    error = y_pred - y_true                # 出力の誤差
+    grad_y_pred = error * y_pred * (1 - y_pred)  # シグモイドの微分
+    grad_W = grad_y_pred * X               # 重みに対する勾配
+    grad_b = grad_y_pred                   # バイアスに対する勾配
+    print(f"  [逆伝播] 誤差 = {error:.4f}")
+    print(f"  [逆伝播] 勾配 grad_W = {grad_W}, grad_b = {grad_b:.4f}")
+    return grad_W, grad_b
+
+# 学習プロセス
+for epoch in range(10):  # 10回繰り返す
+    print(f"=== Epoch {epoch+1} ===")
+    print(f"  [入力] 入力値 X = {X}, 重み W = {W}, バイアス b = {b:.4f}")
+    
+    # 順伝播
+    y_pred, z = forward(X, W, b)
+    
+    # 誤差を計算
+    loss = compute_loss(y_true, y_pred)
+    
+    # 逆伝播
+    grad_W, grad_b = backward(X, W, b, y_true, y_pred)
+    
+    # パラメータの記録
+    trajectory.append((W[0], W[1], loss))
+    
+    # パラメータの更新
+    W -= learning_rate * grad_W
+    b -= learning_rate * grad_b
+    print(f"  [更新] 重み W = {W}, バイアス b = {b:.4f}")
+    print()
+
+# 三次元プロットの準備
+trajectory = np.array(trajectory)  # 記録リストを配列に変換
+W1_vals, W2_vals, loss_vals = trajectory[:, 0], trajectory[:, 1], trajectory[:, 2]
+
+# 三次元プロット
+fig = plt.figure(figsize=(10, 7))
+ax = fig.add_subplot(111, projection='3d')
+ax.plot(W1_vals, W2_vals, loss_vals, marker='o', label='Gradient Descent Path', color='blue')
+ax.set_title('Gradient Descent Trajectory')
+ax.set_xlabel('Weight W1')
+ax.set_ylabel('Weight W2')
+ax.set_zlabel('Loss')
+ax.legend()
+plt.show()
+
+# 最終結果表示
+print("\n最終結果:")
+print(f"最終重み (Weights): {W}")
+print(f"最終バイアス (Bias): {b}")
