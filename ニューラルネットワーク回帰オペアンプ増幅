@@ -1,0 +1,116 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+
+# Step 1: オペアンプの増幅特性を模倣するデータ生成
+Vin = np.linspace(-0.5, 0.5, 100)  # 入力電圧範囲 -0.5V ~ 0.5V
+Gain = 10  # 増幅率
+Vout_actual = Gain * Vin + np.random.normal(0, 0.1, size=len(Vin))  # ノイズを加えた出力電圧
+
+# データをトレーニング用とテスト用に分割
+Vin_train, Vin_test, Vout_train, Vout_test = train_test_split(Vin, Vout_actual, test_size=0.2, random_state=42)
+
+# ニューラルネットワーク用に入力データの形状を調整
+Vin_train = Vin_train.reshape(-1, 1)
+Vin_test = Vin_test.reshape(-1, 1)
+
+# Step 2: ニューラルネットワークモデルの構築
+model = Sequential([
+    Dense(32, activation='relu', input_shape=(1,)),  # 隠れ層1
+    Dense(16, activation='relu'),                    # 隠れ層2
+    Dense(1)                                         # 出力層
+])
+
+# モデルのコンパイル
+model.compile(optimizer='adam', loss='mse')
+
+# モデルのトレーニング
+history = model.fit(Vin_train, Vout_train, epochs=100, validation_data=(Vin_test, Vout_test), verbose=0)
+
+# 学習の履歴をプロット
+plt.figure(figsize=(10, 6))
+plt.plot(history.history['loss'], label='Training Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.title('Training and Validation Loss')
+plt.xlabel('Epochs')
+plt.ylabel('Loss (MSE)')
+plt.legend()
+plt.grid()
+plt.show()
+
+# Step 3: 入出力特性のプロット
+Vout_pred = model.predict(Vin.reshape(-1, 1))  # ニューラルネットワークの予測
+plt.figure(figsize=(10, 6))
+plt.scatter(Vin, Vout_actual, label="Actual Data (Noisy)", color="blue", alpha=0.7)
+plt.plot(Vin, Vout_pred, label="Predicted Output (NN Model)", color="red")
+plt.title("Op-Amp Input-Output Characteristics")
+plt.xlabel("Input Voltage (Vin) [V]")
+plt.ylabel("Output Voltage (Vout) [V]")
+plt.axhline(0, color="black", linestyle="--", linewidth=0.7)
+plt.axvline(0, color="black", linestyle="--", linewidth=0.7)
+plt.legend()
+plt.grid()
+plt.show()
+
+# Step 4: 入出力特性からゲインを計算してプロット
+gain_values = Vout_pred.flatten() / (Vin + 1e-10)  # ゲイン計算（ゼロ除算を防止）
+gain_db_values = 20 * np.log10(np.abs(gain_values) + 1e-10)  # デシベルゲイン（ゼロ防止）
+
+# ゲイン（線形）のプロット
+plt.figure(figsize=(10, 6))
+plt.plot(Vin, gain_values, label="Gain (Vout / Vin)", color="green")
+plt.title("Gain vs Input Voltage")
+plt.xlabel("Input Voltage (Vin) [V]")
+plt.ylabel("Gain (Vout / Vin)")
+plt.axhline(0, color="black", linestyle="--", linewidth=0.7)
+plt.axvline(0, color="black", linestyle="--", linewidth=0.7)
+plt.legend()
+plt.grid()
+plt.show()
+
+# デシベルゲインのプロット
+plt.figure(figsize=(10, 6))
+plt.plot(Vin, gain_db_values, label="Gain (dB)", color="orange")
+plt.title("Gain (dB) vs Input Voltage")
+plt.xlabel("Input Voltage (Vin) [V]")
+plt.ylabel("Gain (dB)")
+plt.axhline(0, color="black", linestyle="--", linewidth=0.7)
+plt.axvline(0, color="black", linestyle="--", linewidth=0.7)
+plt.legend()
+plt.grid()
+plt.show()
+
+# Step 5: サイン波の生成と増幅
+time = np.linspace(0, 2 * np.pi, 500)  # 0~2πの範囲でサイン波を生成
+Vin_sine = 0.5 * np.sin(time)  # 振幅0.5のサイン波
+
+# サイン波をニューラルネットワークで増幅
+Vin_sine_reshaped = Vin_sine.reshape(-1, 1)
+Vout_sine = model.predict(Vin_sine_reshaped)
+
+# サイン波のプロット
+plt.figure(figsize=(12, 6))
+plt.plot(time, Vin_sine, label="Input Sine Wave (Vin)", color="blue")
+plt.plot(time, Vout_sine, label="Amplified Sine Wave (Vout, NN Model)", color="red")
+plt.title("Amplification of Sine Wave using Neural Network Model")
+plt.xlabel("Time [s]")
+plt.ylabel("Voltage [V]")
+plt.axhline(0, color="black", linestyle="--", linewidth=0.7)
+plt.legend()
+plt.grid()
+plt.show()
+
+# Step 6: デシベルゲインと倍数の計算と表示
+Vin_amplitude = np.max(Vin_sine) - np.min(Vin_sine)  # 入力振幅
+Vout_amplitude = np.max(Vout_sine) - np.min(Vout_sine)  # 出力振幅
+
+gain_db = 20 * np.log10(Vout_amplitude / Vin_amplitude)  # デシベルゲイン
+gain_multiple = Vout_amplitude / Vin_amplitude  # 倍数ゲイン
+
+# 結果の表示
+print(f"入力信号の振幅: {Vin_amplitude:.2f} V")
+print(f"出力信号の振幅: {Vout_amplitude:.2f} V")
+print(f"デシベルゲイン: {gain_db:.2f} dB")
+print(f"増幅率（倍数）: {gain_multiple:.2f} 倍")
