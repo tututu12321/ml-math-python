@@ -1,0 +1,95 @@
+import numpy as np
+
+# 固定少数点数形式
+def fixed_point(value, bits, fractional_bits):
+    scale = 2 ** fractional_bits
+    fixed_value = int(value * scale)
+    max_value = (2 ** (bits - 1)) - 1
+    min_value = -(2 ** (bits - 1))
+
+    if fixed_value > max_value:
+        return max_value, 'Overflow'
+    elif fixed_value < min_value:
+        return min_value, 'Underflow'
+    else:
+        return fixed_value, None
+
+# 2の補数
+def twos_complement(value, bits):
+    if value < 0:
+        return (1 << bits) + value
+    else:
+        return value
+
+# 浮動小数点数形式
+def float_to_binary(value, precision=32):
+    return format(np.float32(value).view(np.int32), '0' + str(precision) + 'b')
+
+# 丸め誤差
+def rounding_error(value, precision=4):
+    rounded_value = round(value, precision)
+    error = value - rounded_value
+    return rounded_value, error
+
+# 桁落ち
+def significant_loss(a, b):
+    result = a + b
+    return result
+
+# オーバーフロー・アンダーフロー
+def overflow_underflow_check(value, min_value, max_value):
+    if value > max_value:
+        return max_value, 'Overflow'
+    elif value < min_value:
+        return min_value, 'Underflow'
+    else:
+        return value, None
+
+# 浮動小数点演算での精度制限による誤差を確認
+def floating_point_precision_error():
+    a = 1.0
+    b = 1e16
+    result = a + b
+    return result  # 桁落ちの例
+
+# 大きな整数を扱うときのオーバーフローとアンダーフロー
+def handle_large_integers():
+    max_int = 2**31 - 1  # 32ビット整数の最大値
+    overflow = max_int + 1  # オーバーフロー
+    underflow = -(2**31) - 1  # アンダーフロー
+    return overflow, underflow
+
+# テスト
+if __name__ == "__main__":
+    # 固定少数点のテスト
+    fixed_value, overflow_check = fixed_point(123.456, 16, 8)
+    print(f"Fixed Point: {fixed_value}, Overflow Check: {overflow_check}")
+
+    # 2の補数のテスト
+    twos_comp_value = twos_complement(-5, 8)
+    print(f"2's Complement: {twos_comp_value}")
+
+    # 浮動小数点数形式のテスト
+    binary_rep = float_to_binary(12.34)
+    print(f"Float to Binary: {binary_rep}")
+
+    # 丸め誤差のテスト
+    rounded_value, rounding_error_value = rounding_error(12.3456789, 4)
+    print(f"Rounded Value: {rounded_value}, Rounding Error: {rounding_error_value}")
+
+    # 桁落ちのテスト
+    significant_loss_result = significant_loss(1e16, -1e16)
+    print(f"Significant Loss Result: {significant_loss_result}")
+
+    # オーバーフロー・アンダーフローのテスト
+    min_val, max_val = -32768, 32767
+    overflow_result, overflow_check = overflow_underflow_check(40000, min_val, max_val)
+    print(f"Overflow/Underflow Check: {overflow_result}, Status: {overflow_check}")
+
+    # 浮動小数点演算での精度制限による誤差
+    precision_error_result = floating_point_precision_error()
+    print(f"Floating Point Precision Error: {precision_error_result}")
+
+    # 大きな整数を扱うときのオーバーフローとアンダーフロー
+    overflow, underflow = handle_large_integers()
+    print(f"Overflow: {overflow}, Underflow: {underflow}")
