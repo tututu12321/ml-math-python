@@ -1,0 +1,41 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+# 2Dベクトル場の定義
+Y, X = np.mgrid[-5:5:100j, -5:5:100j]  # グリッドの作成
+U = -1 - X**2 + Y  # x方向のベクトル成分
+V = 1 + X - Y**2  # y方向のベクトル成分
+
+# 3Dベクトル場の定義
+X_3D = np.linspace(-5, 5, 10)
+Y_3D = np.linspace(-5, 5, 10)
+X_3D, Y_3D = np.meshgrid(X_3D, Y_3D)
+Z_3D = np.sin(X_3D) + np.cos(Y_3D)
+U_3D = -1 - X_3D**2 + Y_3D
+V_3D = 1 + X_3D - Y_3D**2
+W_3D = Z_3D  # z方向の成分
+
+# プロットの準備
+fig = plt.figure(figsize=(14, 8))
+
+# 2Dベクトル場のプロット
+ax1 = fig.add_subplot(121)
+ax1.quiver(X, Y, U, V, color='blue', scale=20)
+ax1.set_xlim(-5, 5)
+ax1.set_ylim(-5, 5)
+ax1.set_title('2D Vector Field')
+ax1.set_xlabel('X')
+ax1.set_ylabel('Y')
+ax1.grid(True)
+
+# 3Dベクトル場のプロット
+ax2 = fig.add_subplot(122, projection='3d')
+ax2.quiver(X_3D, Y_3D, Z_3D, U_3D, V_3D, W_3D, length=0.5, normalize=True, color='blue')
+ax2.set_title('3D Vector Field')
+ax2.set_xlabel('X')
+ax2.set_ylabel('Y')
+ax2.set_zlabel('Z')
+
+plt.tight_layout()
+plt.show()
