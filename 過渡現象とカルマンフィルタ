@@ -1,0 +1,88 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# システムパラメータ
+tau = 1.0       # 時定数 (秒)
+dt = 0.1        # サンプリング間隔 (秒)
+T = 10          # シミュレーション時間 (秒)
+U = 1.0         # ステップ入力の大きさ
+
+# 雑音の共分散
+Q = 1e-5        # プロセスノイズ共分散
+R = 1e-2        # 観測ノイズ共分散
+
+# 離散時間状態空間モデル
+A = 1 - dt / tau         # 状態遷移行列
+B = dt / tau             # 入力行列
+C = 1.0                  # 観測行列
+D = 0.0                  # 直接伝達行列（通常0）
+
+# 時間ベクトル
+num_steps = int(T / dt)
+t = np.linspace(0, T, num_steps)
+
+# 真の状態と観測値の生成
+x_true = np.zeros(num_steps)
+y_meas = np.zeros(num_steps)
+
+# 初期状態
+x_true[0] = 0.0
+
+np.random.seed(42)  # 再現性のためのシード
+
+for k in range(1, num_steps):
+    # システムの真の状態更新（ノイズ付き）
+    x_true[k] = A * x_true[k-1] + B * U + np.random.normal(0, np.sqrt(Q))
+    
+    # 観測値の生成（ノイズ付き）
+    y_meas[k] = C * x_true[k] + np.random.normal(0, np.sqrt(R))
+
+# カルマンフィルタの初期化
+x_est = np.zeros(num_steps)    # 状態推定値
+P = np.zeros(num_steps)        # 推定誤差共分散
+x_est[0] = 0.0                  # 初期推定状態
+P[0] = 1.0                      # 初期誤差共分散
+
+for k in range(1, num_steps):
+    # 予測ステップ
+    x_pred = A * x_est[k-1] + B * U
+    P_pred = A * P[k-1] * A + Q
+    
+    # 更新ステップ
+    K = P_pred * C / (C * P_pred * C + R)  # カルマンゲイン
+    x_est[k] = x_pred + K * (y_meas[k] - C * x_pred)
+    P[k] = (1 - K * C) * P_pred
+
+# 真の状態、観測値、推定値のプロット
+plt.figure(figsize=(14, 10))
+
+# 真の状態プロット
+plt.subplot(3, 1, 1)
+plt.plot(t, x_true, label='True State (x)', linewidth=2)
+plt.title('True State')
+plt.xlabel('Time (s)')
+plt.ylabel('State')
+plt.grid(True)
+plt.legend()
+
+# 観測値プロット
+plt.subplot(3, 1, 2)
+plt.plot(t, y_meas, label='Measurements (y)', linestyle='dotted', alpha=0.7, color='r')
+plt.title('Measurements (with Noise)')
+plt.xlabel('Time (s)')
+plt.ylabel('Measured Value')
+plt.grid(True)
+plt.legend()
+
+# 推定状態プロット
+plt.subplot(3, 1, 3)
+plt.plot(t, x_est, label='Estimated State (x_est)', linestyle='--', linewidth=2)
+plt.axhline(U, color='gray', linestyle=':', label='Steady State (U)')
+plt.title('Estimated State (using Kalman Filter)')
+plt.xlabel('Time (s)')
+plt.ylabel('State')
+plt.grid(True)
+plt.legend()
+
+plt.tight_layout()
+plt.show()
