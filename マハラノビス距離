@@ -1,0 +1,53 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.spatial.distance import mahalanobis
+from sklearn.preprocessing import StandardScaler
+
+# ダミーデータを生成
+np.random.seed(42)
+data = np.random.randn(100, 2) * 2 + np.array([5, 10])  # 100個のデータポイント
+
+# DataFrameに変換
+df = pd.DataFrame(data, columns=['Feature1', 'Feature2'])
+
+# 標準化得点（Zスコア）を計算
+scaler = StandardScaler()
+df_standardized = scaler.fit_transform(df)
+
+# マハラノビス距離を計算
+mean = np.mean(df, axis=0)
+cov_matrix = np.cov(df.T)
+inv_cov_matrix = np.linalg.inv(cov_matrix)
+
+# マハラノビス距離を計算
+mahalanobis_distances = []
+for i in range(df.shape[0]):
+    point = df.iloc[i].values
+    dist = mahalanobis(point, mean, inv_cov_matrix)
+    mahalanobis_distances.append(dist)
+
+# プロット: 標準化得点
+plt.figure(figsize=(12, 6))
+
+plt.subplot(1, 2, 1)
+plt.scatter(df_standardized[:, 0], df_standardized[:, 1], color='blue', label='Data points')
+plt.axhline(0, color='black',linewidth=1)
+plt.axvline(0, color='black',linewidth=1)
+plt.title('Standardized Data (Z-score)')
+plt.xlabel('Standardized Feature1')
+plt.ylabel('Standardized Feature2')
+plt.grid(True)
+
+# プロット: マハラノビス距離を可視化
+plt.subplot(1, 2, 2)
+plt.scatter(df.iloc[:, 0], df.iloc[:, 1], c=mahalanobis_distances, cmap='viridis', label='Data points')
+plt.colorbar(label='Mahalanobis Distance')
+plt.title('Mahalanobis Distance')
+plt.xlabel('Feature1')
+plt.ylabel('Feature2')
+plt.grid(True)
+
+plt.tight_layout()
+plt.show()
