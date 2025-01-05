@@ -1,0 +1,27 @@
+import torch
+
+# 入力テンソルの定義（requires_grad=Trueで微分を計算）
+x = torch.tensor(2.0, requires_grad=True)
+
+# ノード（ニューロン）に対応する関数 f(x) = (x^2 + 1)^3 の定義
+def f(x):
+    return (x**2 + 1)**3
+
+# 順伝播 (ノードに信号が流れる)
+y = f(x)
+
+# 順伝播の出力を表示
+print(f"入力ノード: x = {x.item()}")
+print(f"信号がノードに到達した出力: y = {y.item()}")
+
+# 順伝播の勾配（微分）の計算
+# 合成関数の微分 f'(x) = 3(x^2 + 1)^2 * 2x
+grad_f = 3 * (x**2 + 1)**2 * 2 * x
+
+print(f"順伝播で計算された勾配（ノード間のエッジの傾き）: dy/dx = {grad_f.item()}")
+
+# 逆伝播（エッジを通じて勾配の計算）
+y.backward()
+
+# 逆伝播の勾配（微分）を表示
+print(f"逆伝播の結果（エッジを通じて計算された勾配）: dy/dx = {x.grad.item()}")
