@@ -1,0 +1,59 @@
+import torch
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 初期速度u, 加速度a, 時間tを定義（変数として計算を行う）
+u = torch.tensor(0.0, requires_grad=True)  # 初速度 (m/s)
+a = torch.tensor(2.0, requires_grad=True)  # 加速度 (m/s²)
+t = torch.tensor(5.0, requires_grad=True)  # 時間 (s)
+
+# 等加速度直線運動の公式
+v = u + a * t  # 最終速度 (v = u + at)
+s = u * t + 0.5 * a * t**2  # 移動距離 (s = ut + 1/2 * a * t^2)
+
+# 自動微分を計算（加速度aに関する勾配）
+s.backward()  # sに関する勾配を計算
+v.backward()  # vに関する勾配を計算
+
+# 結果表示
+print(f"最終速度 v = {v.item()} m/s")
+print(f"移動距離 s = {s.item()} m")
+
+# 勾配の表示
+print(f"加速度 a に関する移動距離の勾配: ds/da = {a.grad.item()}")
+print(f"加速度 a に関する最終速度の勾配: dv/da = {a.grad.item()}")
+
+# 時間 t の変化に対する移動距離と最終速度をプロット
+time_vals = np.linspace(0, 10, 100)
+
+# PyTorchテンソルからNumPy配列に変換（detach()を使って計算グラフを切り離す）
+a_val = a.detach().numpy()  # aを計算グラフから切り離して変換
+u_val = u.detach().numpy()  # uを計算グラフから切り離して変換
+
+# 移動距離と速度の計算
+distance_vals = u_val * time_vals + 0.5 * a_val * time_vals**2
+velocity_vals = u_val + a_val * time_vals
+
+# プロット
+plt.figure(figsize=(10, 6))
+
+# プロット: 移動距離 vs 時間
+plt.subplot(1, 2, 1)
+plt.plot(time_vals, distance_vals, label="Distance (s)", color='b')
+plt.title("Distance vs Time")
+plt.xlabel("Time (s)")
+plt.ylabel("Distance (m)")
+plt.grid(True)
+plt.legend()
+
+# プロット: 最終速度 vs 時間
+plt.subplot(1, 2, 2)
+plt.plot(time_vals, velocity_vals, label="Velocity (v)", color='r')
+plt.title("Velocity vs Time")
+plt.xlabel("Time (s)")
+plt.ylabel("Velocity (m/s)")
+plt.grid(True)
+plt.legend()
+
+plt.tight_layout()
+plt.show()
