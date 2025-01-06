@@ -1,0 +1,53 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 定義
+F = 5  # ベクトルの大きさ
+theta_deg = 60  # 角度（度）
+theta = np.radians(theta_deg)  # 角度をラジアンに変換
+
+# ベクトルの成分
+x = F * np.cos(theta)  # x成分
+y = F * np.sin(theta)  # y成分
+
+# Fe^(jθ) 表示
+Fe_jtheta = F * np.exp(1j * theta)
+
+# プロット設定
+fig, ax = plt.subplots(1, 2, figsize=(12, 6))
+
+# (0, F) ベクトルプロット
+ax[0].quiver(0, 0, 0, F, angles='xy', scale_units='xy', scale=1, color='r', label="(0, F) Vector")
+ax[0].set_xlim([-F, F])
+ax[0].set_ylim([0, F + 1])
+ax[0].set_title(f"(0, F) Vector (F = {F})", fontsize=12)
+ax[0].set_aspect('equal')
+ax[0].grid(True)
+ax[0].legend()
+
+# (Fcosθ, Fsinθ) ベクトルプロット
+ax[1].quiver(0, 0, x, y, angles='xy', scale_units='xy', scale=1, color='b', label="(Fcosθ, Fsinθ) Vector")
+ax[1].set_xlim([-F, F])
+ax[1].set_ylim([0, F])
+ax[1].set_title(f"(Fcosθ, Fsinθ) Vector (F = {F})", fontsize=12)
+ax[1].set_aspect('equal')
+ax[1].grid(True)
+ax[1].legend()
+
+# 極座標プロット
+fig_polar, ax_polar = plt.subplots(figsize=(6, 6), subplot_kw={'projection': 'polar'})
+ax_polar.quiver(0, 0, theta, F, angles='xy', scale_units='xy', scale=1, color='g', label="Polar Vector")
+ax_polar.set_title(f"Polar Coordinate Vector (F = {F})", fontsize=12)
+ax_polar.set_ylim(0, F + 1)
+ax_polar.legend()
+
+plt.tight_layout()
+plt.show()
+
+# Fe^(jθ)表示
+print(f"Fe^(jθ) 表示: {Fe_jtheta}")
+
+# 逆三角形関数（atan2）
+theta_calculated = np.arctan2(y, x)  # y, xに基づいて角度を計算
+theta_calculated_deg = np.degrees(theta_calculated)  # 結果を度に変換
+print(f"逆三角形関数で計算したθ（度）: {theta_calculated_deg}")
