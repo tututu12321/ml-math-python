@@ -1,0 +1,83 @@
+import re
+import MeCab
+import gensim
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+from gensim.models import Word2Vec
+from gensim.models.doc2vec import Doc2Vec, TaggedDocument
+from sklearn.feature_extraction.text import CountVectorizer
+
+#MeCabを使った日本語テキストの形態素解析、正規表現で不要な単語の除外、TF-IDFの算出、Cosine類似度の計算、Word2Vecでの単語ベクトル化、Doc2Vecでの文章ベクトル化、Bag-of-Words、TF-IDF、Word2Vecを使用したコーパスの前処理
+# 1. Morphological analysis using MeCab
+def mecab_tokenize(text):
+    mecab = MeCab.Tagger("-Owakati")  # Word segmentation
+    return mecab.parse(text).split()
+
+# 2. Remove unnecessary words using regular expressions
+def remove_stopwords(tokens, stopwords):
+    return [word for word in tokens if word not in stopwords]
+
+# 3. Compute TF-IDF
+def compute_tfidf(documents):
+    vectorizer = TfidfVectorizer()
+    tfidf_matrix = vectorizer.fit_transform(documents)
+    return tfidf_matrix, vectorizer
+
+# 4. Compute cosine similarity
+def compute_cosine_similarity(tfidf_matrix):
+    cosine_sim = cosine_similarity(tfidf_matrix)
+    return cosine_sim
+
+# 5. Vectorize words using Word2Vec
+def train_word2vec(corpus):
+    tokenized_corpus = [mecab_tokenize(doc) for doc in corpus]
+    model = Word2Vec(tokenized_corpus, vector_size=100, window=5, min_count=1, workers=4)
+    return model
+
+# 6. Vectorize documents using Doc2Vec
+def train_doc2vec(corpus):
+    tagged_data = [TaggedDocument(words=mecab_tokenize(doc), tags=[str(i)]) for i, doc in enumerate(corpus)]
+    model = Doc2Vec(tagged_data, vector_size=100, window=2, min_count=1, workers=4)
+    return model
+
+# 7. Compute Bag-of-Words
+def compute_bow(corpus):
+    vectorizer = CountVectorizer()
+    bow_matrix = vectorizer.fit_transform(corpus)
+    return bow_matrix, vectorizer
+
+# Preprocess corpus (example)
+corpus = ["I love Python.", "Python is a programming language.", "I'm excited to learn machine learning with Python."]
+stopwords = ['the', 'is', 'a', 'and', 'of', 'to', 'in', 'with']
+
+# Morphological analysis and remove unnecessary words
+tokenized_corpus = [mecab_tokenize(doc) for doc in corpus]
+filtered_corpus = [remove_stopwords(tokens, stopwords) for tokens in tokenized_corpus]
+filtered_corpus = [' '.join(tokens) for tokens in filtered_corpus]  # Recombine into strings
+
+# 1. Compute TF-IDF
+tfidf_matrix, tfidf_vectorizer = compute_tfidf(filtered_corpus)
+print("TF-IDF Matrix:")
+print(tfidf_matrix.toarray())
+
+# 2. Compute cosine similarity
+cosine_sim = compute_cosine_similarity(tfidf_matrix)
+print("Cosine Similarity Matrix:")
+print(cosine_sim)
+
+# 3. Word2Vec for word vectorization
+word2vec_model = train_word2vec(filtered_corpus)
+word_vector = word2vec_model.wv['Python']  # Get the vector for 'Python'
+print("Word2Vec Vector for 'Python':")
+print(word_vector)
+
+# 4. Doc2Vec for document vectorization
+doc2vec_model = train_doc2vec(filtered_corpus)
+doc_vector = doc2vec_model.dv['0']  # Get the vector for the first document
+print("Doc2Vec Vector for Document 0:")
+print(doc_vector)
+
+# 5. Compute Bag-of-Words
+bow_matrix, bow_vectorizer = compute_bow(filtered_corpus)
+print("Bag-of-Words Matrix:")
+print(bow_matrix.toarray())
