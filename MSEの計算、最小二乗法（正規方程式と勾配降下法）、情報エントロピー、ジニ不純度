@@ -1,0 +1,105 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from collections import Counter
+from scipy.spatial.distance import euclidean, cityblock
+
+# --- 1. MSEの計算 ---
+# 実際の値と予測値
+y_true = np.array([3.0, 2.5, 3.5, 4.0, 5.0])
+y_pred = np.array([2.8, 2.6, 3.4, 4.1, 4.9])
+
+# MSEの計算
+mse = np.mean((y_true - y_pred) ** 2)
+print(f"Mean Squared Error (MSE): {mse:.4f}")
+
+# --- 2. 最小二乗法（正規方程式） ---
+# データ
+X = np.array([[1, 1], [1, 2], [2, 2], [2, 3]])  # 特徴量
+y = np.dot(X, np.array([1, 2])) + 3  # 目標値
+
+# 正規方程式を使用して回帰係数を計算
+w = np.linalg.inv(X.T.dot(X)).dot(X.T).dot(y)
+print(f"回帰係数 (正規方程式): {w}")
+
+# --- 3. 最小二乗法（勾配降下法） ---
+# 学習率とイテレーション数
+alpha = 0.01  # 学習率
+iterations = 1000
+
+# 初期回帰係数
+w_gd = np.zeros(X.shape[1])
+
+# 勾配降下法の実装
+for i in range(iterations):
+    prediction = X.dot(w_gd)
+    error = prediction - y
+    gradient = X.T.dot(error) / len(y)
+    w_gd -= alpha * gradient
+
+print(f"回帰係数 (勾配降下法): {w_gd}")
+
+# --- 4. 情報エントロピー ---
+# サンプルデータ
+data = ['A', 'B', 'A', 'A', 'B', 'C']
+
+# 頻度を計算
+counter = Counter(data)
+total = len(data)
+
+# 確率を計算
+probabilities = [count / total for count in counter.values()]
+
+# エントロピーの計算
+entropy = -sum(p * np.log2(p) for p in probabilities)
+print(f"情報エントロピー: {entropy:.4f}")
+
+# --- 5. ジニ不純度 ---
+# クラスラベル
+labels = ['A', 'B', 'A', 'A', 'B', 'B']
+
+# クラスの確率を計算
+counter = Counter(labels)
+total = len(labels)
+probabilities = [count / total for count in counter.values()]
+
+# ジニ不純度の計算
+gini = 1 - sum(p**2 for p in probabilities)
+print(f"ジニ不純度: {gini:.4f}")
+
+# --- 6. 距離の計算 ---
+# 2つの点
+point1 = np.array([1, 2])
+point2 = np.array([4, 6])
+
+# ユークリッド距離の計算
+euclidean_distance = euclidean(point1, point2)
+print(f"ユークリッド距離: {euclidean_distance:.4f}")
+
+# マンハッタン距離の計算
+manhattan_distance = cityblock(point1, point2)
+print(f"マンハッタン距離: {manhattan_distance:.4f}")
+
+# --- 結果の可視化 ---
+plt.figure(figsize=(12, 6))
+
+# MSEのプロット
+plt.subplot(2, 1, 1)
+plt.plot(y_true, label='True Values', color='g', linestyle='-', linewidth=2)
+plt.plot(y_pred, label='Predicted Values', color='r', linestyle='--')
+plt.xlabel('Sample Index')
+plt.ylabel('Value')
+plt.title('Mean Squared Error (MSE)')
+plt.legend()
+
+# 回帰線のプロット（正規方程式と勾配降下法）
+plt.subplot(2, 1, 2)
+plt.plot(X[:, 1], y, label='True Values', color='g', linestyle='-', linewidth=2)
+plt.plot(X[:, 1], X.dot(w), label='Regression (Normal Equation)', color='b', linestyle='--')
+plt.plot(X[:, 1], X.dot(w_gd), label='Regression (Gradient Descent)', color='r', linestyle='-.')
+plt.xlabel('X')
+plt.ylabel('y')
+plt.title('Linear Regression: Normal Equation vs Gradient Descent')
+plt.legend()
+
+plt.tight_layout()
+plt.show()
