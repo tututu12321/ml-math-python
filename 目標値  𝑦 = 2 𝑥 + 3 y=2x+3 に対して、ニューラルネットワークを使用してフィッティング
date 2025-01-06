@@ -1,0 +1,91 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 恒等関数（線形回帰用）
+def identity(x):
+    return x
+
+def identity_derivative(x):
+    return np.ones_like(x)  # 恒等関数の微分は1
+
+# シンプルな2層のニューラルネットワーク（1入力層、1出力層）
+class NeuralNetwork:
+    def __init__(self):
+        # 重みの初期化（小さな値で初期化して学習を安定させる）
+        self.weights = np.random.randn(1) * 0.1
+        self.bias = np.random.randn(1) * 0.1
+        
+    def forward(self, X):
+        return identity(X * self.weights + self.bias)
+    
+    def compute_loss(self, y_true, y_pred):
+        return np.mean((y_true - y_pred) ** 2)  # MSE
+
+    def backward(self, X, y_true, y_pred, learning_rate=0.001):
+        # 勾配の計算（恒等関数の微分は1なので、そのまま計算）
+        dw = -2 * np.mean(X * (y_true - y_pred))  # 重みに対する勾配
+        db = -2 * np.mean(y_true - y_pred)        # バイアスに対する勾配
+        
+        # 重みとバイアスの更新
+        self.weights -= learning_rate * dw
+        self.bias -= learning_rate * db
+
+# データ（単純な線形データ）
+X = np.linspace(-10, 10, 100)  # 入力
+y_true = 2 * X + 3  # 目標値（y = 2x + 3）
+
+# ニューラルネットワークのインスタンス
+nn = NeuralNetwork()
+
+# エポック数と損失の記録
+epochs = 1000  # より多くのエポックで学習
+losses = []  # 損失を記録
+predictions = []  # 予測値を記録
+weights_history = []  # 重みの履歴を記録
+bias_history = []  # バイアスの履歴を記録
+
+# 訓練ループ
+for epoch in range(epochs):
+    y_pred = nn.forward(X)  # 順伝播
+    loss = nn.compute_loss(y_true, y_pred)  # 誤差計算
+    losses.append(loss)  # 損失の記録
+    predictions.append(y_pred)  # 予測値の記録
+    weights_history.append(nn.weights[0])  # 重みの記録
+    bias_history.append(nn.bias[0])  # バイアスの記録
+    nn.backward(X, y_true, y_pred)  # 逆伝播
+
+# 損失の波形をプロット
+plt.figure(figsize=(12, 10))
+
+# 1. 損失のプロット
+plt.subplot(2, 2, 1)
+plt.plot(losses)
+plt.title("Loss during Backpropagation")
+plt.xlabel("Epochs")
+plt.ylabel("Loss (MSE)")
+
+# 2. 予測値 vs 真の値の比較
+plt.subplot(2, 2, 2)
+plt.plot(X, y_true, label="True Values (y = 2x + 3)", color='g', linestyle='-', linewidth=2)
+plt.plot(X, predictions[-1], label="Predicted Values", color='b', linestyle='--')
+plt.title("True vs Predicted Values (Final Epoch)")
+plt.xlabel("X")
+plt.ylabel("Y")
+plt.legend()
+
+# 3. 重みの履歴
+plt.subplot(2, 2, 3)
+plt.plot(weights_history)
+plt.title("Weight Updates over Epochs")
+plt.xlabel("Epochs")
+plt.ylabel("Weight")
+
+# 4. バイアスの履歴
+plt.subplot(2, 2, 4)
+plt.plot(bias_history)
+plt.title("Bias Updates over Epochs")
+plt.xlabel("Epochs")
+plt.ylabel("Bias")
+
+plt.tight_layout()
+plt.show()
