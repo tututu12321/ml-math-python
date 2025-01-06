@@ -1,0 +1,64 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# アフィン変換の定義
+def affine_transform(X, A, b):
+    """
+    X: 入力ベクトルまたは行列（行列の各列はベクトル）
+    A: 線形変換の行列
+    b: 平行移動のベクトル
+    """
+    return np.dot(A, X) + b[:, np.newaxis]  # bを各列にブロードキャスト
+
+# 活性化関数
+def relu(x):
+    """ReLU (Rectified Linear Unit) 活性化関数"""
+    return np.maximum(0, x)
+
+def sigmoid(x):
+    """Sigmoid 活性化関数"""
+    return 1 / (1 + np.exp(-x))
+
+def tanh(x):
+    """Tanh (双曲線正接) 活性化関数"""
+    return np.tanh(x)
+
+# データの定義
+X = np.array([[1, 2], [3, 4], [5, 6]])  # 3x2 の行列（3つの2次元ベクトル）
+A = np.array([[1, 2], [-1, 1]])  # 2x2 の行列（アフィン変換の行列）
+b = np.array([1, -1])  # 2次元ベクトル（平行移動）
+
+# アフィン変換を適用
+X_transformed = affine_transform(X.T, A, b)  # Xを転置して列ベクトルにする
+print("アフィン変換後の結果 (X_transformed):\n", X_transformed)
+
+# 活性化関数を適用
+X_relu = relu(X_transformed)
+X_sigmoid = sigmoid(X_transformed)
+X_tanh = tanh(X_transformed)
+
+# 結果の表示
+fig, ax = plt.subplots(2, 2, figsize=(12, 12))
+
+# 元のデータ
+ax[0, 0].scatter(X[0], X[1], color='blue', label="Original Data")
+ax[0, 0].set_title("Original Data")
+ax[0, 0].legend()
+
+# アフィン変換後のデータ
+ax[0, 1].scatter(X_transformed[0], X_transformed[1], color='red', label="Affine Transformed Data")
+ax[0, 1].set_title("Affine Transformed Data")
+ax[0, 1].legend()
+
+# ReLU 活性化関数後のデータ
+ax[1, 0].scatter(X_relu[0], X_relu[1], color='green', label="ReLU Activated Data")
+ax[1, 0].set_title("ReLU Activation")
+ax[1, 0].legend()
+
+# Sigmoid 活性化関数後のデータ
+ax[1, 1].scatter(X_sigmoid[0], X_sigmoid[1], color='orange', label="Sigmoid Activated Data")
+ax[1, 1].set_title("Sigmoid Activation")
+ax[1, 1].legend()
+
+plt.tight_layout()
+plt.show()
