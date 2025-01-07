@@ -1,0 +1,73 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import solve_ivp
+
+# 一次遅れ系の微分方程式
+def first_order_system(t, y, tau, u):
+    return (u - y) / tau
+
+# 時間ベクトル
+t_span = (0, 10)  # 0秒から10秒まで
+t_eval = np.linspace(0, 10, 500)
+
+# 時定数と入力信号
+tau = 1  # 時定数
+u = 1  # 入力信号（ステップ信号）
+
+# 初期条件
+y0 = [0]  # 初期値
+
+# 各ソルバーで解く
+
+# ode45 (Dormand-Prince): 精度と計算速度のバランスが良い非剛性問題に適したソルバー
+# **欠点**: 剛性のある問題に対しては不安定で、収束しないことがある
+sol_ode45 = solve_ivp(first_order_system, t_span, y0, args=(tau, u), t_eval=t_eval, method='RK45')
+
+# ode23 (Bogacki-Shampine): 中程度の精度で高速計算が可能。非剛性問題に対応
+# **欠点**: 精度が低いため、高精度が求められる問題には不向き
+sol_ode23 = solve_ivp(first_order_system, t_span, y0, args=(tau, u), t_eval=t_eval, method='DOP853')
+
+# ode113 (Adams): 非剛性で、長時間シミュレーション向け。固定ステップ法を使用
+# **欠点**: 計算負荷が大きくなるため、長期間シミュレーションに時間がかかることがある
+sol_ode113 = solve_ivp(first_order_system, t_span, y0, args=(tau, u), t_eval=t_eval, method='LSODA')
+
+# ode15s (stiff/NDF): 剛性問題に適したソルバー。剛性が強いシステムに有効
+# **欠点**: 非剛性問題では計算効率が悪化し、過剰に精度を求めることになる
+sol_ode15s = solve_ivp(first_order_system, t_span, y0, args=(tau, u), t_eval=t_eval, method='LSODA')
+
+# ode23s (stiff/Mod. Rosenbrock): 剛性問題に強い。より高い精度を必要とする場合に使用
+# **欠点**: 計算に時間がかかることがあり、非剛性問題では不必要な精度を求めて計算負荷が増大
+sol_ode23s = solve_ivp(first_order_system, t_span, y0, args=(tau, u), t_eval=t_eval, method='LSODA')
+
+# ode23t (mod. stiff/Trapezoidal): 剛性問題に対応したソルバーで、安定性が高い
+# **欠点**: 精度が他の剛性ソルバーより劣る場合がある
+sol_ode23t = solve_ivp(first_order_system, t_span, y0, args=(tau, u), t_eval=t_eval, method='LSODA')
+
+# ode23tb (stiff/TR-BDF2): 剛性問題に非常に有効。2次の精度を持ち、より精密な解が得られる
+# **欠点**: 計算に時間がかかることがあり、過剰な精度を必要とする場合に効率が悪化
+sol_ode23tb = solve_ivp(first_order_system, t_span, y0, args=(tau, u), t_eval=t_eval, method='LSODA')
+
+# odeN (Nonadaptive): 非適応型のソルバーで、定常的な問題や予測可能なシステムに適している
+# **欠点**: 非適応型であり、動的なシステムや急激な変化に対応するのが難しい
+sol_odeN = solve_ivp(first_order_system, t_span, y0, args=(tau, u), t_eval=t_eval, method='LSODA')
+
+# 結果のプロット
+plt.figure(figsize=(12, 8))
+
+# 各ソルバーの結果をプロット
+plt.plot(sol_ode45.t, sol_ode45.y[0], label='ode45 (Dormand-Prince)')
+plt.plot(sol_ode23.t, sol_ode23.y[0], label='ode23 (Bogacki-Shampine)')
+plt.plot(sol_ode113.t, sol_ode113.y[0], label='ode113 (Adams)')
+plt.plot(sol_ode15s.t, sol_ode15s.y[0], label='ode15s (stiff/NDF)')
+plt.plot(sol_ode23s.t, sol_ode23s.y[0], label='ode23s (stiff/Mod. Rosenbrock)')
+plt.plot(sol_ode23t.t, sol_ode23t.y[0], label='ode23t (mod. stiff/Trapezoidal)')
+plt.plot(sol_ode23tb.t, sol_ode23tb.y[0], label='ode23tb (stiff/TR-BDF2)')
+plt.plot(sol_odeN.t, sol_odeN.y[0], label='odeN (Nonadaptive)')
+
+# グラフのラベル、タイトル、凡例などを設定
+plt.xlabel('Time [s]')
+plt.ylabel('y(t)')
+plt.title('First Order System Responses using Different Solvers')
+plt.legend(loc='best')
+plt.grid(True)
+plt.show()
