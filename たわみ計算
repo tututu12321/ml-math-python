@@ -1,0 +1,54 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# User input (measured values with a ruler)
+P = 1000  # Concentrated load (N)
+w = 500   # Uniformly distributed load (N/m)
+L = 5     # Length of the beam (m)
+E = 2.1e11  # Young's Modulus (Pa) for steel
+b = 0.1   # Cross-sectional width (m)
+h = 0.2   # Cross-sectional height (m)
+
+# Moment of inertia for a rectangular cross-section
+I = (b * h**3) / 12
+
+# Deflection calculation for concentrated load
+deflection_conc = (P * L**3) / (3 * E * I)
+
+# Deflection calculation for uniformly distributed load
+deflection_uniform = (w * L**4) / (8 * E * I)
+
+# Maximum bending moment calculations
+M_conc = P * L  # Maximum moment for concentrated load
+M_uniform = (w * L**2) / 2  # Maximum moment for uniformly distributed load
+
+# Displaying deflection results
+print(f"\nDeflection under concentrated load: {deflection_conc * 1e3:.2f} mm")
+print(f"Deflection under uniformly distributed load: {deflection_uniform * 1e3:.2f} mm")
+
+# Stress calculation (maximum stress)
+sigma_conc = M_conc / I  # Maximum stress for concentrated load
+sigma_uniform = M_uniform / I  # Maximum stress for uniformly distributed load
+
+print(f"\nMaximum stress under concentrated load: {sigma_conc / 1e6:.2f} MPa")
+print(f"Maximum stress under uniformly distributed load: {sigma_uniform / 1e6:.2f} MPa")
+
+# Deflection distribution plot
+x_vals = np.linspace(0, L, 100)
+
+# Deflection distribution for concentrated load
+deflection_conc_distribution = (P * L**3) / (3 * E * I) * (1 - x_vals / L)
+
+# Deflection distribution for uniformly distributed load
+deflection_uniform_distribution = (w * L**4) / (8 * E * I) * (1 - (x_vals / L)**2)
+
+# Plotting the deflection distributions
+plt.figure(figsize=(10, 6))
+plt.plot(x_vals, deflection_conc_distribution, label='Deflection under Concentrated Load')
+plt.plot(x_vals, deflection_uniform_distribution, label='Deflection under Uniformly Distributed Load')
+plt.title('Deflection Distribution for Cantilever Beam')
+plt.xlabel('Position along the Beam (m)')
+plt.ylabel('Deflection (m)')
+plt.legend()
+plt.grid(True)
+plt.show()
