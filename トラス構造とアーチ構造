@@ -1,0 +1,48 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
+# トラス構造のノードの位置
+nodes_truss = {
+    'A': (0, 0),   # ノードA (左下)
+    'B': (4, 0),   # ノードB (右下)
+    'C': (2, 4),   # ノードC (上)
+}
+
+# トラス構造のエッジ（部材）の定義
+edges_truss = [
+    ('A', 'B'),    # A-B
+    ('A', 'C'),    # A-C
+    ('B', 'C'),    # B-C
+]
+
+# アーチ構造の定義 (半円)
+x = np.linspace(-5, 5, 1000)  # x軸方向のデータ
+y = np.sqrt(25 - x**2)  # 半円アーチの式 (y^2 = r^2 - x^2)
+
+# グラフ描画
+fig, ax = plt.subplots(figsize=(8, 8))
+
+# トラス構造の描画
+for edge in edges_truss:
+    x_values = [nodes_truss[edge[0]][0], nodes_truss[edge[1]][0]]
+    y_values = [nodes_truss[edge[0]][1], nodes_truss[edge[1]][1]]
+    ax.plot(x_values, y_values, color='b', lw=2)  # トラス部材を青色で描画
+
+# トラス構造のノードを描画
+for node, (x_pos, y_pos) in nodes_truss.items():
+    ax.scatter(x_pos, y_pos, color='r')  # ノードを赤色で描画
+    ax.text(x_pos, y_pos, f' {node}', fontsize=12, ha='right')
+
+# アーチ構造の描画
+ax.plot(x, y, color='g', lw=2)  # アーチを緑色で描画
+
+# アーチの支点
+ax.scatter([-5, 5], [0, 0], color='k')  # 支点を黒色で描画
+
+# タイトル、軸設定
+ax.set_aspect('equal')
+plt.title('Truss and Arch Structure')
+plt.grid(True)
+plt.xlim(-6, 6)
+plt.ylim(0, 6)
+plt.show()
