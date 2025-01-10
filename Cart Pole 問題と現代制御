@@ -1,0 +1,89 @@
+import numpy as np
+import gym
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+from IPython.display import HTML
+from scipy.linalg import solve_continuous_are
+
+# 状態空間モデル
+m = 0.1  # ポールの質量 (kg)
+M = 1.0  # カートの質量 (kg)
+L = 0.5  # ポールの長さ (m)
+g = 9.8  # 重力加速度 (m/s^2)
+
+# システム行列
+A = np.array([[0, 1, 0, 0],
+              [0, 0, (m * g) / M, 0],
+              [0, 0, 0, 1],
+              [0, 0, 0, -(m * g) / M]])
+
+B = np.array([[0],
+              [1 / M],
+              [0],
+              [-1 / (M * L)]])
+
+# 重み行列
+Q = np.diag([1, 1, 10, 1])  # 状態の重み
+R = np.array([[1]])  # 入力の重み
+
+# 代数リカッチ方程式の解法
+P = solve_continuous_are(A, B, Q, R)
+
+# 最適ゲイン行列K
+K = np.linalg.inv(R).dot(B.T).dot(P)
+
+print("最適ゲイン行列K:", K)
+
+# CartPole環境の設定
+env = gym.make('CartPole-v1')
+env.reset()
+
+# グラフの設定
+fig, ax = plt.subplots()
+ax.set_xlim(-2.5, 2.5)
+ax.set_ylim(-1, 1)
+cart, = ax.plot([], [], 'bs', markersize=12, animated=True)  # カートのプロット
+pole, = ax.plot([], [], 'g-', linewidth=3, animated=True)  # ポールのプロット
+
+# 初期状態の設定
+state = env.reset()
+cart_position, cart_velocity, pole_angle, pole_velocity = state
+dt = 1.0 / 60  # 制御周期 (60Hz)
+
+# 初期化関数
+def init():
+    cart.set_data([], [])
+    pole.set_data([], [])
+    return cart, pole
+
+# 更新関数
+def update(frame):
+    global state
+    cart_position, cart_velocity, pole_angle, pole_velocity = state
+
+    # システムの状態ベクトル
+    x = np.array([cart_position, cart_velocity, pole_angle, pole_velocity])
+
+    # LQR制御による力の計算
+    u = -K.dot(x)  # 入力計算 (最適入力)
+
+    # アクションを0または1に変換 (左または右の動き)
+    action = 0 if u < 0 else 1  # uの符号に基づいて0または1を選択
+
+    # カートを動かす
+    state, reward, done, info = env.step(action)
+
+    cart_position, cart_velocity, pole_angle, pole_velocity = state
+
+    # カートの位置とポールの角度をプロット
+    cart.set_data([cart_position], [0])  # x座標とy座標をリストにする
+    pole.set_data([cart_position, cart_position + np.sin(pole_angle)],
+                  [0, np.cos(pole_angle)])
+    
+    return cart, pole
+
+# アニメーション作成
+ani = FuncAnimation(fig, update, frames=np.linspace(0, 2 * np.pi, 128), init_func=init, blit=True)
+
+# Google Colabでアニメーションを表示
+HTML(ani.to_html5_video())
