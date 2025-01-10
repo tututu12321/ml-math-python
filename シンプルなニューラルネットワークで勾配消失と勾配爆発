@@ -1,0 +1,75 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+# シンプルなニューラルネットワークの定義 (Define a simple neural network)
+class SimpleNN(nn.Module):
+    def __init__(self, activation_function):
+        super(SimpleNN, self).__init__()
+        # 3層の全結合層 (3 fully connected layers)
+        self.layer1 = nn.Linear(1, 100)  # 入力から100ユニット (From input to 100 units)
+        self.layer2 = nn.Linear(100, 100)  # 100ユニットから100ユニット (100 units to 100 units)
+        self.layer3 = nn.Linear(100, 1)  # 100ユニットから出力層 (100 units to output)
+        self.activation = activation_function  # 活性化関数を渡す
+
+    def forward(self, x):
+        x = self.activation(self.layer1(x))
+        x = self.activation(self.layer2(x))
+        x = self.layer3(x)
+        return x
+
+# 活性化関数の設定 (Choose activation function)
+activation_functions = {
+    'Sigmoid': nn.Sigmoid(),
+    'ReLU': nn.ReLU(),
+}
+
+# データ生成 (Generate some data)
+X = np.random.randn(100, 1).astype(np.float32)
+y = 2 * X + 3  # 線形関係 (linear relationship)
+
+# PyTorchのテンソルに変換 (Convert to PyTorch tensors)
+X_tensor = torch.from_numpy(X)
+y_tensor = torch.from_numpy(y)
+
+# 勾配消失と勾配爆発をシミュレート (Simulate vanishing and exploding gradients)
+gradients = {'Sigmoid': [], 'ReLU': []}
+
+for activation_name, activation_function in activation_functions.items():
+    # モデルを定義 (Define the model)
+    model = SimpleNN(activation_function)
+    
+    # 最適化器と損失関数を定義 (Define optimizer and loss function)
+    optimizer = optim.SGD(model.parameters(), lr=0.01)
+    criterion = nn.MSELoss()
+
+    # 1エポックの訓練 (Train for 1 epoch)
+    optimizer.zero_grad()
+    output = model(X_tensor)
+    loss = criterion(output, y_tensor)
+    loss.backward()  # 勾配計算 (Backpropagation to compute gradients)
+
+    # 勾配を記録 (Record the gradients)
+    gradients[activation_name].append(model.layer1.weight.grad.numpy())  # 最初の層の勾配を取得
+
+# 勾配の可視化 (Visualize the gradients)
+fig, axs = plt.subplots(1, 2, figsize=(12, 6))
+
+# 勾配消失 (Vanishing gradient)
+axs[0].plot(np.abs(gradients['Sigmoid'][0]), label="Sigmoid", color='blue')
+axs[0].set_title("Vanishing Gradient (Sigmoid)")
+axs[0].set_xlabel("Neuron Index")
+axs[0].set_ylabel("Gradient Magnitude")
+axs[0].grid(True)
+
+# 勾配爆発 (Exploding gradient)
+axs[1].plot(np.abs(gradients['ReLU'][0]), label="ReLU", color='red')
+axs[1].set_title("Exploding Gradient (ReLU)")
+axs[1].set_xlabel("Neuron Index")
+axs[1].set_ylabel("Gradient Magnitude")
+axs[1].grid(True)
+
+plt.tight_layout()
+plt.show()
