@@ -1,0 +1,72 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
+
+# Machine learning algorithms
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.neural_network import MLPClassifier
+
+# Data for bananas and apples with added noise
+# Features: weight (horizontal axis), color (0: red, 1: yellow)
+# Introduce noise by adding random values
+X = np.array([[100, 1], [120, 1], [130, 1], [110, 1],  # Banana data
+              [200, 0], [180, 0], [210, 0], [170, 0]])  # Apple data
+
+# Adding noise to the data to degrade accuracy
+X = X + np.random.normal(0, 20, X.shape)  # Adding noise with mean=0 and std=20
+
+# Labels: 0 = Apple, 1 = Banana
+y = np.array([1, 1, 1, 1, 0, 0, 0, 0])  # 0 for Apple, 1 for Banana
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# Dictionary of classifiers
+models = {
+    'Decision Tree': DecisionTreeClassifier(max_depth=3),  # Limiting depth for weaker performance
+    'Logistic Regression': LogisticRegression(max_iter=100),
+    'SVM': SVC(C=0.1),  # Reducing regularization strength
+    'KNN': KNeighborsClassifier(n_neighbors=5),
+    'Random Forest': RandomForestClassifier(n_estimators=10),  # Fewer trees
+    'Neural Network': MLPClassifier(max_iter=100, hidden_layer_sizes=(3,)),  # Small network
+    'Naive Bayes': GaussianNB(),
+    'Gradient Boosting': GradientBoostingClassifier(n_estimators=50, learning_rate=0.1)  # Smaller number of estimators
+}
+
+# Plotting setup
+plt.figure(figsize=(8, 6))
+
+# Loop through each model, train it, and display results
+for model_name, model in models.items():
+    # Train the model
+    model.fit(X_train, y_train)
+
+    # Make predictions
+    y_pred = model.predict(X_test)
+
+    # Calculate accuracy
+    accuracy = accuracy_score(y_test, y_pred)
+
+    # Plot results for each model
+    plt.subplot(3, 3, list(models.keys()).index(model_name) + 1)
+    plt.scatter(X_train[y_train == 1][:, 0], X_train[y_train == 1][:, 1], color='yellow', label='Banana', s=100, edgecolors='black')
+    plt.scatter(X_train[y_train == 0][:, 0], X_train[y_train == 0][:, 1], color='red', label='Apple', s=100, edgecolors='black')
+
+    plt.scatter(X_test[y_pred == 1][:, 0], X_test[y_pred == 1][:, 1], color='yellow', marker='*', label=f'Predicted: Banana', s=200)
+    plt.scatter(X_test[y_pred == 0][:, 0], X_test[y_pred == 0][:, 1], color='red', marker='*', label=f'Predicted: Apple', s=200)
+
+    plt.title(f'{model_name} Accuracy: {accuracy:.2f}')
+    plt.xlabel('Weight')
+    plt.ylabel('Color (0: Red, 1: Yellow)')
+    plt.legend()
+    plt.grid(True)
+
+# Adjust layout and display the plots
+plt.tight_layout()
+plt.show()
