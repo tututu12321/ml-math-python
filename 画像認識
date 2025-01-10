@@ -1,0 +1,48 @@
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+from google.colab.patches import cv2_imshow
+
+# Google Colab で画像をアップロードするためのコード
+from google.colab import files
+uploaded = files.upload()
+
+# アップロードした画像を読み込む
+image = cv2.imread(next(iter(uploaded)))
+
+# 画像をRGBに変換（OpenCVはBGRで読み込むため）
+image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+# グレースケールに変換
+gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+# 二値化（しきい値を使って画像を二値化）
+_, thresh = cv2.threshold(gray, 127, 255, cv2.THRESH_BINARY)
+
+# 輪郭を検出
+contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+# 正方形の検出と面積計算
+for contour in contours:
+    # 輪郭を近似（四角形かどうかを判断）
+    epsilon = 0.04 * cv2.arcLength(contour, True)
+    approx = cv2.approxPolyDP(contour, epsilon, True)
+
+    # 四角形が検出された場合
+    if len(approx) == 4:  # 四角形の輪郭が4つの頂点を持つ
+        # 頂点を描画
+        cv2.drawContours(image, [approx], -1, (0, 255, 0), 2)
+        
+        # 正方形か判定（縦と横が等しい場合）
+        (x, y, w, h) = cv2.boundingRect(approx)
+        
+        # 正方形の場合、面積を計算
+        if w == h:
+            area = w * h  # 面積 = 一辺 * 一辺
+            print(f"正方形の面積: {area} ピクセル")
+
+# 結果をMatplotlibで表示
+plt.figure(figsize=(10, 10))
+plt.imshow(image_rgb)
+plt.axis('off')  # 軸を非表示
+plt.show()
