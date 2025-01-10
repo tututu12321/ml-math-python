@@ -1,0 +1,128 @@
+import numpy as np
+import random
+import matplotlib.pyplot as plt
+
+# 放物線関数 f(x) = x^2
+def parabola(x):
+    return x**2
+
+# Q学習の設定
+n_episodes = 5000    # エピソード数を増加させて学習回数を増やす
+learning_rate = 0.001  # 学習率を小さく設定
+discount_factor = 0.99  # 割引率
+epsilon = 1.0          # 初期探索率
+epsilon_min = 0.01     # 最終的に探索を減少
+epsilon_decay = 0.995  # εの減少率
+n_steps = 500          # 各エピソード内のステップ数を増加
+
+# 状態空間: xの範囲を設定
+states = np.linspace(-0.001, 0.001, 1000)  # 状態空間の解像度を高くする
+state_space = len(states)
+
+# Qテーブル初期化
+Q = np.zeros(state_space)
+
+# 行動選択: ランダムに選択するか、Q値に基づいて選択する
+def epsilon_greedy(state_idx, epsilon):
+    if random.uniform(0, 1) < epsilon:
+        if state_idx == 0:
+            return state_idx + 1
+        elif state_idx == state_space - 1:
+            return state_idx - 1
+        else:
+            return random.choice([state_idx-1, state_idx+1])  # ランダム行動
+    else:
+        if state_idx == 0:
+            return state_idx + 1
+        elif state_idx == state_space - 1:
+            return state_idx - 1
+        else:
+            return state_idx - 1 if Q[state_idx - 1] < Q[state_idx + 1] else state_idx + 1
+
+# Q学習の実行
+q_progress = []  # Q値の進捗を記録するリスト
+epsilon_values = []  # 探索率（epsilon）の進捗を記録するリスト
+reward_per_episode = []  # 各エピソードの報酬を記録するリスト
+cumulative_reward = 0  # 累積報酬の初期化
+
+for episode in range(n_episodes):
+    state_idx = random.randint(0, state_space - 1)  # 初期状態をランダムに選択
+    epsilon = max(epsilon_min, epsilon * epsilon_decay)  # εを減少させて探索から活用に移行
+    total_reward = 0
+
+    for _ in range(n_steps):  # 各エピソード内のステップ数
+        next_state_idx = epsilon_greedy(state_idx, epsilon)  # 次の状態を選択
+
+        # 報酬計算: f(x) = x^2
+        reward = -parabola(states[next_state_idx])  # 最小化問題のため報酬は負の値
+
+        # Q値の更新
+        Q[state_idx] = Q[state_idx] + learning_rate * (reward + discount_factor * np.min(Q[next_state_idx]) - Q[state_idx])
+
+        # 次の状態に移行
+        state_idx = next_state_idx
+
+        total_reward += reward
+
+    reward_per_episode.append(total_reward)
+    cumulative_reward += total_reward
+    epsilon_values.append(epsilon)
+    q_progress.append(Q.copy())
+
+# 最もQ値が高い位置が最小値
+optimal_state_idx = np.argmin(Q)
+optimal_x = states[optimal_state_idx]
+optimal_y = parabola(optimal_x)
+
+# 結果の表示
+print(f"Q学習による最小値のx: {optimal_x}")
+
+# 放物線と学習結果をプロット
+x_values = np.linspace(-10, 10, 10000)
+y_values = parabola(x_values)
+
+plt.plot(x_values, y_values, label='Parabola f(x) = x^2')
+plt.scatter(optimal_x, optimal_y, color='red', label=f'Q-learning min: x={optimal_x:.2f}, y={optimal_y:.2f}')
+plt.title('Parabola and Minimum Value Found by Q-learning')
+plt.xlabel('x')
+plt.ylabel('f(x)')
+plt.legend()
+plt.show()
+
+# Q値の進捗をプロット
+plt.figure(figsize=(10, 6))
+for i in range(0, n_episodes, 1000):
+    plt.plot(states, q_progress[i], label=f'Episode {i+1}')
+
+plt.title('Q-value Progression over Episodes')
+plt.xlabel('State (x)')
+plt.ylabel('Q-value')
+plt.legend()
+plt.show()
+
+# 報酬の推移をプロット
+plt.figure(figsize=(10, 6))
+plt.plot(range(n_episodes), reward_per_episode, label='Reward per Episode')
+plt.title('Total Reward per Episode')
+plt.xlabel('Episode')
+plt.ylabel('Total Reward')
+plt.legend()
+plt.show()
+
+# 累積報酬の推移をプロット
+plt.figure(figsize=(10, 6))
+plt.plot(range(n_episodes), np.cumsum(reward_per_episode), label='Cumulative Reward')
+plt.title('Cumulative Reward over Episodes')
+plt.xlabel('Episode')
+plt.ylabel('Cumulative Reward')
+plt.legend()
+plt.show()
+
+# 探索率の進捗をプロット
+plt.figure(figsize=(10, 6))
+plt.plot(range(n_episodes), epsilon_values, label='Exploration Rate (epsilon)')
+plt.title('Exploration Rate (epsilon) over Episodes')
+plt.xlabel('Episode')
+plt.ylabel('Epsilon')
+plt.legend()
+plt.show()
