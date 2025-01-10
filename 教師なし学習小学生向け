@@ -1,0 +1,41 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+
+# 動物の特徴をデータとして定義
+# 特徴: [体の大きさ（小=1, 中=2, 大=3）, 足の数（2足=1, 4足=2）, 食べ物の種類（草食=1, 肉食=2）]
+data = np.array([
+    [1, 2, 1],  # ウサギ (小, 4足, 草食)
+    [3, 2, 1],  # ゾウ (大, 4足, 草食)
+    [2, 2, 2],  # 犬 (中, 4足, 肉食)
+    [2, 2, 2],  # 猫 (中, 4足, 肉食)
+    [1, 1, 1],  # 鳥 (小, 2足, 草食)
+    [2, 1, 2],  # 鷹 (中, 2足, 肉食)
+    [3, 2, 1],  # 馬 (大, 4足, 草食)
+])
+
+# k-meansクラスタリングを使用して、動物をグループ分けする
+kmeans = KMeans(n_clusters=2)  # 2つのグループに分ける
+kmeans.fit(data)  # データを使ってクラスタリングを行う
+
+# クラスタリング結果のラベルを取得（動物がどのグループに属するか）
+labels = kmeans.labels_
+
+# クラスタリング結果を可視化
+# x軸に体の大きさ、y軸に足の数をプロットし、色分けして表示
+plt.scatter(data[:, 0], data[:, 1], c=labels, cmap='viridis')  # ラベルに基づいて色分け
+plt.xlabel('Size (Small=1, Medium=2, Large=3)')  # 体の大きさ
+plt.ylabel('Number of Legs (2=2 Legs, 4=4 Legs)')  # 足の数
+plt.title('Animal Clustering by Size and Legs')  # グラフのタイトル
+
+# クラスタの中心を赤い「X」で表示
+centers = kmeans.cluster_centers_  # 各クラスタの中心
+plt.scatter(centers[:, 0], centers[:, 1], c='red', marker='X', s=200, label='Centroids')
+plt.legend()  # 凡例を表示
+
+# 結果を表示
+plt.show()
+
+# 各動物がどのグループに属するか表示
+for i, label in enumerate(labels):
+    print(f"Animal {i + 1}: Cluster {label + 1}")
