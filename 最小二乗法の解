@@ -1,0 +1,36 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# サンプルデータの作成 (Example data)
+# x0, x1,..., xM-1: 特徴量
+# t0, t1,..., tN-1: 対応するターゲット値
+# ここでは2次の多項式で近似する例を示す
+N = 10  # データの数 (Number of data points)
+M = 3   # 多項式の次数 (Degree of the polynomial)
+
+# 入力データ x (x0, x1,..., xM-1)
+x = np.linspace(0, 10, N)
+# 出力データ t (ターゲット値)
+t = 2 + 3 * x - 0.5 * x**2 + np.random.randn(N)  # 線形 + ノイズ
+
+# 1次元の入力データから、M次の特徴量を作成
+X = np.vstack([x**i for i in range(M)]).T  # XはN×Mの行列 (Design matrix)
+
+# 最小二乗法の解を求める (Solving for the coefficients using least squares)
+# w = (X.T X)^(-1) X.T t
+w = np.linalg.inv(X.T @ X) @ X.T @ t
+
+print(f"最適な係数 w: {w}")
+
+# 予測値の計算 (Calculate the predicted values)
+y_pred = X @ w
+
+# グラフで表示 (Plotting the data and the model)
+plt.scatter(x, t, label="Training data")  # 実際のデータ (Training data)
+plt.plot(x, y_pred, label="Fitted model", color='red')  # フィットしたモデル (Fitted model)
+plt.xlabel('x')
+plt.ylabel('t')
+plt.title('Least Squares Linear Regression')
+plt.legend()
+plt.grid(True)
+plt.show()
