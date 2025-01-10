@@ -1,0 +1,61 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.optimizers import SGD
+from tensorflow.keras.losses import MeanSquaredError
+from scipy.fftpack import fft
+
+# サイン波のデータ作成
+x = np.linspace(0, 2 * np.pi, 1000)  # 入力データ
+y = np.sin(x)  # サイン波の出力データ
+
+# データの分割（訓練データとテストデータ）
+x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
+
+# データの形状を調整（ニューラルネットワーク用に）
+x_train = x_train.reshape(-1, 1)
+x_test = x_test.reshape(-1, 1)
+
+# ニューラルネットワークのモデル構築
+model = Sequential([
+    Dense(8, activation='tanh', input_dim=1),  # 中間層（8ニューロン）
+    Dense(1)  # 出力層（1ニューロン）
+])
+
+# モデルのコンパイル
+model.compile(optimizer=SGD(learning_rate=0.01),  # 確率的勾配降下法
+              loss=MeanSquaredError())  # 損失関数: 平均二乗誤差
+
+# モデルの訓練
+history = model.fit(x_train, y_train, epochs=500, batch_size=32, verbose=0)  # バッチサイズ32
+
+# テストデータで予測
+y_pred = model.predict(x_test)
+
+# サイン波のプロット
+plt.figure(figsize=(12, 6))
+plt.plot(x, y, label='True Sine Wave', color='blue')
+plt.scatter(x_test, y_pred, color='red', label='Predicted (Test Data)', alpha=0.6)
+plt.title('Sine Wave Regression')
+plt.xlabel('x')
+plt.ylabel('y')
+plt.legend()
+plt.grid()
+plt.show()
+
+# FFTによる精度確認
+fft_true = np.abs(fft(y))
+fft_pred = np.abs(fft(model.predict(x.reshape(-1, 1)).flatten()))
+
+# FFTのプロット
+plt.figure(figsize=(12, 6))
+plt.plot(fft_true[:500], label='True FFT', color='blue')
+plt.plot(fft_pred[:500], label='Predicted FFT', color='red', linestyle='dashed')
+plt.title('FFT of True and Predicted Sine Wave')
+plt.xlabel('Frequency')
+plt.ylabel('Amplitude')
+plt.legend()
+plt.grid()
+plt.show()
