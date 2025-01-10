@@ -1,0 +1,59 @@
+import numpy as np
+import random
+
+# 迷路の環境（簡単な2D迷路）
+maze = [
+    [0, 0, 0, 0, 1],
+    [0, 1, 0, 1, 0],
+    [0, 1, 0, 0, 0],
+    [0, 0, 0, 1, 0],
+    [1, 0, 0, 0, 0]
+]
+
+# Q学習のパラメータ
+Q = np.zeros((5, 5, 4))  # 5x5の迷路、4方向（上、下、左、右）の行動
+gamma = 0.8  # 割引率
+alpha = 0.1  # 学習率
+epsilon = 0.1  # 探索の確率
+
+# 行動（上、下、左、右）
+actions = [(0, -1), (0, 1), (-1, 0), (1, 0)]  # 左、右、上、下
+
+# 報酬関数（ゴールに到達したら+1、壁は-1、それ以外は0）
+def reward(x, y):
+    if maze[x][y] == 1:
+        return -1  # 壁
+    elif x == 4 and y == 4:
+        return 1  # ゴール
+    return 0  # 通常
+
+# Q学習アルゴリズム
+def q_learning():
+    for episode in range(1000):  # 1000回のエピソードを実行
+        x, y = 0, 0  # スタート地点
+        done = False
+        
+        while not done:
+            if random.uniform(0, 1) < epsilon:
+                # 探索: ランダムに行動を選択
+                action = random.choice(range(4))
+            else:
+                # 利用: Q値が最大の行動を選択
+                action = np.argmax(Q[x, y])
+
+            # 次の状態を決定
+            dx, dy = actions[action]
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < 5 and 0 <= ny < 5 and maze[nx][ny] != 1:  # 壁でない場所なら移動
+                reward_value = reward(nx, ny)
+                Q[x, y, action] = (1 - alpha) * Q[x, y, action] + alpha * (reward_value + gamma * np.max(Q[nx, ny]))
+                x, y = nx, ny  # 新しい位置に移動
+                
+                if x == 4 and y == 4:  # ゴールに到達したら終了
+                    done = True
+
+q_learning()
+
+# 結果表示
+print("学習後のQテーブル:")
+print(Q)
