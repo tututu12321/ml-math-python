@@ -1,0 +1,29 @@
+import numpy as np
+import torch
+import torch.nn.functional as F
+
+# 入力テンソル（仮のデータ）
+# Q, K, V は通常、埋め込み空間の次元数に合わせて設定されます
+Q = torch.tensor([[1.0, 0.0], [0.0, 1.0], [1.0, 1.0]])  # クエリ
+K = torch.tensor([[1.0, 0.0], [0.0, 1.0], [1.0, 1.0]])  # キー
+V = torch.tensor([[1.0, 1.0], [1.0, 0.0], [0.0, 1.0]])  # バリュー
+
+# スケーリング係数（QとKの内積の大きさを調整するために使用）
+d_k = Q.size(-1)  # Qの次元数
+scaling_factor = np.sqrt(d_k)
+
+# 1. クエリとキーの内積を計算
+# QとKの内積で、各単語間の関連度を求めます
+attn_scores = torch.matmul(Q, K.T) / scaling_factor  # スケーリングした内積
+print("Attention Scores:")
+print(attn_scores)
+
+# 2. ソフトマックス関数を適用して注意重みを計算
+attn_weights = F.softmax(attn_scores, dim=-1)  # ソフトマックスを適用して正規化
+print("\nAttention Weights (after softmax):")
+print(attn_weights)
+
+# 3. 注意重みをバリュー（V）に掛け算して最終的な出力を得る
+output = torch.matmul(attn_weights, V)  # 重み付けされたVを掛け算
+print("\nOutput (Weighted Sum of Values):")
+print(output)
