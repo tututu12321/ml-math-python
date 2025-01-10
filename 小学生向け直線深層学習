@@ -1,0 +1,104 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout, BatchNormalization
+from tensorflow.keras.optimizers import Adam, SGD, RMSprop
+from tensorflow.keras.callbacks import EarlyStopping, LearningRateScheduler
+from tensorflow.keras.initializers import HeNormal
+from tensorflow.keras.regularizers import l2
+
+# データの生成（y = 2x + 1 の直線）
+np.random.seed(42)
+X = 2 * np.random.rand(1000, 1)
+y = 2 * X + 1 + np.random.randn(1000, 1)  # 直線 + 少しのノイズ
+
+# データの分割
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# ハイパーパラメータの設定
+learning_rate = 0.001  # 学習率
+epochs = 100  # エポック数
+batch_size = 32  # バッチサイズ
+dropout_rate = 0.3  # ドロップアウト率
+hidden_units = 64  # 隠れ層のユニット数
+optimizer = Adam(learning_rate=learning_rate)  # 最適化アルゴリズム（Adam）
+activation_function = 'relu'  # 活性化関数（ReLU）
+initializer = HeNormal()  # 重みの初期化方法（He初期化）
+regularization = l2(0.001)  # L2正則化（L2の重み減衰）
+
+# 学習率減衰の設定（エポックごとに学習率を減少）
+def lr_schedule(epoch):
+    return learning_rate * (0.95 ** epoch)
+
+# モデルの構築
+model = Sequential()
+
+# 入力層と隠れ層
+model.add(Dense(hidden_units, input_dim=1, activation=activation_function, kernel_initializer=initializer, kernel_regularizer=regularization))
+model.add(BatchNormalization())  # バッチ正規化
+model.add(Dropout(dropout_rate))  # ドロップアウト層
+
+# 2つ目の隠れ層
+model.add(Dense(hidden_units, activation=activation_function, kernel_initializer=initializer, kernel_regularizer=regularization))
+model.add(BatchNormalization())  # バッチ正規化
+model.add(Dropout(dropout_rate))  # ドロップアウト層
+
+# 出力層（1ユニット、線形回帰）
+model.add(Dense(1))
+
+# モデルのコンパイル
+model.compile(optimizer=optimizer, loss='mean_squared_error')
+
+# 早期停止（検証データの損失が改善しない場合に訓練を停止）
+early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+
+# 学習率スケジューリング
+lr_scheduler = LearningRateScheduler(lr_schedule)
+
+# モデルの訓練
+history = model.fit(X_train, y_train, epochs=epochs, batch_size=batch_size, 
+                    validation_data=(X_test, y_test), callbacks=[early_stopping, lr_scheduler])
+
+# モデルの評価
+y_pred = model.predict(X_test)
+mse = mean_squared_error(y_test, y_pred)
+
+# 結果の表示
+print(f'Mean Squared Error (MSE): {mse:.4f}')
+
+# 訓練過程のプロット
+plt.figure(figsize=(12, 6))
+
+# 損失のプロット
+plt.subplot(1, 2, 1)
+plt.plot(history.history['loss'], label='Train Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.title('Loss during Training')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.legend()
+
+# 精度のプロット（回帰問題なのでMSEをプロットします）
+plt.subplot(1, 2, 2)
+plt.plot(history.history['loss'], label='Train Loss')
+plt.plot(history.history['val_loss'], label='Validation Loss')
+plt.title('Loss during Training')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.legend()
+
+# グラフを表示
+plt.tight_layout()
+plt.show()
+
+# 回帰直線のプロット
+plt.figure(figsize=(8, 6))
+plt.scatter(X_test, y_test, color='blue', label='Test Data')  # テストデータ
+plt.plot(X_test, y_pred, color='red', label='Regression Line')  # 回帰直線
+plt.title('Linear Regression with Neural Network')
+plt.xlabel('X')
+plt.ylabel('y')
+plt.legend()
+plt.show()
