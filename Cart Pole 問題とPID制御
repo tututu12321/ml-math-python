@@ -1,0 +1,85 @@
+import gym
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+from IPython.display import HTML
+
+# PIDコントローラ
+class PIDController:
+    def __init__(self, Kp, Ki, Kd):
+        self.Kp = Kp  # 比例ゲイン
+        self.Ki = Ki  # 積分ゲイン
+        self.Kd = Kd  # 微分ゲイン
+        self.integral = 0
+        self.prev_error = 0
+
+    def update(self, error, dt):
+        # PID制御の計算
+        self.integral += error * dt
+        derivative = (error - self.prev_error) / dt
+        output = self.Kp * error + self.Ki * self.integral + self.Kd * derivative
+        self.prev_error = error
+        return output
+
+# CartPole環境の設定
+env = gym.make('CartPole-v1')
+env.reset()
+
+# PIDコントローラのパラメータ
+Kp = 1.0  # 比例ゲイン
+Ki = 0.1  # 積分ゲイン
+Kd = 0.01 # 微分ゲイン
+
+# PIDコントローラのインスタンス化
+pid = PIDController(Kp, Ki, Kd)
+
+# グラフの設定
+fig, ax = plt.subplots()
+ax.set_xlim(-2.5, 2.5)
+ax.set_ylim(-1, 1)
+cart, = ax.plot([], [], 'bs', markersize=12, animated=True)  # カートのプロット
+pole, = ax.plot([], [], 'g-', linewidth=3, animated=True)  # ポールのプロット
+
+# アニメーション用のデータ
+xdata, ydata = [], []
+
+# 初期状態の設定
+state = env.reset()
+cart_position, cart_velocity, pole_angle, pole_velocity = state
+dt = 1.0 / 60  # 制御周期 (60Hz)
+
+# 初期化関数
+def init():
+    cart.set_data([], [])
+    pole.set_data([], [])
+    return cart, pole
+
+# 更新関数
+def update(frame):
+    global state
+    cart_position, cart_velocity, pole_angle, pole_velocity = state
+
+    # エラーの計算 (目標はポールが垂直であること)
+    error = pole_angle
+
+    # PIDコントローラを使ってアクションを決定
+    force = pid.update(error, dt)
+
+    # アクションを適用 (カートを動かす)
+    action = 0 if force < 0 else 1  # PID出力に基づいて左右の動き
+    state, reward, done, info = env.step(action)
+
+    cart_position, cart_velocity, pole_angle, pole_velocity = state
+
+    # カートの位置とポールの角度をプロット
+    cart.set_data([cart_position], [0])  # x座標とy座標をリストにする
+    pole.set_data([cart_position, cart_position + np.sin(pole_angle)],
+                  [0, np.cos(pole_angle)])
+    
+    return cart, pole
+
+# アニメーション作成
+ani = FuncAnimation(fig, update, frames=np.linspace(0, 2 * np.pi, 128), init_func=init, blit=True)
+
+# Google Colabでアニメーションを表示
+HTML(ani.to_html5_video())
