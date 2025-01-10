@@ -1,0 +1,54 @@
+import gym
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+from IPython.display import HTML
+
+# CartPole環境の初期化
+env = gym.make('CartPole-v1')
+
+# 初期状態の取得
+state = env.reset()
+
+# アニメーション用の図と軸の設定
+fig, ax = plt.subplots(figsize=(6, 6))
+ax.set_xlim(-2.5, 2.5)
+ax.set_ylim(-2.5, 2.5)
+
+# Cart Poleの描画設定
+cart_width = 0.4
+cart_height = 0.2
+pole_length = 1.0
+
+# 初期の状態に基づいてアニメーションの更新
+def update(frame):
+    global state
+    ax.clear()  # 前のフレームを消去
+    ax.set_xlim(-2.5, 2.5)
+    ax.set_ylim(-2.5, 2.5)
+    
+    # ランダムなアクションの選択
+    action = env.action_space.sample()
+    state, reward, done, info = env.step(action)
+    
+    cart_position = state[0]
+    pole_angle = state[2]
+    
+    # Cartの描画
+    cart = plt.Rectangle((-cart_width / 2 + cart_position, -cart_height / 2), cart_width, cart_height, color='blue')
+    ax.add_patch(cart)
+    
+    # ポールの描画
+    pole_x = cart_position + np.sin(pole_angle) * pole_length
+    pole_y = np.cos(pole_angle) * pole_length
+    ax.plot([cart_position, pole_x], [0, pole_y], color='red', lw=4)
+    
+    # ゲームが終了した場合は環境をリセット
+    if done:
+        state = env.reset()
+
+# アニメーションの作成
+ani = FuncAnimation(fig, update, frames=200, interval=50, blit=False)
+
+# Google Colabでアニメーションを表示
+HTML(ani.to_html5_video())
