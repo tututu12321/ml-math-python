@@ -1,0 +1,74 @@
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 1. 学習データ (Training Data)
+# 入力データ（特徴量）
+X = torch.tensor([[0.0], [1.0], [2.0], [3.0]], dtype=torch.float32)
+# 正解ラベル（ターゲット）
+y = torch.tensor([[0.0], [1.0], [2.0], [3.0]], dtype=torch.float32)
+
+# 2. モデルの定義 (Model Definition)
+# シンプルな線形回帰モデル
+class SimpleModel(nn.Module):
+    def __init__(self):
+        super(SimpleModel, self).__init__()
+        self.linear = nn.Linear(1, 1)  # 1次元入力、1次元出力
+
+    def forward(self, x):
+        return self.linear(x)
+
+# モデルのインスタンス化
+model = SimpleModel()
+
+# 3. 損失関数 (Loss Function)
+# 平均二乗誤差損失
+criterion = nn.MSELoss()
+
+# 4. 最適化関数 (Optimizer)
+# 確率的勾配降下法 (SGD)
+optimizer = optim.SGD(model.parameters(), lr=0.01)
+
+# 5. 学習ループ (Training Loop)
+num_epochs = 1000
+losses = []
+
+for epoch in range(num_epochs):
+    # 予測計算 (Prediction Calculation)
+    outputs = model(X)
+    
+    # 損失の計算 (Loss Calculation)
+    loss = criterion(outputs, y)
+    
+    # 勾配の初期化
+    optimizer.zero_grad()
+    
+    # 勾配の計算 (Gradient Calculation)
+    loss.backward()
+    
+    # パラメータの更新 (Parameter Update)
+    optimizer.step()
+    
+    losses.append(loss.item())
+    
+    if epoch % 100 == 0:
+        print(f'Epoch [{epoch}/{num_epochs}], Loss: {loss.item():.4f}')
+
+# 6. 学習結果の表示 (Display Training Result)
+# 最適化されたモデルパラメータ
+print(f'Optimized weight: {model.linear.weight.item():.4f}, bias: {model.linear.bias.item():.4f}')
+
+# 損失関数のグラフ
+plt.plot(losses)
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.title('Training Loss')
+plt.show()
+
+# 7. モデルの予測 (Model Prediction)
+# 新しいデータに対する予測
+test_input = torch.tensor([[4.0]], dtype=torch.float32)
+prediction = model(test_input)
+print(f'Prediction for input 4.0: {prediction.item():.4f}')
