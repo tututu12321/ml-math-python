@@ -1,5 +1,13 @@
+# 必要なライブラリのインストール
+!pip install librosa
+!pip install matplotlib
+!pip install ipywidgets
+
 # 音声ファイルのアップロード
 from google.colab import files
+from IPython.display import Audio, display
+import ipywidgets as widgets
+
 uploaded = files.upload()
 
 # インポート
@@ -22,15 +30,47 @@ plt.xlabel("Time (s)")
 plt.ylabel("Amplitude")
 plt.show()
 
+# 音声再生ボタン
+def play_audio(_):
+    display(Audio(file_name))  # 音声ファイルの再生
+
+# 再生ボタンの作成
+play_button = widgets.Button(description="Play Audio")
+play_button.on_click(play_audio)
+
+# ボタンの表示
+display(play_button)
+
 # 短時間フーリエ変換 (STFT) の実行
 D = librosa.stft(y)  # STFTを計算
 D_db = librosa.amplitude_to_db(np.abs(D), ref=np.max)  # dBスケールに変換
 
-# スペクトログラムのプロット
+# スペクトログラムのプロット（STFT）
 plt.figure(figsize=(10, 6))
 librosa.display.specshow(D_db, sr=sr, x_axis='time', y_axis='log')
 plt.colorbar(format='%+2.0f dB')
 plt.title("Spectrogram (STFT) of the Audio Signal")
 plt.xlabel("Time (s)")
 plt.ylabel("Frequency (Hz)")
+plt.show()
+
+# FFT（通常のフーリエ変換）の実行
+# 音声信号全体にFFTを適用
+fft_result = np.fft.fft(y)
+fft_freq = np.fft.fftfreq(len(y), 1 / sr)  # FFTの周波数軸
+
+# FFT結果の絶対値（振幅）を取得
+fft_magnitude = np.abs(fft_result)
+
+# 高周波成分を除去（負の周波数を無視）
+positive_freqs = fft_freq[:len(fft_freq) // 2]
+positive_magnitude = fft_magnitude[:len(fft_magnitude) // 2]
+
+# FFTのプロット
+plt.figure(figsize=(10, 6))
+plt.plot(positive_freqs, positive_magnitude)
+plt.title("FFT of the Audio Signal")
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Magnitude")
+plt.grid(True)
 plt.show()
