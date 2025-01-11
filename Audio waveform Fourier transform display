@@ -1,0 +1,36 @@
+# 音声ファイルのアップロード
+from google.colab import files
+uploaded = files.upload()
+
+# インポート
+import librosa
+import librosa.display
+import matplotlib.pyplot as plt
+import numpy as np
+
+# アップロードした音声ファイルのファイル名を指定（アップロードされたファイル名を確認）
+file_name = 'Yarimasune.wav'  # ここにアップロードしたファイル名を指定
+
+# 音声データの読み込み
+y, sr = librosa.load(file_name, sr=None)  # sr=None は元のサンプリングレートを使用
+
+# 音声波形のプロット
+plt.figure(figsize=(10, 6))
+librosa.display.waveshow(y, sr=sr)
+plt.title("Waveform of the Audio Signal")
+plt.xlabel("Time (s)")
+plt.ylabel("Amplitude")
+plt.show()
+
+# 短時間フーリエ変換 (STFT) の実行
+D = librosa.stft(y)  # STFTを計算
+D_db = librosa.amplitude_to_db(np.abs(D), ref=np.max)  # dBスケールに変換
+
+# スペクトログラムのプロット
+plt.figure(figsize=(10, 6))
+librosa.display.specshow(D_db, sr=sr, x_axis='time', y_axis='log')
+plt.colorbar(format='%+2.0f dB')
+plt.title("Spectrogram (STFT) of the Audio Signal")
+plt.xlabel("Time (s)")
+plt.ylabel("Frequency (Hz)")
+plt.show()
