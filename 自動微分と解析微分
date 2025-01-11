@@ -1,0 +1,32 @@
+import torch
+import numpy as np
+
+# 1. 普通の微分（解析的微分）
+# 関数 f(x) = x^2 + 3 の解析的な微分は f'(x) = 2x です
+
+def analytical_derivative(x):
+    return 2 * x
+
+# 2. 自動微分（PyTorch）
+# PyTorchで自動微分を行うために、requires_grad=Trueでテンソルを作成
+x = torch.tensor([2.0], requires_grad=True)  # x = 2.0で勾配計算を追跡
+
+# 関数 f(x) = x^2 + 3
+y = x ** 2 + 3
+
+# 逆伝播を使って勾配を計算
+y.backward()  # 勾配を計算
+
+# 自動微分で得られた勾配
+auto_diff_grad = x.grad.item()
+
+# 3. 結果の比較
+print("普通の微分（解析的微分）: ", analytical_derivative(2.0))  # 解析的に計算された勾配 
+print("自動微分（PyTorch）: ", auto_diff_grad)  # PyTorchによる自動微分の結果
+
+# 4. 自動微分を省略せずに実装（PyTorchの背後で何が起きているかを理解するため）
+# 手動で勾配を計算する場合
+# f(x) = x^2 + 3 なので、f'(x) = 2x
+manual_grad = 2 * x.item()  # 手動で計算した勾配
+
+print("手動計算による勾配: ", manual_grad)
