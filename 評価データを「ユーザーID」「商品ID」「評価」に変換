@@ -1,0 +1,70 @@
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
+from surprise import SVD, Dataset, Reader
+from surprise.model_selection import train_test_split
+from surprise import accuracy
+import pandas as pd
+
+# 商品の評価行列を作成（ユーザー x 商品の評価行列）
+rating_matrix = np.array([
+    [5, 4, 0, 0, 3, 0],
+    [4, 0, 3, 2, 0, 5],
+    [0, 5, 0, 0, 4, 4],
+    [1, 0, 4, 5, 2, 0],
+    [0, 0, 5, 4, 3, 4]
+])
+
+# 1. コサイン類似度を使用して商品の類似度を計算
+product_similarity = cosine_similarity(rating_matrix.T)
+
+# 類似度行列を表示
+print("商品間の類似度行列:")
+print(product_similarity)
+
+# 2. 評価データを「ユーザーID」「商品ID」「評価」に変換
+user_item_data = []
+for user_id, ratings in enumerate(rating_matrix):
+    for item_id, rating in enumerate(ratings):
+        if rating > 0:  # 評価がある商品を対象
+            user_item_data.append((user_id, item_id, rating))
+
+# user_item_dataをpandasのDataFrameに変換
+df = pd.DataFrame(user_item_data, columns=['user_id', 'item_id', 'rating'])
+
+# Surpriseライブラリでデータセットを作成
+reader = Reader(rating_scale=(1, 5))
+data = Dataset.load_from_df(df, reader)
+
+# データを訓練データとテストデータに分割
+trainset, testset = train_test_split(data, test_size=0.2)
+
+# SVD（行列因子分解）を使用
+svd = SVD()
+svd.fit(trainset)
+
+# モデルを評価する
+predictions = svd.test(testset)
+rmse = accuracy.rmse(predictions)
+print(f"RMSE: {rmse}")
+
+# 3. ユーザーに商品を推薦する
+def recommend(user_id, rating_matrix, svd_model, n_recommendations=3):
+    # ユーザーが未評価の商品を探す
+    user_ratings = rating_matrix[user_id, :]
+    unreviewed_items = np.where(user_ratings == 0)[0]
+    
+    # 未評価の商品に対する予測評価を行う
+    predicted_ratings = []
+    for item_id in unreviewed_items:
+        prediction = svd_model.predict(user_id, item_id)
+        predicted_ratings.append((item_id, prediction.est))
+
+    # 評価が高い商品を推薦
+    recommended_items = sorted(predicted_ratings, key=lambda x: x[1], reverse=True)[:n_recommendations]
+    return recommended_items
+
+# 例: ユーザー0に対する商品推薦
+recommended = recommend(0, rating_matrix, svd)
+print("\n推薦商品:")
+for item_id, rating in recommended:
+    print(f"商品ID: {item_id}, 予測評価: {rating:.2f}")
