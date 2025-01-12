@@ -1,0 +1,38 @@
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics import precision_score, recall_score
+import numpy as np
+
+# 検索対象の文書とクエリ
+documents = [
+    "The quick brown fox jumps over the lazy dog.",
+    "Never jump over the lazy dog again.",
+    "The dog sleeps under the tree.",
+    "A quick brown fox is fast."
+]
+
+query = ["quick brown fox"]  # 検索クエリ
+
+# TF-IDFベクトライザーの準備と変換
+vectorizer = TfidfVectorizer()
+tfidf_matrix = vectorizer.fit_transform(documents)
+
+# クエリのTF-IDFベクトル
+query_vector = vectorizer.transform(query)
+
+# コサイン類似度の計算
+cosine_similarities = np.dot(query_vector, tfidf_matrix.T).toarray().flatten()
+
+# 閾値を設定し、適合・不適合を判定（上位2つの結果が適合とする）
+threshold = 0.1  # 類似度がこの値以上なら表示されると仮定
+
+# 適合・不適合の表示
+displayed = [1 if score >= threshold else 0 for score in cosine_similarities]  # 1: 表示、0: 非表示
+relevant = [1, 0, 1, 1]  # 実際に適合している文書のインデックス (手動で指定)
+
+# 適合率と再現率の計算
+precision = precision_score(relevant, displayed)
+recall = recall_score(relevant, displayed)
+
+# 結果の表示
+print(f"適合率 (Precision): {precision:.2f}")
+print(f"再現率 (Recall): {recall:.2f}")
