@@ -1,0 +1,127 @@
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from transformers import BertModel, BertTokenizer
+
+# --- 1. Simple RNN Model ---
+class SimpleRNN(nn.Module):
+    def __init__(self, input_dim, hidden_dim, output_dim):
+        super(SimpleRNN, self).__init__()
+        self.rnn = nn.RNN(input_dim, hidden_dim, batch_first=True)
+        self.fc = nn.Linear(hidden_dim, output_dim)
+    
+    def forward(self, x):
+        out, _ = self.rnn(x)
+        out = self.fc(out[:, -1, :])  # Last time step
+        return out
+
+# --- 2. Simple LSTM Model ---
+class SimpleLSTM(nn.Module):
+    def __init__(self, input_dim, hidden_dim, output_dim):
+        super(SimpleLSTM, self).__init__()
+        self.lstm = nn.LSTM(input_dim, hidden_dim, batch_first=True)
+        self.fc = nn.Linear(hidden_dim, output_dim)
+    
+    def forward(self, x):
+        out, _ = self.lstm(x)
+        out = self.fc(out[:, -1, :])  # Last time step
+        return out
+
+# --- 3. Simple GAN (Generator and Discriminator) ---
+class Generator(nn.Module):
+    def __init__(self, z_dim, output_dim):
+        super(Generator, self).__init__()
+        self.fc = nn.Sequential(
+            nn.Linear(z_dim, 128),
+            nn.ReLU(),
+            nn.Linear(128, output_dim),
+            nn.Tanh()
+        )
+    
+    def forward(self, z):
+        return self.fc(z)
+
+class Discriminator(nn.Module):
+    def __init__(self, input_dim):
+        super(Discriminator, self).__init__()
+        self.fc = nn.Sequential(
+            nn.Linear(input_dim, 128),
+            nn.ReLU(),
+            nn.Linear(128, 1),
+            nn.Sigmoid()
+        )
+    
+    def forward(self, x):
+        return self.fc(x)
+
+# --- 4. Simple Transformer Model ---
+class SimpleTransformer(nn.Module):
+    def __init__(self, input_dim, model_dim, num_heads, num_layers, output_dim):
+        super(SimpleTransformer, self).__init__()
+
+        # Ensure model_dim is divisible by num_heads
+        assert model_dim % num_heads == 0, "model_dim must be divisible by num_heads"
+
+        self.embedding = nn.Embedding(input_dim, model_dim)
+        self.transformer_encoder = nn.TransformerEncoder(
+            nn.TransformerEncoderLayer(d_model=model_dim, nhead=num_heads),
+            num_layers=num_layers
+        )
+        self.fc = nn.Linear(model_dim, output_dim)
+    
+    def forward(self, x):
+        x = self.embedding(x)
+        x = self.transformer_encoder(x)
+        x = x.mean(dim=1)  # Aggregate across sequence
+        return self.fc(x)
+
+# --- 5. Using BERT for text representation ---
+def get_bert_embeddings(text):
+    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+    model = BertModel.from_pretrained('bert-base-uncased')
+    inputs = tokenizer(text, return_tensors='pt', padding=True, truncation=True)
+    outputs = model(**inputs)
+    return outputs.last_hidden_state.mean(dim=1)  # Pooling
+
+# Sample Input Data
+batch_size = 5
+seq_len = 10
+input_dim = 20
+hidden_dim = 50
+output_dim = 2
+z_dim = 100
+
+# Random Data for RNN and LSTM
+x = torch.randn(batch_size, seq_len, input_dim)
+
+# --- RNN Example ---
+rnn_model = SimpleRNN(input_dim, hidden_dim, output_dim)
+rnn_output = rnn_model(x)
+
+# --- LSTM Example ---
+lstm_model = SimpleLSTM(input_dim, hidden_dim, output_dim)
+lstm_output = lstm_model(x)
+
+# --- GAN Example (Generate Random Data) ---
+z = torch.randn(batch_size, z_dim)
+generator = Generator(z_dim, input_dim)
+discriminator = Discriminator(input_dim)
+fake_data = generator(z)
+discriminator_output = discriminator(fake_data)
+
+# --- Transformer Example ---
+model_dim = 128  # Set model_dim to be divisible by num_heads
+num_heads = 4    # 128 is divisible by 4
+transformer_model = SimpleTransformer(input_dim, model_dim, num_heads, 2, output_dim)
+transformer_output = transformer_model(torch.randint(0, input_dim, (batch_size, seq_len)))
+
+# --- BERT Example ---
+text = ["Hello, how are you?", "This is a simple example."]
+bert_embeddings = get_bert_embeddings(text)
+
+# Output
+print("RNN Output:", rnn_output)
+print("LSTM Output:", lstm_output)
+print("GAN Discriminator Output:", discriminator_output)
+print("Transformer Output:", transformer_output)
+print("BERT Embeddings:", bert_embeddings)
