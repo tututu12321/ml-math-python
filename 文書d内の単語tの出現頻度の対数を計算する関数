@@ -1,0 +1,24 @@
+import math
+
+def tf_log(t, d):
+    """
+    t: 索引語（検索する単語）
+    d: 文書（テキストデータ）
+    
+    tf_log(t, d)は、文書d内の単語tの出現頻度の対数を計算する関数
+    """
+    # 文書 d を単語ごとに分割
+    words = d.split()
+    
+    # 文書 d 内での単語の出現回数を取得
+    t_count = words.count(t)
+    
+    # ログ関数による計算（1 + 出現回数）
+    return math.log(1 + t_count)
+
+# 例
+document = "apple banana apple orange apple apple"
+term = "apple"
+
+# tf_log(t, d) の呼び出し
+print(f"Log TF of '{term}':", tf_log(term, document))
