@@ -1,0 +1,65 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Generate some example data (linear relationship: y = 2x + 1)
+np.random.seed(42)
+X = np.random.randn(100, 1)  # 100 data points
+y = 2 * X + 1 + np.random.randn(100, 1) * 0.1  # Linear data with noise
+
+# Initial parameters for the model (slope and intercept)
+w = np.random.randn(1)
+b = np.random.randn(1)
+
+# Hyperparameters
+learning_rate = 0.1
+epochs = 1000
+
+# Loss function (Mean Squared Error)
+def loss_function(X, y, w, b):
+    predictions = w * X + b
+    return np.mean((predictions - y) ** 2)
+
+# Gradient descent update rule
+def gradient_descent(X, y, w, b, learning_rate):
+    # Calculate predictions
+    predictions = w * X + b
+    
+    # Compute gradients
+    dw = np.mean(2 * (predictions - y) * X)
+    db = np.mean(2 * (predictions - y))
+    
+    # Update parameters
+    w -= learning_rate * dw
+    b -= learning_rate * db
+    
+    return w, b
+
+# Training loop
+losses = []
+for epoch in range(epochs):
+    # Update parameters using gradient descent
+    w, b = gradient_descent(X, y, w, b, learning_rate)
+    
+    # Compute the loss for this iteration
+    loss = loss_function(X, y, w, b)
+    losses.append(loss)
+    
+    # Print progress every 100 epochs
+    if epoch % 100 == 0:
+        print(f"Epoch {epoch+1}/{epochs}, Loss: {loss}")
+
+# Plot the loss over iterations
+plt.plot(range(epochs), losses)
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.title('Loss Function Progression')
+plt.show()
+
+# Plot the result
+plt.scatter(X, y, color='blue', label='Data')
+plt.plot(X, w * X + b, color='red', label='Model Prediction')
+plt.xlabel('X')
+plt.ylabel('y')
+plt.legend()
+plt.title('Prediction Model')
+plt.show()
