@@ -1,0 +1,46 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Define the rotation angle (in degrees, then converted to radians)
+theta = np.radians(45)
+
+# Define the original vector (x, y)
+x, y = 1, 0  # A simple vector along the x-axis
+
+# Rotation matrix for 2D vector
+R = np.array([[np.cos(theta), -np.sin(theta)],
+              [np.sin(theta), np.cos(theta)]])
+
+# Applying the rotation matrix to the vector
+vector = np.array([x, y])
+rotated_vector = np.dot(R, vector)
+
+# Complex number rotation using Euler's formula
+z = x + 1j * y  # Original complex number (x + yi)
+z_rotated = z * np.exp(1j * theta)  # Rotated complex number using e^(iθ)
+
+# Create the plot
+plt.figure(figsize=(6, 6))
+
+# Plot original vector (blue) and rotated vector (red)
+plt.quiver(0, 0, x, y, angles='xy', scale_units='xy', scale=1, color="blue", label="Original Vector (x, y)")
+plt.quiver(0, 0, rotated_vector[0], rotated_vector[1], angles='xy', scale_units='xy', scale=1, color="red", label="Rotated Vector (Matrix)")
+
+# Plot the original complex number and its rotated counterpart
+plt.quiver(0, 0, np.real(z), np.imag(z), angles='xy', scale_units='xy', scale=1, color="green", label="Original Complex Number (z)")
+plt.quiver(0, 0, np.real(z_rotated), np.imag(z_rotated), angles='xy', scale_units='xy', scale=1, color="orange", label="Rotated Complex Number (z')")
+
+# Set up the plot limits and grid
+plt.xlim(-1.5, 1.5)
+plt.ylim(-1.5, 1.5)
+plt.axhline(0, color='black',linewidth=0.5)
+plt.axvline(0, color='black',linewidth=0.5)
+plt.grid(True)
+plt.gca().set_aspect('equal', adjustable='box')
+
+# Add a legend and title
+plt.legend()
+plt.title('Vector and Complex Number Rotation Using Matrix and Euler\'s Formula')
+
+# Display the plot
+plt.show()
