@@ -1,0 +1,77 @@
+import nltk
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.preprocessing import OneHotEncoder
+from nltk.tokenize import word_tokenize
+from nltk.stem import WordNetLemmatizer
+
+# NLTKデータのダウンロード（最初の実行時のみ）
+nltk.download('punkt')
+nltk.download('wordnet')
+
+# サンプルテキスト
+texts = [
+    "I love programming in Python!",
+    "Python is great for data science.",
+    "Data science is a combination of statistics and programming.",
+]
+
+# 1. クレンジング：特殊文字と余分な空白の削除、小文字化
+def clean_text(text):
+    text = text.lower()  # 小文字化
+    text = re.sub(r'\d+', '', text)  # 数字の削除
+    text = re.sub(r'[^\w\s]', '', text)  # 特殊文字の削除
+    return text
+
+cleaned_texts = [clean_text(text) for text in texts]
+print("Cleaned Texts:")
+print(cleaned_texts)
+
+# 2. 単語分割 (Tokenization)
+def tokenize(text):
+    return word_tokenize(text)
+
+tokenized_texts = [tokenize(text) for text in cleaned_texts]
+print("\nTokenized Texts:")
+print(tokenized_texts)
+
+# 3. 正規化 (語形変化の統一、ステミング)
+lemmatizer = WordNetLemmatizer()
+
+def lemmatize(tokens):
+    return [lemmatizer.lemmatize(token) for token in tokens]
+
+lemmatized_texts = [lemmatize(tokens) for tokens in tokenized_texts]
+print("\nLemmatized Texts:")
+print(lemmatized_texts)
+
+# 4. 単語のベクトル化（TF-IDF）
+vectorizer = TfidfVectorizer()
+tfidf_matrix = vectorizer.fit_transform([' '.join(text) for text in lemmatized_texts])
+
+print("\nTF-IDF Matrix:")
+print(tfidf_matrix.toarray())
+
+# 5. ワンホットエンコーディング
+encoder = OneHotEncoder(sparse_output=False)  # ここを修正
+
+# ワンホットエンコーディングのために、単語をリストとして一列に展開
+all_words = [word for text in lemmatized_texts for word in text]
+word_set = list(set(all_words))  # ユニークな単語を取り出す
+word_array = np.array(word_set).reshape(-1, 1)
+
+one_hot_matrix = encoder.fit_transform(word_array)
+print("\nOne-Hot Encoded Matrix:")
+print(one_hot_matrix)
+
+# 6. Word2Vecで単語ベクトル化
+from gensim.models import Word2Vec
+
+# Word2Vecモデルの訓練
+model = Word2Vec(lemmatized_texts, vector_size=10, window=5, min_count=1, workers=4)
+
+# 単語のベクトル表示
+word_vectors = {word: model.wv[word] for word in model.wv.index_to_key}
+print("\nWord2Vec Vectors:")
+for word, vector in word_vectors.items():
+    print(f"{word}: {vector}")
