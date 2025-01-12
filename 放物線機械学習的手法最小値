@@ -1,0 +1,148 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 二次関数の定義
+def f(x):
+    return x**2 - 4*x + 4
+
+# 二次関数の勾配（導関数）
+def df(x):
+    return 2*x - 4
+
+# 学習率と更新アルゴリズムを定義
+def sgd(lr, x, grad):
+    return x - lr * grad
+
+def momentum(lr, x, grad, v, beta=0.9):
+    v = beta * v + (1 - beta) * grad
+    return x - lr * v, v
+
+def adagrad(lr, x, grad, cache):
+    cache += grad**2
+    return x - lr * grad / (np.sqrt(cache) + 1e-8), cache
+
+def rmsprop(lr, x, grad, cache, beta=0.9):
+    cache = beta * cache + (1 - beta) * grad**2
+    return x - lr * grad / (np.sqrt(cache) + 1e-8), cache
+
+def adam(lr, x, grad, m, v, t, beta1=0.9, beta2=0.999, epsilon=1e-8):
+    m = beta1 * m + (1 - beta1) * grad
+    v = beta2 * v + (1 - beta2) * grad**2
+    m_hat = m / (1 - beta1**t)
+    v_hat = v / (1 - beta2**t)
+    x = x - lr * m_hat / (np.sqrt(v_hat) + epsilon)
+    return x, m, v
+
+# 初期設定
+x_init = 0.0  # 初期点
+lr = 0.1  # 学習率
+iterations = 100  # 更新回数
+
+# それぞれのアルゴリズムを用いた最適化
+x_sgd = x_init
+x_momentum = x_init
+x_adagrad = x_init
+x_rmsprop = x_init
+x_adam = x_init
+
+v_momentum = 0
+cache_adagrad = 0
+cache_rmsprop = 0
+m_adam, v_adam = 0, 0
+
+x_sgd_history = [x_sgd]
+x_momentum_history = [x_momentum]
+x_adagrad_history = [x_adagrad]
+x_rmsprop_history = [x_rmsprop]
+x_adam_history = [x_adam]
+
+for t in range(1, iterations + 1):
+    grad = df(x_sgd)
+    
+    # SGD
+    x_sgd = sgd(lr, x_sgd, grad)
+    x_sgd_history.append(x_sgd)
+
+    # Momentum
+    x_momentum, v_momentum = momentum(lr, x_momentum, grad, v_momentum)
+    x_momentum_history.append(x_momentum)
+
+    # AdaGrad
+    x_adagrad, cache_adagrad = adagrad(lr, x_adagrad, grad, cache_adagrad)
+    x_adagrad_history.append(x_adagrad)
+
+    # RMSProp
+    x_rmsprop, cache_rmsprop = rmsprop(lr, x_rmsprop, grad, cache_rmsprop)
+    x_rmsprop_history.append(x_rmsprop)
+
+    # Adam
+    x_adam, m_adam, v_adam = adam(lr, x_adam, grad, m_adam, v_adam, t)
+    x_adam_history.append(x_adam)
+
+# グラフ表示
+x = np.linspace(-2, 6, 400)
+y = f(x)
+
+# 最終的な最小値の表示
+print(f"最終的な最小値:")
+print(f"SGD: {x_sgd_history[-1]}, f(x) = {f(x_sgd_history[-1])}")
+print(f"Momentum: {x_momentum_history[-1]}, f(x) = {f(x_momentum_history[-1])}")
+print(f"AdaGrad: {x_adagrad_history[-1]}, f(x) = {f(x_adagrad_history[-1])}")
+print(f"RMSProp: {x_rmsprop_history[-1]}, f(x) = {f(x_rmsprop_history[-1])}")
+print(f"Adam: {x_adam_history[-1]}, f(x) = {f(x_adam_history[-1])}")
+
+# 各アルゴリズムの最適化経路
+plt.figure(figsize=(8, 6))
+plt.plot(x, y, label="f(x) = x^2 - 4x + 4", color='gray', linestyle='--')
+plt.plot(x_sgd_history, f(np.array(x_sgd_history)), label='SGD', marker='o', color='red')
+plt.axvline(x=2, color='black', linestyle=':', label='Global Minimum (x=2)')
+plt.title('SGD Optimization')
+plt.xlabel('x')
+plt.ylabel('f(x)')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+plt.figure(figsize=(8, 6))
+plt.plot(x, y, label="f(x) = x^2 - 4x + 4", color='gray', linestyle='--')
+plt.plot(x_momentum_history, f(np.array(x_momentum_history)), label='Momentum', marker='o', color='blue')
+plt.axvline(x=2, color='black', linestyle=':', label='Global Minimum (x=2)')
+plt.title('Momentum Optimization')
+plt.xlabel('x')
+plt.ylabel('f(x)')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+plt.figure(figsize=(8, 6))
+plt.plot(x, y, label="f(x) = x^2 - 4x + 4", color='gray', linestyle='--')
+plt.plot(x_adagrad_history, f(np.array(x_adagrad_history)), label='AdaGrad', marker='o', color='green')
+plt.axvline(x=2, color='black', linestyle=':', label='Global Minimum (x=2)')
+plt.title('AdaGrad Optimization')
+plt.xlabel('x')
+plt.ylabel('f(x)')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+plt.figure(figsize=(8, 6))
+plt.plot(x, y, label="f(x) = x^2 - 4x + 4", color='gray', linestyle='--')
+plt.plot(x_rmsprop_history, f(np.array(x_rmsprop_history)), label='RMSProp', marker='o', color='purple')
+plt.axvline(x=2, color='black', linestyle=':', label='Global Minimum (x=2)')
+plt.title('RMSProp Optimization')
+plt.xlabel('x')
+plt.ylabel('f(x)')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+plt.figure(figsize=(8, 6))
+plt.plot(x, y, label="f(x) = x^2 - 4x + 4", color='gray', linestyle='--')
+plt.plot(x_adam_history, f(np.array(x_adam_history)), label='Adam', marker='o', color='orange')
+plt.axvline(x=2, color='black', linestyle=':', label='Global Minimum (x=2)')
+plt.title('Adam Optimization')
+plt.xlabel('x')
+plt.ylabel('f(x)')
+plt.legend()
+plt.grid(True)
+plt.show()
