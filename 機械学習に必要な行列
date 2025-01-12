@@ -1,0 +1,48 @@
+import numpy as np
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
+
+# Generate sample data (10 data points with 2 features)
+np.random.seed(42)
+X = np.random.randn(10, 2)
+
+# Normalize the data using StandardScaler (normalizing each feature to have mean 0 and variance 1)
+scaler = StandardScaler()
+X_normalized = scaler.fit_transform(X)
+
+# Tangent Vector - Using the gradient of a simple function as the tangent vector
+def simple_function(x, y):
+    return x**2 + y**2  # Simple quadratic function for demonstration
+
+# Calculate the gradient (tangent vector) of the function at each point
+def gradient_of_function(X):
+    grad = np.zeros_like(X)
+    grad[:, 0] = 2 * X[:, 0]  # Derivative with respect to x
+    grad[:, 1] = 2 * X[:, 1]  # Derivative with respect to y
+    return grad
+
+# Compute tangent vectors (gradients) for the normalized data
+tangent_vectors = gradient_of_function(X_normalized)
+
+# Tangent Matrix - In this case, it's the Jacobian of the function (same as gradients for this function)
+tangent_matrix = np.zeros((2, 2))  # Jacobian matrix (for a 2D function)
+tangent_matrix[0, 0] = 2  # Partial derivative with respect to x
+tangent_matrix[1, 1] = 2  # Partial derivative with respect to y
+
+# Hadamard Product (element-wise multiplication of two matrices or vectors)
+hadamard_product = np.multiply(X_normalized, tangent_vectors)  # Element-wise multiplication
+
+# Plot the original and tangent vectors for visualization
+plt.quiver(X_normalized[:, 0], X_normalized[:, 1], tangent_vectors[:, 0], tangent_vectors[:, 1], angles='xy', scale_units='xy', scale=1, color='r', label='Tangent Vectors')
+plt.scatter(X_normalized[:, 0], X_normalized[:, 1], color='b', label='Normalized Points')
+plt.title('Normalized Points and Tangent Vectors')
+plt.xlabel('Feature 1')
+plt.ylabel('Feature 2')
+plt.legend()
+plt.show()
+
+# Print results for verification
+print("Normalized Data:\n", X_normalized)
+print("Tangent Vectors (Gradients):\n", tangent_vectors)
+print("Tangent Matrix (Jacobian):\n", tangent_matrix)
+print("Hadamard Product:\n", hadamard_product)
