@@ -1,0 +1,37 @@
+import numpy as np
+from sklearn.decomposition import NMF
+
+# 評価値行列 (ユーザー × アイテム)
+R = np.array([
+    [5, 4, 0, 0, 3, 0],
+    [4, 0, 3, 2, 0, 5],
+    [0, 5, 0, 0, 4, 4],
+    [1, 0, 4, 5, 2, 0],
+    [0, 0, 5, 4, 3, 4]
+])
+
+# NMFによる因子分解
+n_components = 2  # 潜在因子の数（例：2）
+nmf = NMF(n_components=n_components, init='random', random_state=42)
+
+# ユーザー因子行列 (U) と アイテム因子行列 (V) の分解
+U = nmf.fit_transform(R)  # ユーザー因子行列
+V = nmf.components_       # アイテム因子行列
+
+# 評価値行列の予測値 (R_hat)
+R_hat = np.dot(U, V)  # ユーザー因子行列とアイテム因子行列の積
+
+# 残差行列 (R - R_hat)
+residual_matrix = R - R_hat
+
+# 結果の表示
+print("評価値行列 (R):")
+print(R)
+print("\nユーザー因子行列 (U):")
+print(U)
+print("\nアイテム因子行列 (V):")
+print(V)
+print("\n予測評価値行列 (R_hat):")
+print(R_hat)
+print("\n残差行列 (R - R_hat):")
+print(residual_matrix)
