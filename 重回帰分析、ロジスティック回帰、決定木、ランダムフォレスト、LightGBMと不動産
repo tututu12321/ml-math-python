@@ -1,0 +1,103 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression, LogisticRegression
+from sklearn.tree import DecisionTreeRegressor, DecisionTreeClassifier
+from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier
+from lightgbm import LGBMRegressor, LGBMClassifier
+from sklearn.metrics import mean_squared_error, accuracy_score
+from sklearn.datasets import make_classification
+
+# 回帰用サンプルデータの生成
+X_reg, y_reg = np.random.rand(100, 1) * 10, np.random.rand(100) * 100000
+
+# 分類用サンプルデータの生成
+X_cls, y_cls = make_classification(n_samples=100, n_features=3, n_informative=2, n_classes=2)
+
+# 回帰問題のためにデータを訓練用とテスト用に分割
+X_train_reg, X_test_reg, y_train_reg, y_test_reg = train_test_split(X_reg, y_reg, test_size=0.2, random_state=42)
+
+# 分類問題のためにデータを訓練用とテスト用に分割
+X_train_cls, X_test_cls, y_train_cls, y_test_cls = train_test_split(X_cls, y_cls, test_size=0.2, random_state=42)
+
+# 回帰モデル
+# 重回帰分析
+lin_reg = LinearRegression()
+lin_reg.fit(X_train_reg, y_train_reg)
+y_pred_reg = lin_reg.predict(X_test_reg)
+mse_lin_reg = mean_squared_error(y_test_reg, y_pred_reg)
+
+# 決定木回帰
+tree_reg = DecisionTreeRegressor()
+tree_reg.fit(X_train_reg, y_train_reg)
+y_pred_tree_reg = tree_reg.predict(X_test_reg)
+mse_tree_reg = mean_squared_error(y_test_reg, y_pred_tree_reg)
+
+# ランダムフォレスト回帰
+rf_reg = RandomForestRegressor()
+rf_reg.fit(X_train_reg, y_train_reg)
+y_pred_rf_reg = rf_reg.predict(X_test_reg)
+mse_rf_reg = mean_squared_error(y_test_reg, y_pred_rf_reg)
+
+# LightGBM回帰
+lgbm_reg = LGBMRegressor()
+lgbm_reg.fit(X_train_reg, y_train_reg)
+y_pred_lgbm_reg = lgbm_reg.predict(X_test_reg)
+mse_lgbm_reg = mean_squared_error(y_test_reg, y_pred_lgbm_reg)
+
+# 分類モデル
+# ロジスティック回帰
+log_reg = LogisticRegression()
+log_reg.fit(X_train_cls, y_train_cls)
+y_pred_log_reg = log_reg.predict(X_test_cls)
+acc_log_reg = accuracy_score(y_test_cls, y_pred_log_reg)
+
+# 決定木分類
+tree_cls = DecisionTreeClassifier()
+tree_cls.fit(X_train_cls, y_train_cls)
+y_pred_tree_cls = tree_cls.predict(X_test_cls)
+acc_tree_cls = accuracy_score(y_test_cls, y_pred_tree_cls)
+
+# ランダムフォレスト分類
+rf_cls = RandomForestClassifier()
+rf_cls.fit(X_train_cls, y_train_cls)
+y_pred_rf_cls = rf_cls.predict(X_test_cls)
+acc_rf_cls = accuracy_score(y_test_cls, y_pred_rf_cls)
+
+# LightGBM分類
+lgbm_cls = LGBMClassifier()
+lgbm_cls.fit(X_train_cls, y_train_cls)
+y_pred_lgbm_cls = lgbm_cls.predict(X_test_cls)
+acc_lgbm_cls = accuracy_score(y_test_cls, y_pred_lgbm_cls)
+
+# 回帰モデルのプロット
+plt.figure(figsize=(12, 8))
+plt.plot(y_test_reg, label='True values', color='blue')
+plt.plot(y_pred_reg, label='Predicted by Linear Regression', color='red')
+plt.plot(y_pred_tree_reg, label='Predicted by Decision Tree', color='green')
+plt.plot(y_pred_rf_reg, label='Predicted by Random Forest', color='orange')
+plt.plot(y_pred_lgbm_reg, label='Predicted by LightGBM', color='purple')
+plt.legend()
+plt.title('Comparison of Regression Models')
+plt.show()
+
+# 分類モデルのプロット
+plt.figure(figsize=(12, 8))
+plt.scatter(X_test_cls[:, 0], X_test_cls[:, 1], c=y_test_cls, cmap='viridis', label='True values')
+plt.scatter(X_test_cls[:, 0], X_test_cls[:, 1], c=y_pred_log_reg, marker='x', label='Predicted by Logistic Regression')
+plt.legend()
+plt.title('Classification Comparison')
+plt.show()
+
+# 回帰モデルのMSE（Mean Squared Error）
+print("Linear Regression MSE:", mse_lin_reg)
+print("Decision Tree Regression MSE:", mse_tree_reg)
+print("Random Forest Regression MSE:", mse_rf_reg)
+print("LightGBM Regression MSE:", mse_lgbm_reg)
+
+# 分類モデルのAccuracy
+print("Logistic Regression Accuracy:", acc_log_reg)
+print("Decision Tree Classification Accuracy:", acc_tree_cls)
+print("Random Forest Classification Accuracy:", acc_rf_cls)
+print("LightGBM Classification Accuracy:", acc_lgbm_cls)
