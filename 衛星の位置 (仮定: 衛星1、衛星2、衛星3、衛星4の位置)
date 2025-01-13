@@ -1,0 +1,38 @@
+import numpy as np
+from scipy.optimize import fsolve
+
+# 衛星の位置 (仮定: 衛星1、衛星2、衛星3、衛星4の位置)
+satellite_positions = np.array([
+    [10000, 20000, 30000],  # 衛星1の位置 (x1, y1, z1)
+    [20000, 10000, 40000],  # 衛星2の位置 (x2, y2, z2)
+    [30000, 15000, 50000],  # 衛星3の位置 (x3, y3, z3)
+    [25000, 25000, 60000]   # 衛星4の位置 (x4, y4, z4)
+])
+
+# 各衛星から受信機までの距離（仮定）
+distances = np.array([45000, 40000, 37000, 42000])
+
+# 受信機の初期推定位置 (仮定)
+initial_guess = np.array([0, 0, 0, 0])  # 受信機の位置 (x, y, z) と 時計誤差 (t)
+
+# 距離計算関数
+def distance_eqn(position, satellite_positions, distances):
+    x, y, z, t = position  # 受信機の位置 (x, y, z) と時計誤差 (t)
+    eqns = []
+    for i in range(len(satellite_positions)):
+        # 衛星iとの距離を計算
+        dist = np.sqrt((x - satellite_positions[i, 0])**2 +
+                       (y - satellite_positions[i, 1])**2 +
+                       (z - satellite_positions[i, 2])**2)
+        eqns.append(dist - distances[i] + c * t)  # 時計誤差も考慮した距離の誤差
+    return eqns
+
+# 光速 (m/s)
+c = 3e8
+
+# fsolveを使用して位置を計算
+estimated_position = fsolve(distance_eqn, initial_guess, args=(satellite_positions, distances))
+
+# 計算された受信機の位置と時計誤差
+x, y, z, t = estimated_position
+print(f"Estimated position of the receiver: x={x}, y={y}, z={z}, clock error (t)={t}")
