@@ -1,0 +1,54 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn import svm
+
+# サンプルデータ：りんごとみかんの特徴（仮定）
+# りんご（クラス0）とみかん（クラス1）を2次元の特徴で表現
+# 特徴量1：大きさ、特徴量2：色（赤＝0, オレンジ＝1）
+
+# りんごのデータ（小さい赤い）
+X_apple = np.array([[3, 0], [4, 0], [2.5, 0], [3.5, 0]])
+# みかんのデータ（大きいオレンジ）
+X_orange = np.array([[7, 1], [8, 1], [6, 1], [7.5, 1]])
+
+# ラベル（0はりんご、1はみかん）
+y_apple = [0, 0, 0, 0]  # りんごのラベル
+y_orange = [1, 1, 1, 1]  # みかんのラベル
+
+# データの結合
+X = np.vstack([X_apple, X_orange])  # 特徴量をまとめる
+y = np.array(y_apple + y_orange)  # ラベルをまとめる
+
+# SVMモデルを作成
+clf = svm.SVC(kernel='linear')  # 線形カーネルを使用
+clf.fit(X, y)  # データで学習
+
+# グラフの描画
+plt.figure(figsize=(6, 6))
+plt.scatter(X_apple[:, 0], X_apple[:, 1], color='red', marker='o', label='Apple')  # りんごの点
+plt.scatter(X_orange[:, 0], X_orange[:, 1], color='orange', marker='x', label='Orange')  # みかんの点
+
+# サポートベクターをプロット
+plt.scatter(clf.support_vectors_[:, 0], clf.support_vectors_[:, 1], s=100, facecolors='none', edgecolors='black', label='Support Vectors')
+
+# 決定境界のプロット
+ax = plt.gca()
+xlim = ax.get_xlim()
+ylim = ax.get_ylim()
+
+xx, yy = np.meshgrid(np.linspace(xlim[0], xlim[1], 50), np.linspace(ylim[0], ylim[1], 50))
+Z = clf.decision_function(np.c_[xx.ravel(), yy.ravel()])
+Z = Z.reshape(xx.shape)
+
+ax.contour(xx, yy, Z, levels=[0], linewidths=2, colors='black')  # 決定境界を描く
+
+# ラベルを表示
+plt.xlabel('Size')
+plt.ylabel('Color (0=Red, 1=Orange)')
+plt.title('SVM Classifier: Apple vs Orange')
+plt.legend()
+plt.show()
+
+# モデルの予測
+print("Predicted class for a small red fruit:", clf.predict([[3, 0]]))  # りんご（予測）
+print("Predicted class for a large orange fruit:", clf.predict([[7, 1]]))  # みかん（予測）
