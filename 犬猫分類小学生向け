@@ -1,0 +1,60 @@
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score
+import matplotlib.pyplot as plt
+
+# Dummy data (Size of the body, Tail length)
+X = np.array([[2, 5],  # Cat: small, short tail
+              [3, 7],  # Cat: small, long tail
+              [4, 10], # Dog: medium, long tail
+              [6, 12], # Dog: large, long tail
+              [1, 4],  # Cat: small, short tail
+              [7, 14]])# Dog: large, long tail
+
+# Labels (0 = Cat, 1 = Dog)
+y = np.array([0, 0, 1, 1, 0, 1])
+
+# Split the data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Logistic Regression Model
+model = LogisticRegression()
+
+# Train the model
+model.fit(X_train, y_train)
+
+# Predict on the test data
+y_pred = model.predict(X_test)
+
+# Calculate accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Model accuracy: {accuracy * 100:.2f}%")
+
+# Create a mesh grid for plotting the decision boundary
+h = .02  # Step size in the mesh
+x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+xx, yy = np.meshgrid(np.arange(x_min, x_max, h),
+                     np.arange(y_min, y_max, h))
+
+# Predict the class for each point in the mesh
+Z = model.predict(np.c_[xx.ravel(), yy.ravel()])
+Z = Z.reshape(xx.shape)
+
+# Plot the decision boundary
+plt.contourf(xx, yy, Z, alpha=0.3, cmap='coolwarm')
+
+# Plot training data
+plt.scatter(X_train[:, 0], X_train[:, 1], c=y_train, cmap='coolwarm', marker='o', label='Training Data')
+
+# Plot test data
+plt.scatter(X_test[:, 0], X_test[:, 1], c=y_test, cmap='coolwarm', marker='x', label='Test Data')
+
+# Add labels and title in English
+plt.xlabel('Body Size')
+plt.ylabel('Tail Length')
+plt.title('Cat and Dog Classification with Decision Boundary')
+plt.legend()
+plt.show()
