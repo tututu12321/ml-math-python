@@ -1,0 +1,37 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 任意の行列Aを作成
+A = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+
+# SVDを適用
+U, S, VT = np.linalg.svd(A)
+
+# 出力結果
+print("U (左特異行列):")
+print(U)
+print("\nS (特異値):")
+print(S)
+print("\nVT (右特異行列の転置):")
+print(VT)
+
+# 次元削減: 上位2つの特異値を使う
+S_reduced = np.diag(S[:2])  # 上位2つの特異値
+U_reduced = U[:, :2]  # 上位2つの左特異ベクトル
+VT_reduced = VT[:2, :]  # 上位2つの右特異ベクトル
+
+# 次元削減後の行列
+A_reduced = np.dot(U_reduced, np.dot(S_reduced, VT_reduced))
+
+# 次元削減前後の行列を表示
+print("\n次元削減後の行列:")
+print(A_reduced)
+
+# 次元削減の可視化
+plt.figure(figsize=(8, 6))
+plt.plot(S, label="Singular Values")
+plt.xlabel("Index")
+plt.ylabel("Singular Value")
+plt.title("Singular Values of A")
+plt.legend()
+plt.show()
