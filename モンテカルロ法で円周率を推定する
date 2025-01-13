@@ -1,0 +1,46 @@
+import random
+import math
+import matplotlib.pyplot as plt
+
+# モンテカルロ法で円周率を推定する関数
+def estimate_pi(num_samples):
+    inside_circle = 0  # 円の中に入った点の数
+    x_inside = []  # 円の中の点のx座標
+    y_inside = []  # 円の中の点のy座標
+    x_outside = []  # 円の外の点のx座標
+    y_outside = []  # 円の外の点のy座標
+    
+    for _ in range(num_samples):
+        # ランダムに点を生成（-1から1の間）
+        x = random.uniform(-1, 1)
+        y = random.uniform(-1, 1)
+        
+        # 点が円の中にあるかを判定（x^2 + y^2 <= 1）
+        if x**2 + y**2 <= 1:
+            inside_circle += 1
+            x_inside.append(x)
+            y_inside.append(y)
+        else:
+            x_outside.append(x)
+            y_outside.append(y)
+    
+    # πの推定値を計算
+    pi_estimate = 4 * inside_circle / num_samples
+    return pi_estimate, x_inside, y_inside, x_outside, y_outside
+
+# 実行例
+num_samples = 100000
+pi_estimate, x_inside, y_inside, x_outside, y_outside = estimate_pi(num_samples)
+
+# 結果を表示
+print(f"Estimated value of Pi: {pi_estimate}")
+print(f"Actual value of Pi: {math.pi}")
+
+# プロット
+plt.figure(figsize=(6, 6))
+plt.scatter(x_inside, y_inside, color='green', s=1, label='Inside Circle')
+plt.scatter(x_outside, y_outside, color='red', s=1, label='Outside Circle')
+plt.gca().set_aspect('equal', adjustable='box')
+plt.title(f"Monte Carlo Estimation of Pi with {num_samples} samples")
+plt.legend()
+plt.show()
