@@ -1,0 +1,53 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import librosa
+import librosa.display
+
+# Load an example audio file
+y, sr = librosa.load(librosa.example('trumpet'), sr=None)
+
+# 1. Pre-emphasis: Apply a simple pre-emphasis filter
+pre_emphasis = 0.97
+y_preemphasized = np.append(y[0], y[1:] - pre_emphasis * y[:-1])
+
+# 2. Frame the signal
+frame_size = 1024
+hop_size = 512
+frames = librosa.util.frame(y_preemphasized, frame_length=frame_size, hop_length=hop_size)
+
+# 3. Apply FFT (Fast Fourier Transform) to the frames
+fft_frames = np.abs(np.fft.rfft(frames, axis=0))
+
+# 4. Apply Mel-frequency scaling to the FFT frames
+mel_filterbank = librosa.filters.mel(sr=sr, n_fft=frame_size, n_mels=23)
+mel_spectrogram = np.dot(mel_filterbank, fft_frames)
+
+# 5. Compute MFCC (Mel-Frequency Cepstral Coefficients)
+mfcc = librosa.feature.mfcc(S=librosa.power_to_db(mel_spectrogram), sr=sr, n_mfcc=13)
+
+# Plot the results
+plt.figure(figsize=(12, 8))
+
+# Plot the pre-emphasized signal
+plt.subplot(3, 2, 1)
+plt.title("Pre-emphasized signal")
+librosa.display.waveshow(y_preemphasized, sr=sr)
+
+# Plot the FFT of the signal
+plt.subplot(3, 2, 2)
+plt.title("FFT of signal")
+plt.plot(np.abs(np.fft.rfft(y_preemphasized)))
+
+# Plot Mel-spectrogram
+plt.subplot(3, 2, 3)
+plt.title("Mel-spectrogram")
+librosa.display.specshow(librosa.power_to_db(mel_spectrogram, ref=np.max), y_axis='mel', x_axis='time')
+
+# Plot MFCC
+plt.subplot(3, 2, 4)
+plt.title("MFCC")
+librosa.display.specshow(mfcc, x_axis='time')
+
+# Show the plot
+plt.tight_layout()
+plt.show()
