@@ -1,0 +1,54 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn import svm
+
+# サンプルデータ（2クラス）
+# クラス0（赤）のデータ
+X_class_0 = np.array([[1, 2], [2, 3], [3, 3], [3.5, 2.5]])
+# クラス1（青）のデータ
+X_class_1 = np.array([[6, 5], [7, 6], [8, 7], [6.5, 6.2]])
+
+# ラベル（0はクラス0、1はクラス1）
+y_class_0 = [0, 0, 0, 0]  # クラス0のラベル
+y_class_1 = [1, 1, 1, 1]  # クラス1のラベル
+
+# データとラベルを結合
+X = np.vstack([X_class_0, X_class_1])  # 特徴量
+y = np.array(y_class_0 + y_class_1)  # ラベル
+
+# SVMモデル作成（線形カーネル）
+clf = svm.SVC(kernel='linear')
+clf.fit(X, y)  # モデルをデータで学習
+
+# 決定境界をプロットするためのグリッドを作成
+xx, yy = np.meshgrid(np.linspace(0, 10, 100), np.linspace(0, 10, 100))
+Z = clf.decision_function(np.c_[xx.ravel(), yy.ravel()])
+Z = Z.reshape(xx.shape)
+
+# 結果をプロット
+plt.figure(figsize=(6, 6))
+
+# クラス0（赤）のデータ
+plt.scatter(X_class_0[:, 0], X_class_0[:, 1], color='red', label='Class 0')
+# クラス1（青）のデータ
+plt.scatter(X_class_1[:, 0], X_class_1[:, 1], color='blue', label='Class 1')
+
+# 決定境界を描く
+plt.contour(xx, yy, Z, levels=[0], linewidths=2, colors='black')
+
+# サポートベクターを強調
+plt.scatter(clf.support_vectors_[:, 0], clf.support_vectors_[:, 1], color='yellow', marker='x', s=100, label='Support Vectors')
+
+# グラフの装飾
+plt.xlim(0, 10)
+plt.ylim(0, 10)
+plt.xlabel('Feature 1')
+plt.ylabel('Feature 2')
+plt.legend()
+plt.title('SVM: Simple Classification with Support Vectors')
+
+plt.show()
+
+# 学習結果の出力
+print(f"Support Vectors:\n{clf.support_vectors_}")
+print(f"Predicted class for point [4, 4]: {clf.predict([[4, 4]])}")
