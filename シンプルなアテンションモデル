@@ -1,0 +1,27 @@
+import torch
+import torch.nn.functional as F
+
+# 入力テンソルのサイズ (バッチサイズ, シーケンス長, 埋め込み次元数)
+batch_size = 1
+seq_length = 9
+embedding_dim = 8
+
+# ランダムな入力データ（クエリ、キー、バリュー）
+queries = torch.rand((batch_size, seq_length, embedding_dim))  # クエリ行列 (Q)
+keys = torch.rand((batch_size, seq_length, embedding_dim))  # キー行列 (K)
+values = torch.rand((batch_size, seq_length, embedding_dim))  # バリュー行列 (V)
+
+# アテンションスコアの計算 (Q * K^T)
+attention_scores = torch.matmul(queries, keys.transpose(-2, -1))  # (バッチサイズ, シーケンス長, シーケンス長)
+
+# スケーリング
+scaled_attention_scores = attention_scores / torch.sqrt(torch.tensor(embedding_dim, dtype=torch.float32))
+
+# ソフトマックスで確率分布に変換
+attention_probs = F.softmax(scaled_attention_scores, dim=-1)
+
+# アテンション重みを使ってバリューを加重平均
+attention_output = torch.matmul(attention_probs, values)
+
+print("Attention Output:")
+print(attention_output)
