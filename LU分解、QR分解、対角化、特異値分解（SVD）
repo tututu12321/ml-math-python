@@ -1,0 +1,35 @@
+import numpy as np
+from scipy.linalg import lu, qr, svd
+
+# 行列Aを定義
+A = np.array([[4, 3], [6, 3]])
+
+# 1. LU分解
+P, L, U = lu(A)
+print("LU分解:")
+print("P:\n", P)
+print("L:\n", L)
+print("U:\n", U)
+print()
+
+# 2. QR分解
+Q, R = qr(A)
+print("QR分解:")
+print("Q:\n", Q)
+print("R:\n", R)
+print()
+
+# 3. 行列の対角化 (Aが対称行列の場合のみ、対角化可能)
+# 対角化は、固有値と固有ベクトルに分解すること
+eigvals, eigvecs = np.linalg.eig(A)
+print("対角化 (固有値と固有ベクトル):")
+print("固有値:\n", eigvals)
+print("固有ベクトル:\n", eigvecs)
+print()
+
+# 4. 特異値分解 (SVD)
+U_svd, S_svd, Vt_svd = svd(A)
+print("特異値分解 (SVD):")
+print("U:\n", U_svd)
+print("S:\n", S_svd)
+print("Vt:\n", Vt_svd)
