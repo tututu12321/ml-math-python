@@ -1,0 +1,21 @@
+import sympy as sp
+
+# シンボリック変数の定義
+x = sp.symbols('x')
+
+# 関数の定義
+f = x**2
+g = sp.sin(x)
+
+# 積の導関数
+product_derivative = sp.diff(f * g, x)
+
+# 商の導関数
+quotient_derivative = sp.diff(f / g, x)
+
+# 結果の表示
+print("積の導関数:")
+sp.pprint(product_derivative)
+
+print("\n商の導関数:")
+sp.pprint(quotient_derivative)
