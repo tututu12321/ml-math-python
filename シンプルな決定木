@@ -1,0 +1,42 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import make_classification
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.model_selection import train_test_split
+
+# 2クラス分類データの作成
+X, y = make_classification(n_samples=100, n_features=2, n_informative=2, n_redundant=0, n_repeated=0, n_classes=2, random_state=42)
+
+# トレーニングデータとテストデータに分ける
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# 決定木分類器の作成と学習
+clf = DecisionTreeClassifier(random_state=42)
+clf.fit(X_train, y_train)
+
+# グリッドの作成
+x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.1), np.arange(y_min, y_max, 0.1))
+
+# クラスの予測結果を取得
+Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+Z = Z.reshape(xx.shape)
+
+# 結果のプロット
+plt.figure(figsize=(8, 6))
+
+# 境界線をプロット
+plt.contourf(xx, yy, Z, alpha=0.4)
+
+# トレーニングデータをプロット
+plt.scatter(X_train[:, 0], X_train[:, 1], c=y_train, edgecolors='k', marker='o', label='Train data')
+
+# テストデータをプロット
+plt.scatter(X_test[:, 0], X_test[:, 1], c=y_test, edgecolors='r', marker='^', label='Test data')
+
+plt.title('Decision Tree Classifier and Decision Boundary')
+plt.xlabel('Feature 1')
+plt.ylabel('Feature 2')
+plt.legend()
+plt.show()
