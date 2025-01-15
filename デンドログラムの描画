@@ -1,0 +1,18 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.cluster.hierarchy import dendrogram, linkage
+from sklearn.datasets import make_blobs
+
+# サンプルデータの作成（2次元のクラスタリングデータ）
+X, _ = make_blobs(n_samples=50, centers=3, cluster_std=0.60, random_state=0)
+
+# 階層的クラスタリングのリンクを作成
+Z = linkage(X, method='ward')
+
+# デンドログラムの描画
+plt.figure(figsize=(10, 6))
+dendrogram(Z)
+plt.title('Dendrogram of Hierarchical Clustering')
+plt.xlabel('Sample Index')
+plt.ylabel('Distance')
+plt.show()
