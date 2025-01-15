@@ -1,0 +1,43 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn import datasets
+from sklearn.model_selection import train_test_split
+from sklearn.svm import SVC
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+
+# サンプルデータの作成（非線形分類用データ）
+X, y = datasets.make_circles(n_samples=100, noise=0.1, factor=0.5, random_state=42)
+
+# データの標準化
+scaler = StandardScaler()
+X = scaler.fit_transform(X)
+
+# トレーニングデータとテストデータに分ける
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# SVM（RBFカーネル）による分類器の作成と学習
+svm_classifier = SVC(kernel='rbf', C=1, gamma='auto')  # RBFカーネル
+svm_classifier.fit(X_train, y_train)
+
+# 境界線のプロット（分類用）
+def plot_svm_boundary(clf, X, y, title):
+    plt.figure(figsize=(8, 6))
+    plt.scatter(X[:, 0], X[:, 1], c=y, cmap=plt.cm.Paired)
+    
+    ax = plt.gca()
+    xlim = ax.get_xlim()
+    ylim = ax.get_ylim()
+
+    xx, yy = np.meshgrid(np.linspace(xlim[0], xlim[1], 100), np.linspace(ylim[0], ylim[1], 100))
+    Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+
+    plt.contourf(xx, yy, Z, alpha=0.75, cmap=plt.cm.Paired)
+    plt.title(title)
+    plt.xlabel('Feature 1')
+    plt.ylabel('Feature 2')
+    plt.show()
+
+# SVM分類の結果をプロット
+plot_svm_boundary(svm_classifier, X_train, y_train, 'SVM with RBF Kernel (Non-linear Classification)')
