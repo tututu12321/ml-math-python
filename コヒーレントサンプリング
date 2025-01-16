@@ -1,0 +1,62 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Parameters
+f_in = 50  # Input frequency (50 Hz)
+f_s = 500000  # Sampling frequency  - Increased sampling rate
+N = 64 # Number of sample points
+duration = 1  # Signal duration (1 second)
+
+# Sample points and time vector
+n_samples = f_s * duration  # Number of samples
+t = np.linspace(0, duration, n_samples, endpoint=False)  # Time vector
+
+# Generate sine wave signal
+input_signal = np.sin(2 * np.pi * f_in * t)  # Sine wave signal
+
+# ADC Conversion (8-bit resolution)
+bits = 8
+V_ref = 5  # Reference voltage
+digital_signal = np.round((input_signal / V_ref) * (2**bits - 1))  # Normalize and convert to digital
+
+# FFT Calculation
+fft_signal = np.fft.fft(digital_signal)  # FFT of the digital signal
+fft_freq = np.fft.fftfreq(n_samples, 1 / f_s)  # Frequency axis for FFT
+
+# Take only positive frequency components
+positive_freq = fft_freq[:n_samples // 2]
+positive_fft = np.abs(fft_signal[:n_samples // 2])  # Amplitude components of the FFT
+
+# Plot the FFT results
+plt.figure(figsize=(10, 6))
+
+# Plot the input sine wave signal
+plt.subplot(2, 1, 1)
+plt.plot(t, input_signal, label="Input Sine Wave")
+plt.title("Input Sine Wave Signal")
+plt.xlabel("Time (seconds)")
+plt.ylabel("Amplitude")
+plt.grid(True)
+
+# Plot the FFT result
+plt.subplot(2, 1, 2)
+plt.plot(positive_freq, positive_fft, label="FFT of Signal", color='r')
+plt.title("FFT of the Digital Signal")
+plt.xlabel("Frequency (Hz)")
+plt.ylabel("Amplitude")
+plt.grid(True)
+
+plt.tight_layout()
+plt.show()
+
+# Calculate frequency ratio using the formula
+n_values = np.arange(1, N+1)
+ratio = (2**n_values - 1) / (2**N)
+
+# Find the closest n that matches the ratio
+desired_ratio = f_in / f_s
+n_closest = n_values[np.abs(ratio - desired_ratio).argmin()]
+
+# Display the result
+print(f"Closest n value: {n_closest}")
+print(f"Corresponding ratio: {(2**n_closest - 1) / (2**N)}")
