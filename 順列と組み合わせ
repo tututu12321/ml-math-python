@@ -1,0 +1,23 @@
+import itertools
+import math
+
+# アイテムのリスト
+items = [1, 2, 3]
+
+# 順列の計算（itertoolsを使用）
+permutations_itertools = list(itertools.permutations(items, 2))
+print("順列 (Permutation) - itertools:", permutations_itertools)
+
+# 組み合わせの計算（itertoolsを使用）
+combinations_itertools = list(itertools.combinations(items, 2))
+print("組み合わせ (Combination) - itertools:", combinations_itertools)
+
+# mathライブラリを使った順列の計算
+n = 5  # アイテムの数
+r = 3  # 選ぶ数
+permutations_math = math.perm(n, r)
+print("順列 (Permutation) - math:", permutations_math)
+
+# mathライブラリを使った組み合わせの計算
+combinations_math = math.comb(n, r)
+print("組み合わせ (Combination) - math:", combinations_math)
