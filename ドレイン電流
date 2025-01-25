@@ -1,0 +1,27 @@
+def calculate_WL(Id, mu_Cox, Vgs, Vth):
+    """
+    Calculates the width-to-length ratio (W/L) for a MOSFET.
+
+    Parameters:
+    Id (float): Drain current (A)
+    mu_Cox (float): Electron mobility * oxide capacitance (cm^2/Vs)
+    Vgs (float): Gate-source voltage (V)
+    Vth (float): Threshold voltage (V)
+
+    Returns:
+    float: The W/L ratio
+    """
+    WL = (2 * Id) / (mu_Cox * (Vgs - Vth)**2)
+    return WL
+
+# 例として値を設定します
+Id = 1e-3  # ドレイン電流 (1mA)
+mu_Cox = 2e-4  # μCox (cm^2/Vs)
+Vgs = 2.5  # ゲート-ソース間電圧 (V)
+Vth = 1.0  # しきい値電圧 (V)
+
+# W/L比を計算
+WL_ratio = calculate_WL(Id, mu_Cox, Vgs, Vth)
+
+# 結果を表示
+print(f"The W/L ratio is: {WL_ratio} (unitless)")
