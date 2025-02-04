@@ -1,0 +1,25 @@
+# 必要なライブラリのインポート
+from skopt import gp_minimize
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 目的関数（最小化したい二次関数）
+def objective(x):
+    return x[0]**2 + x[1]**2  # 例えば、2変数の平方和
+
+# 最適化
+result = gp_minimize(objective,                    # 最適化する関数
+                     dimensions=[(-5.0, 5.0), (-5.0, 5.0)],  # 探索範囲
+                     n_calls=50,                    # 呼び出し回数
+                     random_state=123)
+
+# 結果の表示
+print("最小値:", result.fun)  # 最小化された値
+print("最小値を与えるパラメータ:", result.x)  # 最小値を与えるパラメータ
+
+# 途中経過のプロット
+plt.plot(result.func_vals)
+plt.xlabel('Number of iterations')
+plt.ylabel('Objective function value')
+plt.title('Bayesian Optimization Progress')
+plt.show()
