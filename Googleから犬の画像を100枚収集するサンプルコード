@@ -1,0 +1,7 @@
+from icrawler.builtin import GoogleImageCrawler
+
+# GoogleImageCrawler のインスタンス作成
+crawler = GoogleImageCrawler(storage={"root_dir": "dogs"})  # 画像保存先ディレクトリ（"dogs"）
+
+# "犬"（英語で"dog"）の画像を最大100枚収集
+crawler.crawl(keyword="犬", max_num=100)
