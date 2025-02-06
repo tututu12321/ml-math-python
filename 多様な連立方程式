@@ -1,0 +1,27 @@
+# 連立方程式の具体例
+A = np.array([[10, -1, 2, 0], 
+              [-1, 11, -1, 3], 
+              [2, -1, 10, -1], 
+              [0, 3, -1, 8]], dtype=float)
+b = np.array([6, 25, -11, 15], dtype=float)
+
+# 各手法で連立方程式を解く
+jacobi_solution = jacobi(A, b)
+gauss_seidel_solution = gauss_seidel(A, b)
+sor_solution = sor(A, b, omega=1.25)
+lu_solution = lu_decomposition(A, b)
+gauss_elimination_solution = gauss_elimination(A, b)
+gauss_jordan_solution = gauss_jordan(A, b)
+
+# 結果の表示
+solutions = {
+    "Jacobi法": jacobi_solution,
+    "Gauss-Seidel法": gauss_seidel_solution,
+    "SOR法": sor_solution,
+    "LU分解法": lu_solution,
+    "Gauss消去法": gauss_elimination_solution,
+    "Gauss-Jordan法": gauss_jordan_solution
+}
+
+for method, solution in solutions.items():
+    print(f"{method}: {solution}")
