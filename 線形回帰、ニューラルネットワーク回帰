@@ -1,0 +1,61 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+# 乱数の再現性を確保
+np.random.seed(0)
+torch.manual_seed(0)
+
+# データ生成
+X = np.linspace(0, 10, 100).reshape(-1, 1)  # 0~10の範囲で100個のデータ点
+y = 3 * X.squeeze() + 7 + np.random.randn(100) * 2  # 線形関数 + ノイズ
+
+# --- 線形回帰 (Linear Regression) ---
+model_lr = LinearRegression()
+model_lr.fit(X, y)
+y_pred_lr = model_lr.predict(X)
+
+# --- ニューラルネットワーク回帰 (Neural Network Regression) ---
+# PyTorchのデータ変換
+X_tensor = torch.tensor(X, dtype=torch.float32)
+y_tensor = torch.tensor(y, dtype=torch.float32).view(-1, 1)
+
+# ニューラルネットワークの定義
+class NeuralNet(nn.Module):
+    def __init__(self):
+        super(NeuralNet, self).__init__()
+        self.fc = nn.Linear(1, 1)  # 単純な1層の線形モデル
+
+    def forward(self, x):
+        return self.fc(x)
+
+# モデル、損失関数、最適化関数の定義
+model_nn = NeuralNet()
+criterion = nn.MSELoss()  # 平均二乗誤差
+optimizer = optim.SGD(model_nn.parameters(), lr=0.01)  # 確率的勾配降下法
+
+# 訓練ループ
+epochs = 1000
+for epoch in range(epochs):
+    optimizer.zero_grad()
+    outputs = model_nn(X_tensor)
+    loss = criterion(outputs, y_tensor)
+    loss.backward()
+    optimizer.step()
+
+# 予測
+y_pred_nn = model_nn(X_tensor).detach().numpy()
+
+# --- プロット (可視化) ---
+plt.figure(figsize=(10, 5))
+plt.scatter(X, y, label="Actual Data", color="blue", alpha=0.5)
+plt.plot(X, y_pred_lr, label="Linear Regression", color="red")
+plt.plot(X, y_pred_nn, label="Neural Network Regression", color="green", linestyle="dashed")
+plt.xlabel("X")
+plt.ylabel("y")
+plt.title("Linear Regression vs. Neural Network Regression")
+plt.legend()
+plt.show()
