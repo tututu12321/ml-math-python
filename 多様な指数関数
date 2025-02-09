@@ -1,0 +1,100 @@
+# 必要なライブラリの再インポート
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.stats as stats
+
+# グラフの作成
+fig, axes = plt.subplots(4, 2, figsize=(14, 16))
+fig.suptitle("Various Exponential Functions", fontsize=16)
+
+# 1. 減衰と崩壊 (Exponential Decay)
+t = np.linspace(0, 5, 100)
+N0 = 100
+lambda_decay = 0.5
+N = N0 * np.exp(-lambda_decay * t)
+axes[0, 0].plot(t, N, label=r'$N(t) = N_0 e^{-\lambda t}$', color='blue')
+axes[0, 0].set_title("Exponential Decay")
+axes[0, 0].set_xlabel("Time (t)")
+axes[0, 0].set_ylabel("Quantity (N)")
+axes[0, 0].legend()
+axes[0, 0].grid()
+
+# 2. 人口増加 (Exponential Growth)
+r = 0.5  # 成長率
+P0 = 10
+P = P0 * np.exp(r * t)
+axes[0, 1].plot(t, P, label=r'$P(t) = P_0 e^{rt}$', color='green')
+axes[0, 1].set_title("Exponential Growth")
+axes[0, 1].set_xlabel("Time (t)")
+axes[0, 1].set_ylabel("Population (P)")
+axes[0, 1].legend()
+axes[0, 1].grid()
+
+# 3. ガウス分布 (Gaussian Distribution)
+x = np.linspace(-4, 4, 100)
+mu, sigma = 0, 1
+gaussian = stats.norm.pdf(x, mu, sigma)
+axes[1, 0].plot(x, gaussian, label=r'$f(x) = \frac{1}{\sqrt{2\pi}\sigma} e^{-\frac{(x - \mu)^2}{2\sigma^2}}$', color='red')
+axes[1, 0].set_title("Gaussian Distribution")
+axes[1, 0].set_xlabel("x")
+axes[1, 0].set_ylabel("Probability Density")
+axes[1, 0].legend()
+axes[1, 0].grid()
+
+# 4. ロジスティック関数 (Logistic Function)
+x = np.linspace(-6, 6, 100)
+logistic = 1 / (1 + np.exp(-x))
+axes[1, 1].plot(x, logistic, label=r'$S(x) = \frac{1}{1 + e^{-x}}$', color='purple')
+axes[1, 1].set_title("Logistic Function")
+axes[1, 1].set_xlabel("x")
+axes[1, 1].set_ylabel("S(x)")
+axes[1, 1].legend()
+axes[1, 1].grid()
+
+# 5. 時定数一次遅れ (First-Order Lag System)
+tau = 1
+response = 1 - np.exp(-t / tau)
+axes[2, 0].plot(t, response, label=r'$y(t) = 1 - e^{-t/\tau}$', color='orange')
+axes[2, 0].set_title("First-Order Lag System")
+axes[2, 0].set_xlabel("Time (t)")
+axes[2, 0].set_ylabel("Response y(t)")
+axes[2, 0].legend()
+axes[2, 0].grid()
+
+# 6. 減衰振動 (Damped Oscillation)
+gamma = 0.2  # 減衰係数
+omega = 5    # 角周波数
+damped_oscillation = np.exp(-gamma * t) * np.cos(omega * t)
+axes[2, 1].plot(t, damped_oscillation, label=r'$y(t) = e^{-\gamma t} \cos(\omega t)$', color='brown')
+axes[2, 1].set_title("Damped Oscillation")
+axes[2, 1].set_xlabel("Time (t)")
+axes[2, 1].set_ylabel("Amplitude")
+axes[2, 1].legend()
+axes[2, 1].grid()
+
+# 7. 熱伝導 (Heat Diffusion)
+x = np.linspace(-5, 5, 100)
+alpha = 1  # 拡散係数
+t_heat = 1  # 時間
+heat_distribution = (1 / np.sqrt(4 * np.pi * alpha * t_heat)) * np.exp(-x**2 / (4 * alpha * t_heat))
+axes[3, 0].plot(x, heat_distribution, label=r'$T(x,t) = \frac{1}{\sqrt{4\pi\alpha t}} e^{-x^2/(4\alpha t)}$', color='cyan')
+axes[3, 0].set_title("Heat Diffusion")
+axes[3, 0].set_xlabel("Position (x)")
+axes[3, 0].set_ylabel("Temperature")
+axes[3, 0].legend()
+axes[3, 0].grid()
+
+# 8. ポアソン分布 (Poisson Distribution)
+k_values = np.arange(0, 10)
+lambda_poisson = 3
+poisson_prob = stats.poisson.pmf(k_values, lambda_poisson)
+axes[3, 1].bar(k_values, poisson_prob, label=r'$P(k) = \frac{\lambda^k e^{-\lambda}}{k!}$', color='magenta', alpha=0.7)
+axes[3, 1].set_title("Poisson Distribution")
+axes[3, 1].set_xlabel("k (Event Count)")
+axes[3, 1].set_ylabel("Probability")
+axes[3, 1].legend()
+axes[3, 1].grid()
+
+# グラフの表示
+plt.tight_layout(rect=[0, 0, 1, 0.97])
+plt.show()
