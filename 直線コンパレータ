@@ -1,0 +1,42 @@
+# 必要なライブラリをインポート
+import numpy as np
+import matplotlib.pyplot as plt
+
+# パラメータ設定
+VREF = 2.5  # 参照電圧 (V)
+Va = 1.0    # しきい値 (V)
+VDD = 5.0   # 電源電圧 (V)
+
+# Vin の範囲
+Vin = np.linspace(0, 5, 500)
+
+# 関数定義
+def voltage_transfer(Vin, VREF, Va, VDD):
+    if Vin < (VREF - Va):
+        return 0
+    elif (VREF - Va) <= Vin <= (VREF + Va):
+        return VDD * (Vin - (VREF - Va)) / (2 * Va)
+    else:
+        return VDD
+
+# Vout の計算
+Vout = np.array([voltage_transfer(v, VREF, Va, VDD) for v in Vin])
+
+# プロット
+plt.figure(figsize=(8, 5))
+plt.plot(Vin, Vout, label=r'$V_{out}$ vs. $V_{in}$', color='blue')
+
+# 軸ラベルとタイトル
+plt.xlabel(r'$V_{in}$ (V)')
+plt.ylabel(r'$V_{out}$ (V)')
+plt.title('Voltage Transfer Characteristic')
+
+# しきい値のラインを追加
+plt.axvline(VREF - Va, color='gray', linestyle='--', label=r'$V_{REF} - V_a$')
+plt.axvline(VREF + Va, color='gray', linestyle='--', label=r'$V_{REF} + V_a$')
+
+plt.legend()
+plt.grid()
+
+# グラフの表示
+plt.show()
