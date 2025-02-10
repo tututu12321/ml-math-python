@@ -1,0 +1,43 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 三角形の辺の長さと角度を設定
+A_deg = 40  # 角A (度)
+B_deg = 60  # 角B (度)
+C_deg = 180 - (A_deg + B_deg)  # 角C (度)
+
+a = 10  # 辺a (cm)
+b = a * np.sin(np.radians(B_deg)) / np.sin(np.radians(A_deg))  # 正弦定理を適用して辺bを求める (cm)
+c = a * np.sin(np.radians(C_deg)) / np.sin(np.radians(A_deg))  # 正弦定理を適用して辺cを求める (cm)
+
+# 余弦定理を適用
+cos_C_check = (a**2 + b**2 - c**2) / (2 * a * b)  # 余弦定理による確認
+C_deg_check = np.degrees(np.arccos(cos_C_check))
+
+# 三角形の頂点座標計算
+A = np.array([0, 0])
+B = np.array([c, 0])
+C = np.array([b * np.cos(np.radians(A_deg)), b * np.sin(np.radians(A_deg))])
+
+# プロット
+plt.figure(figsize=(6, 6))
+plt.plot([A[0], B[0]], [A[1], B[1]], 'bo-', label='Side c')
+plt.plot([B[0], C[0]], [B[1], C[1]], 'ro-', label='Side a')
+plt.plot([C[0], A[0]], [C[1], A[1]], 'go-', label='Side b')
+
+# ラベル
+plt.text(A[0], A[1], 'A', fontsize=12, verticalalignment='bottom', horizontalalignment='right')
+plt.text(B[0], B[1], 'B', fontsize=12, verticalalignment='bottom', horizontalalignment='left')
+plt.text(C[0], C[1], 'C', fontsize=12, verticalalignment='bottom', horizontalalignment='center')
+
+plt.xlabel('X axis (cm)')
+plt.ylabel('Y axis (cm)')
+plt.title('Triangle Representation using Sine and Cosine Theorems')
+plt.legend()
+plt.grid()
+plt.axis('equal')
+plt.show()
+
+# 結果出力
+print(f"辺の長さ: a = {a:.2f} cm, b = {b:.2f} cm, c = {c:.2f} cm")
+print(f"角度: A = {A_deg}°, B = {B_deg}°, C = {C_deg_check:.2f}° (余弦定理で確認)")
