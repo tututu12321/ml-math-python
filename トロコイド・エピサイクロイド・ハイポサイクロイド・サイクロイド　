@@ -1,0 +1,84 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.signal as signal
+
+# サイクロイド関数の定義
+def trochoid(R, r, d, theta):
+    x = (R - r) * np.cos(theta) + d * np.cos((R - r) / r * theta)
+    y = (R - r) * np.sin(theta) - d * np.sin((R - r) / r * theta)
+    return x, y
+
+def epicycloid(R, r, theta):
+    x = (R + r) * np.cos(theta) - r * np.cos((R + r) / r * theta)
+    y = (R + r) * np.sin(theta) - r * np.sin((R + r) / r * theta)
+    return x, y
+
+def hypocycloid(R, r, theta):
+    x = (R - r) * np.cos(theta) + r * np.cos((R - r) / r * theta)
+    y = (R - r) * np.sin(theta) - r * np.sin((R - r) / r * theta)
+    return x, y
+
+def cycloid(R, theta):
+    x = R * (theta - np.sin(theta))
+    y = R * (1 - np.cos(theta))
+    return x, y
+
+# サンプリング周波数と量子化 (12ビットAD変換)
+def quantize(signal, bits=12):
+    levels = 2 ** bits
+    return np.round((signal - np.min(signal)) / (np.max(signal) - np.min(signal)) * (levels - 1)) / (levels - 1) * (np.max(signal) - np.min(signal)) + np.min(signal)
+
+# パラメータ設定
+R, r, d = 5, 1, 2
+theta = np.linspace(0, 4 * np.pi, 1000)
+fs = 100  # サンプリング周波数
+
+print(f"Sampling Frequency: {fs} Hz")
+
+theta_sampled = np.linspace(0, 4 * np.pi, fs)
+
+# プロット
+plt.figure(figsize=(10, 8))
+
+# トロコイド
+x, y = trochoid(R, r, d, theta)
+x_q, y_q = quantize(x), quantize(y)
+plt.subplot(2, 2, 1)
+plt.plot(x, y, label='Trochoid')
+plt.scatter(x_q, y_q, s=5, color='red', label='Quantized')
+plt.legend()
+plt.title("Trochoid")
+plt.grid()
+
+# エピサイクロイド
+x, y = epicycloid(R, r, theta)
+x_q, y_q = quantize(x), quantize(y)
+plt.subplot(2, 2, 2)
+plt.plot(x, y, label='Epicycloid')
+plt.scatter(x_q, y_q, s=5, color='red', label='Quantized')
+plt.legend()
+plt.title("Epicycloid")
+plt.grid()
+
+# ハイポサイクロイド
+x, y = hypocycloid(R, r, theta)
+x_q, y_q = quantize(x), quantize(y)
+plt.subplot(2, 2, 3)
+plt.plot(x, y, label='Hypocycloid')
+plt.scatter(x_q, y_q, s=5, color='red', label='Quantized')
+plt.legend()
+plt.title("Hypocycloid")
+plt.grid()
+
+# サイクロイド
+x, y = cycloid(R, theta)
+x_q, y_q = quantize(x), quantize(y)
+plt.subplot(2, 2, 4)
+plt.plot(x, y, label='Cycloid')
+plt.scatter(x_q, y_q, s=5, color='red', label='Quantized')
+plt.legend()
+plt.title("Cycloid")
+plt.grid()
+
+plt.tight_layout()
+plt.show()
