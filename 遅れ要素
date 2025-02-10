@@ -1,0 +1,60 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import scipy.signal as signal
+
+# パラメータ設定
+fs = 1000  # サンプリング周波数 (Hz)
+T = 1      # シミュレーション時間 (秒)
+t = np.arange(0, T, 1/fs)  # 時間軸
+delay_time = 0.1  # 遅延時間 (秒)
+N = int(delay_time * fs)  # 遅延サンプル数
+freq = 5  # 入力サイン波の周波数 (Hz)
+
+# 入力信号 (サイン波)
+x = np.sin(2 * np.pi * freq * t)
+
+# 遅延要素を畳み込み (Z変換 G(z) = z^{-N} に相当)
+y = np.concatenate([np.zeros(N), x[:-N]])
+
+# ラプラス変換 (e^{-τs})
+s = 1j * np.linspace(0, 50, 1000)
+G_s = np.exp(-delay_time * s)
+
+# 周波数領域 (G(jω) = e^{-jωτ})
+omega = np.linspace(0, 50, 1000)
+G_jw = np.exp(-1j * omega * delay_time)
+
+# Z変換 (G(z) = z^{-N})
+z = np.exp(1j * omega / fs)
+G_z = z**-N
+
+# プロット (時間領域)
+plt.figure(figsize=(8, 5))
+plt.plot(t, x, label='Input Signal', linestyle='dashed', color='b')
+plt.plot(t, y, label=f'Delayed Signal ({delay_time}s)', color='r')
+plt.xlabel('Time (s)')
+plt.ylabel('Amplitude')
+plt.title('Time Delay Simulation')
+plt.legend()
+plt.grid()
+plt.show()
+
+# プロット (周波数領域の振幅特性)
+plt.figure(figsize=(8, 5))
+plt.plot(omega, np.abs(G_jw), label='|G(jω)|', color='g')
+plt.xlabel('Frequency (rad/s)')
+plt.ylabel('Magnitude')
+plt.title('Frequency Response of Delay Element')
+plt.legend()
+plt.grid()
+plt.show()
+
+# プロット (周波数領域の位相特性)
+plt.figure(figsize=(8, 5))
+plt.plot(omega, np.angle(G_jw), label='∠G(jω)', color='m')
+plt.xlabel('Frequency (rad/s)')
+plt.ylabel('Phase (radians)')
+plt.title('Phase Response of Delay Element')
+plt.legend()
+plt.grid()
+plt.show()
