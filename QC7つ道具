@@ -1,0 +1,97 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+from collections import Counter
+
+# ① パレート図
+def pareto_chart(data):
+    counts = Counter(data)
+    sorted_counts = sorted(counts.items(), key=lambda x: x[1], reverse=True)
+    labels, values = zip(*sorted_counts)
+    cum_values = np.cumsum(values) / np.sum(values) * 100
+    
+    fig, ax1 = plt.subplots(figsize=(8,5))
+    ax1.bar(labels, values, color='b', alpha=0.7, label='Frequency')
+    ax2 = ax1.twinx()
+    ax2.plot(labels, cum_values, color='r', marker='o', label='Cumulative %')
+    
+    ax1.set_ylabel("Frequency")
+    ax2.set_ylabel("Cumulative %")
+    plt.title("Pareto Chart")
+    ax1.legend(loc='upper left')
+    ax2.legend(loc='upper right')
+    plt.show()
+
+# ② ヒストグラム
+def histogram(data, bins=10):
+    plt.figure(figsize=(8,5))
+    plt.hist(data, bins=bins, color='g', alpha=0.7)
+    plt.xlabel("Value")
+    plt.ylabel("Frequency")
+    plt.title("Histogram")
+    plt.grid()
+    plt.show()
+
+# ③ 散布図
+def scatter_plot(x, y):
+    plt.figure(figsize=(8,5))
+    plt.scatter(x, y, alpha=0.7)
+    plt.xlabel("X-axis")
+    plt.ylabel("Y-axis")
+    plt.title("Scatter Plot")
+    plt.grid()
+    plt.show()
+
+# ④ 特性要因図（フィッシュボーン）
+def cause_effect_diagram():
+    print("Create a fishbone diagram manually as this is difficult to visualize in matplotlib.")
+
+# ⑤ チェックシート
+def check_sheet(data):
+    df = pd.DataFrame(data, columns=["Category", "Count"])
+    print(df)
+
+# ⑥ 一般的なグラフ（折れ線グラフ）
+def line_graph(x, y):
+    plt.figure(figsize=(8,5))
+    plt.plot(x, y, marker='o', linestyle='-', color='b')
+    plt.xlabel("X-axis")
+    plt.ylabel("Y-axis")
+    plt.title("Line Graph")
+    plt.grid()
+    plt.show()
+
+# ⑦ 管理図
+def control_chart(data):
+    mean = np.mean(data)
+    std = np.std(data)
+    upper_control_limit = mean + 3 * std
+    lower_control_limit = mean - 3 * std
+    
+    plt.figure(figsize=(8,5))
+    plt.plot(data, marker='o', linestyle='-', color='b', label='Data')
+    plt.axhline(mean, color='g', linestyle='--', label='Mean')
+    plt.axhline(upper_control_limit, color='r', linestyle='--', label='UCL (+3σ)')
+    plt.axhline(lower_control_limit, color='r', linestyle='--', label='LCL (-3σ)')
+    
+    plt.xlabel("Sample Index")
+    plt.ylabel("Value")
+    plt.title("Control Chart")
+    plt.legend()
+    plt.grid()
+    plt.show()
+
+# サンプルデータ
+data = np.random.randint(1, 10, 50)
+x = np.linspace(0, 10, 50)
+y = x + np.random.normal(0, 1, 50)
+
+# グラフの実行例
+pareto_chart(data)
+histogram(data)
+scatter_plot(x, y)
+cause_effect_diagram()
+check_sheet([(f'Category {i}', np.random.randint(1, 20)) for i in range(1, 6)])
+line_graph(x, y)
+control_chart(data)
