@@ -1,0 +1,77 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 2次曲線 (楕円、放物線、双曲線) の定義
+def ellipse(a, b, theta):
+    x = a * np.cos(theta)
+    y = b * np.sin(theta)
+    return x, y
+
+def parabola(p, x):
+    y = x**2 / (4 * p)
+    return x, y
+
+def hyperbola(a, b, theta):
+    x = a * np.cosh(theta)
+    y = b * np.sinh(theta)
+    return x, y
+
+# 離心率の計算
+def eccentricity(a, b, curve_type):
+    if curve_type == 'ellipse':
+        return np.sqrt(1 - (b**2 / a**2))
+    elif curve_type == 'hyperbola':
+        return np.sqrt(1 + (b**2 / a**2))
+    else:
+        return None
+
+# 12ビットAD変換
+def quantize(signal, bits=12):
+    levels = 2 ** bits
+    return np.round((signal - np.min(signal)) / (np.max(signal) - np.min(signal)) * (levels - 1)) / (levels - 1) * (np.max(signal) - np.min(signal)) + np.min(signal)
+
+# サンプリング周波数
+fs = 100  # Hz
+print(f"Sampling Frequency: {fs} Hz")
+
+# パラメータ設定
+theta = np.linspace(0, 2 * np.pi, fs)
+x_vals = np.linspace(-5, 5, fs)
+a, b = 3, 2  # 楕円 & 双曲線のパラメータ
+p = 1  # 放物線の焦点距離
+
+# プロット
+plt.figure(figsize=(12, 8))
+
+# 楕円
+x, y = ellipse(a, b, theta)
+x_q, y_q = quantize(x), quantize(y)
+plt.subplot(2, 2, 1)
+plt.plot(x, y, label='Ellipse')
+plt.scatter(x_q, y_q, s=5, color='red', label='Quantized')
+plt.legend()
+plt.title(f"Ellipse (e = {eccentricity(a, b, 'ellipse'):.2f})")
+plt.grid()
+
+# 放物線
+x, y = parabola(p, x_vals)
+x_q, y_q = quantize(x), quantize(y)
+plt.subplot(2, 2, 2)
+plt.plot(x, y, label='Parabola')
+plt.scatter(x_q, y_q, s=5, color='red', label='Quantized')
+plt.legend()
+plt.title("Parabola")
+plt.grid()
+
+# 双曲線
+x, y = hyperbola(a, b, theta)
+x_q, y_q = quantize(x), quantize(y)
+plt.subplot(2, 2, 3)
+plt.plot(x, y, label='Hyperbola')
+plt.scatter(x_q, y_q, s=5, color='red', label='Quantized')
+plt.legend()
+plt.title(f"Hyperbola (e = {eccentricity(a, b, 'hyperbola'):.2f})")
+plt.grid()
+
+plt.tight_layout()
+plt.show()
