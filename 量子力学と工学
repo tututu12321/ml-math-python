@@ -1,0 +1,72 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.constants import h, hbar, e, m_e
+from scipy.linalg import expm
+
+# 量子トンネル効果（MOSFETのサブスレッショルド領域）
+def quantum_tunneling(E, V0, L):
+    k1 = np.sqrt(2 * m_e * E) / hbar  # 粒子の波数 (E < V0)
+    k2 = np.sqrt(2 * m_e * (V0 - E)) / hbar  # バリア内の波数
+    T = np.exp(-2 * k2 * L)  # トンネル確率
+    return T
+
+# トンネル確率のプロット
+E_vals = np.linspace(0, 1, 100) * e
+V0 = 1.2 * e  # バリア電位 (eV)
+L = 1e-9  # バリア幅 (nm)
+T_vals = [quantum_tunneling(E, V0, L) for E in E_vals]
+
+plt.figure(figsize=(8, 5))
+plt.plot(E_vals / e, T_vals, label="Quantum Tunneling")
+plt.xlabel("Energy (eV)")
+plt.ylabel("Transmission Probability")
+plt.title("Quantum Tunneling in MOSFET Subthreshold Region")
+plt.legend()
+plt.grid()
+plt.show()
+
+# スピンとパウリ行列
+sigma_x = np.array([[0, 1], [1, 0]])  # パウリ行列 σ_x
+sigma_y = np.array([[0, -1j], [1j, 0]])  # パウリ行列 σ_y
+sigma_z = np.array([[1, 0], [0, -1]])  # パウリ行列 σ_z
+
+# スピン状態の時間発展
+initial_state = np.array([[1], [0]])  # スピンアップ状態
+omega = 1e9  # 角周波数 (Hz)
+time = np.linspace(0, 1e-9, 100)  # 時間ステップ (ns)
+states = [expm(-1j * omega * t * sigma_x) @ initial_state for t in time]
+spin_up_prob = [np.abs(state[0, 0])**2 for state in states]
+
+plt.figure(figsize=(8, 5))
+plt.plot(time * 1e9, spin_up_prob, label="Spin-Up Probability")
+plt.xlabel("Time (ns)")
+plt.ylabel("Probability")
+plt.title("Spin Precession with Pauli Matrices")
+plt.legend()
+plt.grid()
+plt.show()
+
+# 量子もつれとEPRパラドックス（ベル状態）
+def bell_state():
+    return (1/np.sqrt(2)) * np.array([[1, 0, 0, 1]]).T
+
+bell = bell_state()
+print("Bell State:")
+print(bell)
+
+# 量子コンピュータの基本（量子ビット、ゲート演算）
+H = (1/np.sqrt(2)) * np.array([[1, 1], [1, -1]])  # アダマールゲート
+X = np.array([[0, 1], [1, 0]])  # NOTゲート
+I = np.eye(2)  # 恒等行列
+
+# 量子ビットの初期状態
+qubit = np.array([[1], [0]])  # |0⟩
+
+# 量子ゲート適用
+qubit_h = H @ qubit  # Hゲート適用
+qubit_x = X @ qubit  # NOTゲート適用
+
+print("\nQubit after Hadamard Gate:")
+print(qubit_h)
+print("\nQubit after NOT Gate:")
+print(qubit_x)
