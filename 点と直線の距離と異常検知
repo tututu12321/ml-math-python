@@ -1,0 +1,40 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+def point_to_line_distance(x0, y0, a, b, c):
+    return abs(a*x0 + b*y0 + c) / np.sqrt(a**2 + b**2)
+
+# 正常データ点の生成 (基準直線 y = 2x + 1 に沿う)
+np.random.seed(0)
+x = np.linspace(0, 10, 50)
+y = 2*x + 1 + np.random.normal(0, 0.5, len(x))  # 正常データ
+
+# 異常データを一部混入
+x_anomaly = np.array([2, 5, 8])
+y_anomaly = np.array([10, 15, 22])  # 直線から大きく外れる異常値
+
+# すべてのデータを結合
+x_total = np.concatenate([x, x_anomaly])
+y_total = np.concatenate([y, y_anomaly])
+
+# 基準直線の係数 (y = 2x + 1 → 2x - y + 1 = 0)
+a, b, c = 2, -1, 1
+threshold = 2  # 異常判定の閾値
+
+# 各点の距離を計算
+distances = np.array([point_to_line_distance(xi, yi, a, b, c) for xi, yi in zip(x_total, y_total)])
+
+# 異常値の判定
+is_anomaly = distances > threshold
+
+# 可視化
+plt.figure(figsize=(8, 6))
+plt.scatter(x_total[~is_anomaly], y_total[~is_anomaly], color='blue', label='Normal Data')
+plt.scatter(x_total[is_anomaly], y_total[is_anomaly], color='red', label='Anomaly', edgecolors='black', s=100)
+plt.plot(x, 2*x + 1, color='green', linestyle='--', label='Reference Line (y=2x+1)')
+plt.xlabel("X")
+plt.ylabel("Y")
+plt.title("Anomaly Detection using Point-Line Distance")
+plt.legend()
+plt.grid()
+plt.show()
