@@ -1,0 +1,68 @@
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import numpy as np
+import matplotlib.pyplot as plt
+
+# データ生成（sin関数の近似）
+x = np.linspace(-2*np.pi, 2*np.pi, 100).reshape(-1, 1)
+y = np.sin(x)
+
+# Tensorへ変換
+x_train = torch.tensor(x, dtype=torch.float32)
+y_train = torch.tensor(y, dtype=torch.float32)
+
+# ネットワーク定義（全結合2層）
+class NeuralNet(nn.Module):
+    def __init__(self):
+        super(NeuralNet, self).__init__()
+        self.fc1 = nn.Linear(1, 10)  # 1入力 -> 10ノード
+        self.fc2 = nn.Linear(10, 1)  # 10ノード -> 1出力
+        self.activation = nn.ReLU()  # ReLU活性化関数
+
+    def forward(self, x):
+        x = self.activation(self.fc1(x))
+        x = self.fc2(x)
+        return x
+
+# モデル、損失関数、最適化手法の設定
+model = NeuralNet()
+criterion = nn.MSELoss()  # 損失関数: 平均二乗誤差
+optimizer = optim.Adam(model.parameters(), lr=0.01)  # Adam最適化
+
+# 学習ループ
+epochs = 1000
+losses = []
+
+for epoch in range(epochs):
+    optimizer.zero_grad()  # 勾配の初期化
+    output = model(x_train)  # 順伝播
+    loss = criterion(output, y_train)  # 損失計算
+    loss.backward()  # 誤差伝播（バックプロパゲーション）
+    optimizer.step()  # 重み更新
+    losses.append(loss.item())  # 損失を記録
+
+    if epoch % 100 == 0:
+        print(f'Epoch [{epoch}/{epochs}], Loss: {loss.item():.4f}')
+
+# 学習後のプロット
+plt.figure(figsize=(10, 5))
+
+# 損失の変化
+plt.subplot(1, 2, 1)
+plt.plot(losses, label="Loss")
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+plt.title("Loss over Epochs")
+plt.legend()
+
+# 学習結果と真の関数の比較
+plt.subplot(1, 2, 2)
+plt.scatter(x, y, label="True (sin)", color="blue", s=10)
+plt.scatter(x, model(x_train).detach().numpy(), label="Predicted", color="red", s=10)
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Sine Approximation")
+plt.legend()
+
+plt.show()
