@@ -1,0 +1,38 @@
+import sympy as sp
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Define Laplace transform variable s and time variable t
+s, t = sp.symbols('s t')
+
+# Define the transfer function H(s) = (s + 1) / (s^2 + 2s + 1)
+numerator = s + 1
+denominator = s**2 + 2*s + 1
+H_s = numerator / denominator
+
+# Perform inverse Laplace transform to get the time-domain response
+h_t = sp.inverse_laplace_transform(H_s, s, t)
+
+# Display the result of inverse Laplace transform
+print(f"Inverse Laplace transform result (time response): {h_t}")
+
+# Plot the time-domain response
+# Numerically evaluate and plot the response
+time_values = np.linspace(0, 10, 1000)
+h_t_values = np.array([h_t.subs(t, time) for time in time_values], dtype=np.float64)
+
+plt.plot(time_values, h_t_values, label="System Response h(t)")
+plt.xlabel("Time (t)")
+plt.ylabel("Response h(t)")
+plt.title("Control System Time Response")
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Derivative of the transfer function using the product rule
+H_s_diff_product_rule = sp.diff(numerator * denominator, s)
+print(f"Derivative of the transfer function (product rule): {H_s_diff_product_rule}")
+
+# Derivative using the quotient rule
+H_s_diff_quotient_rule = sp.diff(numerator / denominator, s)
+print(f"Derivative of the transfer function (quotient rule): {H_s_diff_quotient_rule}")
