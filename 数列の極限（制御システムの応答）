@@ -1,0 +1,21 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Simulate the system's step response
+# Example: First-order lag system H(s) = 1 / (s + 1)
+# Time response H(t) = 1 - exp(-t)
+
+time = np.linspace(0, 5, 1000)
+response = 1 - np.exp(-time)
+
+# Limit (response as t → ∞)
+lim_response = 1  # Steady-state value (for first-order lag system)
+
+# Plot the response
+plt.plot(time, response, label="System Response")
+plt.axhline(y=lim_response, color='r', linestyle='--', label="Limit")
+plt.xlabel("Time (t)")
+plt.ylabel("Response")
+plt.legend()
+plt.title("Control System Response and Limit")
+plt.show()
