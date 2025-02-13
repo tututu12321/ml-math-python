@@ -1,0 +1,18 @@
+pip install spleeter
+from spleeter.separator import Separator
+from spleeter.audio.adapter import AudioAdapter
+
+# Spleeterのモデルを使って音源を分離
+def separate_vocals_and_music(input_file, output_dir):
+    separator = Separator('spleeter:2stems')  # 2stemsモデル（ボーカルと伴奏の分離）
+    
+    # 入力ファイル（MP3）を分離
+    separator.separate_to_file(input_file, output_dir)
+    print(f"分離結果を {output_dir} に保存しました。")
+
+# 入力ファイル（MP3）のパスと出力ディレクトリを指定
+input_file = 'path_to_your_file.mp3'  # ここにMP3ファイルのパスを指定
+output_dir = 'output'  # 分離されたファイルの保存先ディレクトリ
+
+# ボーカルと音楽を分離
+separate_vocals_and_music(input_file, output_dir)
