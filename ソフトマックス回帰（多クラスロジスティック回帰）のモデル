@@ -1,0 +1,51 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LogisticRegression
+from sklearn.datasets import make_classification
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, confusion_matrix
+
+# データの生成（3クラス分類問題）
+X, y = make_classification(n_samples=1000, n_features=2, n_classes=3, random_state=42)
+
+# トレーニングデータとテストデータに分割
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# ソフトマックス回帰（多クラスロジスティック回帰）のモデル
+model = LogisticRegression(multi_class='multinomial', solver='lbfgs')
+
+# モデルの訓練
+model.fit(X_train, y_train)
+
+# 予測
+y_pred = model.predict(X_test)
+
+# 精度の評価
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy * 100:.2f}%")
+
+# 混同行列の表示
+cm = confusion_matrix(y_test, y_pred)
+print("Confusion Matrix:")
+print(cm)
+
+# 決定境界をプロットする関数
+def plot_decision_boundary(X, y, model):
+    h = .02  # メッシュの解像度
+    x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1
+    y_min, y_max = X[:, 1].min() - 1, X[:, 1].max() + 1
+
+    xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+
+    Z = model.predict(np.c_[xx.ravel(), yy.ravel()])
+    Z = Z.reshape(xx.shape)
+
+    plt.contourf(xx, yy, Z, alpha=0.8)
+    plt.scatter(X[:, 0], X[:, 1], c=y, edgecolors='k', marker='o', s=30, cmap=plt.cm.Paired)
+    plt.title("Decision Boundary (Softmax Logistic Regression)")
+    plt.xlabel("Feature 1")
+    plt.ylabel("Feature 2")
+    plt.show()
+
+# 決定境界をプロット
+plot_decision_boundary(X_test, y_test, model)
