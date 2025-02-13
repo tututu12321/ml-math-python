@@ -1,0 +1,99 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 1. マルコフ連鎖の定義（簡単な2状態モデル）
+class MarkovChain:
+    def __init__(self, transition_matrix):
+        self.transition_matrix = transition_matrix
+        self.state = 0  # 初期状態0
+    
+    def step(self):
+        # 状態遷移確率に従って新しい状態を決定
+        self.state = np.random.choice([0, 1], p=self.transition_matrix[self.state])
+        return self.state
+
+# 2. ベルマン方程式（強化学習に基づく価値繰り返しアルゴリズム）
+class BellmanEquation:
+    def __init__(self, rewards, transition_matrix, discount_factor=0.9):
+        self.rewards = rewards
+        self.transition_matrix = transition_matrix
+        self.discount_factor = discount_factor
+        self.values = np.zeros(len(rewards))  # 各状態の初期価値
+    
+    def update(self):
+        new_values = np.copy(self.values)
+        for state in range(len(self.rewards)):
+            expected_value = 0
+            for next_state in range(len(self.rewards)):
+                expected_value += self.transition_matrix[state][next_state] * self.values[next_state]
+            new_values[state] = self.rewards[state] + self.discount_factor * expected_value
+        self.values = new_values
+
+    def get_values(self):
+        return self.values
+
+# 3. シェリングの分離モデル（住民の移動シミュレーション）
+def sheldon_model(grid_size=10, tolerance=0.3, steps=100):
+    # 初期設定: 1は白人、-1は黒人、0は空き地
+    grid = np.random.choice([1, -1, 0], size=(grid_size, grid_size), p=[0.5, 0.5, 0.0])
+    
+    def is_satisfied(x, y):
+        neighbors = [
+            (x-1, y), (x+1, y), (x, y-1), (x, y+1)
+        ]
+        same_type = 0
+        total_neighbors = 0
+        
+        for nx, ny in neighbors:
+            if 0 <= nx < grid_size and 0 <= ny < grid_size:
+                total_neighbors += 1
+                if grid[nx, ny] == grid[x, y]:
+                    same_type += 1
+        
+        return (same_type / total_neighbors) >= tolerance if total_neighbors > 0 else True
+    
+    for _ in range(steps):
+        for x in range(grid_size):
+            for y in range(grid_size):
+                if grid[x, y] != 0 and not is_satisfied(x, y):
+                    empty_neighbors = [
+                        (nx, ny) for nx in range(x-1, x+2) for ny in range(y-1, y+2)
+                        if 0 <= nx < grid_size and 0 <= ny < grid_size and grid[nx, ny] == 0
+                    ]
+                    if empty_neighbors:
+                        new_x, new_y = empty_neighbors[np.random.choice(len(empty_neighbors))]
+                        grid[new_x, new_y] = grid[x, y]
+                        grid[x, y] = 0
+    
+    return grid
+
+# 4. シミュレーションの実行
+if __name__ == "__main__":
+    # 1. マルコフ連鎖のシミュレーション
+    transition_matrix = np.array([[0.9, 0.1], [0.5, 0.5]])
+    mc = MarkovChain(transition_matrix)
+    states = [mc.step() for _ in range(1000)]
+    plt.hist(states, bins=2, alpha=0.7, label="Markov Chain")
+    plt.xlabel("State")
+    plt.ylabel("Frequency")
+    
+    # 2. ベルマン方程式のシミュレーション
+    rewards = [1, 2]
+    transition_matrix_bellman = np.array([[0.8, 0.2], [0.1, 0.9]])
+    bellman = BellmanEquation(rewards, transition_matrix_bellman)
+    for _ in range(50):
+        bellman.update()
+    plt.figure()
+    plt.plot(bellman.get_values(), label="Bellman Values")
+    plt.xlabel("State")
+    plt.ylabel("Value")
+    
+    # 3. シェリングの分離モデル
+    grid_size = 20
+    final_grid = sheldon_model(grid_size=grid_size, tolerance=0.4, steps=50)
+    plt.figure()
+    plt.imshow(final_grid, cmap='bwr', interpolation='nearest')
+    plt.colorbar(label="Population Type")
+    plt.title("Schelling's Segregation Model")
+
+    plt.show()
