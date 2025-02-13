@@ -1,0 +1,81 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import norm
+
+# 1. 中心極限定理 (Central Limit Theorem)
+def central_limit_theorem(sample_size, num_samples):
+    means = []
+    for _ in range(num_samples):
+        sample = np.random.uniform(0, 1, sample_size)  # 一様分布からランダムサンプル
+        means.append(np.mean(sample))  # サンプルの平均を記録
+    return means
+
+# 2. 感度分析 (Sensitivity Analysis)
+def sensitivity_analysis(func, param_range, num_samples):
+    sensitivities = []
+    for param in param_range:
+        outputs = [func(param) for _ in range(num_samples)]
+        mean_output = np.mean(outputs)
+        sensitivity = np.std(outputs) / mean_output  # 出力の感度を計算
+        sensitivities.append(sensitivity)
+    return sensitivities
+
+# 3. 交差エントロピー手法 (Cross-Entropy Method)
+def cross_entropy_method(probabilities, num_samples, num_iterations):
+    best_solution = None
+    for _ in range(num_iterations):
+        # 確率ベクトルを使ってサンプルを生成
+        samples = np.random.binomial(1, probabilities, size=(num_samples, len(probabilities)))
+        rewards = np.sum(samples, axis=1)  # 各サンプルの報酬（単純な合計）
+        elite_indices = np.argsort(rewards)[-num_samples // 2:]  # 最良の半分を選択
+        best_solution = np.mean(samples[elite_indices], axis=0)  # 最良サンプルの平均を取る
+        probabilities = best_solution  # 確率を更新
+    return best_solution
+
+# メイン実行部分
+if __name__ == "__main__":
+    # 1. 中心極限定理を使ってヒストグラムをプロット
+    sample_size = 100
+    num_samples = 1000
+    means = central_limit_theorem(sample_size, num_samples)
+
+    plt.figure(figsize=(12, 6))
+    plt.hist(means, bins=30, density=True, alpha=0.6, color='g', label="Sample Means")
+    x = np.linspace(min(means), max(means), 100)
+    plt.plot(x, norm.pdf(x, np.mean(means), np.std(means)), 'r-', lw=2, label="Normal Distribution")
+    plt.title("Central Limit Theorem")
+    plt.xlabel("Mean of Sample")
+    plt.ylabel("Density")
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+    # 2. 感度分析を使って出力の感度をプロット
+    def model(param):
+        return np.sin(param) + np.cos(param)  # シンプルなモデル（関数）
+
+    param_range = np.linspace(0, 10, 100)
+    sensitivities = sensitivity_analysis(model, param_range, 1000)
+
+    plt.figure(figsize=(12, 6))
+    plt.plot(param_range, sensitivities, label="Sensitivity Analysis")
+    plt.title("Sensitivity Analysis")
+    plt.xlabel("Parameter")
+    plt.ylabel("Sensitivity")
+    plt.grid(True)
+    plt.legend()
+    plt.show()
+
+    # 3. 交差エントロピー手法を使って最適解を見つける
+    probabilities = np.random.rand(10)  # ランダムな初期確率
+    probabilities /= np.sum(probabilities)  # 確率に正規化
+
+    best_solution = cross_entropy_method(probabilities, num_samples=100, num_iterations=100)
+
+    plt.figure(figsize=(12, 6))
+    plt.bar(range(len(best_solution)), best_solution)
+    plt.title("Cross-Entropy Method Result")
+    plt.xlabel("Solution Index")
+    plt.ylabel("Probability")
+    plt.grid(True)
+    plt.show()
