@@ -1,0 +1,71 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Define the function f(x) = x^2 - 4
+def f(x):
+    return x**2 - 4
+
+# Secant Method Implementation
+def secant_method(f, x0, x1, tol=1e-5, max_iter=100):
+    x_values = [x0, x1]
+    for i in range(max_iter):
+        x2 = x1 - f(x1) * (x1 - x0) / (f(x1) - f(x0))
+        x_values.append(x2)
+        if abs(x2 - x1) < tol:
+            return x2, x_values
+        x0, x1 = x1, x2
+    return None, x_values
+
+# Muller Method Implementation
+import cmath
+def muller_method(f, x0, x1, x2, tol=1e-5, max_iter=100):
+    x_values = [x0, x1, x2]
+    for i in range(max_iter):
+        f0, f1, f2 = f(x0), f(x1), f(x2)
+        h0, h1 = x1 - x0, x2 - x1
+        delta0 = (f1 - f0) / h0
+        delta1 = (f2 - f1) / h1
+        d = (delta1 - delta0) / (h1 + h0)
+        discriminant = cmath.sqrt(delta1**2 - 4*f2*d)
+        if abs(delta1 + discriminant) > abs(delta1 - discriminant):
+            dx = (-2*f2) / (delta1 + discriminant)
+        else:
+            dx = (-2*f2) / (delta1 - discriminant)
+        x3 = x2 + dx
+        x_values.append(x3)
+        if abs(dx) < tol:
+            return x3, x_values
+        x0, x1, x2 = x1, x2, x3
+    return None, x_values
+
+# Apply Secant Method and Muller Method
+x0_secant, x1_secant = 1, 2
+root_secant, x_values_secant = secant_method(f, x0_secant, x1_secant)
+
+x0_muller, x1_muller, x2_muller = 0, 1, 2
+root_muller, x_values_muller = muller_method(f, x0_muller, x1_muller, x2_muller)
+
+# Plotting the convergence of both methods
+x_vals = np.linspace(-3, 3, 400)
+y_vals = f(x_vals)
+
+plt.figure(figsize=(10, 6))
+
+# Plot the function f(x)
+plt.plot(x_vals, y_vals, label=r'$f(x) = x^2 - 4$', color='blue')
+
+# Plot Secant Method convergence
+plt.plot(x_values_secant, f(np.array(x_values_secant)), 'o-', label='Secant Method Convergence', color='green')
+
+# Plot Muller Method convergence
+plt.plot(x_values_muller, f(np.array(x_values_muller)), 'o-', label='Muller Method Convergence', color='red')
+
+# Plot settings
+plt.axhline(0, color='black',linewidth=0.5)
+plt.axvline(0, color='black',linewidth=0.5)
+plt.title('Convergence of Secant and Muller Methods')
+plt.xlabel('x')
+plt.ylabel('f(x)')
+plt.legend()
+plt.grid(True)
+plt.show()
