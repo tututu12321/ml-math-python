@@ -1,0 +1,41 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 設定：公称値と誤差範囲
+R1_nominal = 10e3  # 10kΩ
+R2_nominal = 100e3 # 100kΩ
+tolerance = 0.05   # 抵抗の誤差 ±5%
+
+# モンテカルロシミュレーションの回数
+num_simulations = 10000
+
+# 抵抗値のランダムサンプル（正規分布を仮定）
+R1_samples = np.random.normal(R1_nominal, R1_nominal * tolerance, num_simulations)
+R2_samples = np.random.normal(R2_nominal, R2_nominal * tolerance, num_simulations)
+
+# 非反転増幅回路のゲイン計算 (1 + R2/R1)
+gain_samples = 1 + (R2_samples / R1_samples)
+
+# 目標のゲイン範囲 (例: 10 ± 0.5)
+target_gain = 10
+tolerance_gain = 0.5
+acceptable = (gain_samples >= (target_gain - tolerance_gain)) & (gain_samples <= (target_gain + tolerance_gain))
+
+# 歩留まり計算
+yield_percentage = np.sum(acceptable) / num_simulations * 100
+
+# ヒストグラムをプロット
+plt.figure(figsize=(8, 6))
+plt.hist(gain_samples, bins=50, color='b', alpha=0.7, edgecolor='black')
+plt.axvline(target_gain, color='r', linestyle='dashed', label=f"Target Gain: {target_gain}")
+plt.axvline(target_gain - tolerance_gain, color='g', linestyle='dashed', label="Lower Limit")
+plt.axvline(target_gain + tolerance_gain, color='g', linestyle='dashed', label="Upper Limit")
+plt.xlabel("Gain")
+plt.ylabel("Frequency")
+plt.title(f"Monte Carlo Yield Analysis (Yield: {yield_percentage:.2f}%)")
+plt.legend()
+plt.grid()
+plt.show()
+
+# 歩留まり結果を出力
+print(f"歩留まり（Yield）: {yield_percentage:.2f}%")
