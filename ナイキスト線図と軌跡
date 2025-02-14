@@ -1,0 +1,17 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import control as ctrl  # controlライブラリを使用
+
+# 伝達関数 G(s) = 1 / (1 + 0.5s)
+num = [1]     # 分子
+den = [0.5, 1]  # 分母 (0.5s + 1)
+
+# 伝達関数の定義
+G = ctrl.TransferFunction(num, den)
+
+# ナイキストプロットの生成
+plt.figure(figsize=(6,6))
+ctrl.nyquist(G)
+plt.title("Nyquist Plot")
+plt.grid(True)
+plt.show()
