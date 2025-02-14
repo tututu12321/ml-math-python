@@ -1,0 +1,109 @@
+import sympy as sp
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 係数 a, b, c を設定（例: a=1, b=-3, c=2 の場合 x^2 - 3x + 2 = 0）
+a = 1
+b = -3
+c = 2
+
+# 判別式の計算
+D = b**2 - 4*a*c
+
+# 解の計算
+if D > 0:
+    x1 = (-b + np.sqrt(D)) / (2*a)
+    x2 = (-b - np.sqrt(D)) / (2*a)
+    solutions = [x1, x2]
+elif D == 0:
+    x1 = -b / (2*a)
+    solutions = [x1]
+else:
+    x1 = (-b + np.sqrt(complex(D))) / (2*a)
+    x2 = (-b - np.sqrt(complex(D))) / (2*a)
+    solutions = [x1, x2]
+
+# x の範囲設定
+x = np.linspace(-2, 4, 400)
+y = a*x**2 + b*x + c
+
+# プロット
+plt.figure(figsize=(8, 5))
+plt.plot(x, y, label=f"${a}x^2 + {b}x + {c} = 0$", color="b")
+plt.axhline(0, color="black", linewidth=0.5)  # x軸
+plt.axvline(0, color="black", linewidth=0.5)  # y軸
+
+# 解をプロット（実数解のみ）
+if D >= 0:
+    plt.scatter(solutions, [0]*len(solutions), color='r', zorder=3, label="Roots")
+
+# グラフの設定
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Quadratic Equation and its Roots")
+plt.legend()
+plt.grid(True)
+
+# プロット表示
+plt.show()
+
+# 解を出力
+print("=== 二次方程式の解 ===")
+for i, sol in enumerate(solutions):
+    print(f"x{i+1} = {sol:.4f}")
+
+# 係数 a, b, c をシンボルとして定義
+a_sym, b_sym, c_sym = sp.symbols('a b c')
+
+# 各項の計算
+b_squared = b_sym**2
+b_term = b_sym
+two_a = 2 * a_sym
+four_ac = 4 * a_sym * c_sym
+D_sym = b_squared - four_ac
+b_over_2a = b_sym / (2 * a_sym)
+sqrt_D_over_2a = sp.sqrt(D_sym) / (2 * a_sym)
+
+# 各項の素因数分解
+factorized_values = {
+    "b^2": sp.factor(b_squared),
+    "b": sp.factor(b_term),
+    "2a": sp.factor(two_a),
+    "4ac": sp.factor(four_ac),
+    "b^2 - 4ac": sp.factor(D_sym),
+    "b/(2a)": sp.factor(b_over_2a),
+    "√(b^2 - 4ac)/(2a)": sp.factor(sqrt_D_over_2a)
+}
+
+# 素因数分解の結果をプリント
+print("=== 各項の素因数分解 ===")
+for key, value in factorized_values.items():
+    print(f"{key}: {value}")
+
+    # 数値としての各項の計算
+b_squared_val = b**2
+b_term_val = b
+two_a_val = 2 * a
+four_ac_val = 4 * a * c
+D_val = b_squared_val - four_ac_val
+b_over_2a_val = b / (2 * a)
+sqrt_D_over_2a_val = np.sqrt(abs(D_val)) / (2 * a) if D_val >= 0 else complex(0, np.sqrt(abs(D_val)) / (2 * a))
+
+# 各数値の素因数分解（整数のみ素因数分解）
+def integer_factorization(n):
+    return sp.factorint(n) if isinstance(n, int) else n
+
+factorized_values_numeric = {
+    "b^2": integer_factorization(b_squared_val),
+    "b": integer_factorization(b_term_val),
+    "2a": integer_factorization(two_a_val),
+    "4ac": integer_factorization(four_ac_val),
+    "b^2 - 4ac": integer_factorization(D_val),
+    "b/(2a)": b_over_2a_val,
+    "√(b^2 - 4ac)/(2a)": sqrt_D_over_2a_val
+}
+
+# 数値の素因数分解をプリント
+print("=== 各項の数値的な素因数分解 ===")
+for key, value in factorized_values_numeric.items():
+    print(f"{key}: {value}")
