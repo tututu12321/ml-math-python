@@ -1,0 +1,50 @@
+import numpy as np
+import scipy.linalg
+
+# Example system: A * X = B
+A = np.array([[4, -2, 1], [-2, 4, -2], [1, -2, 3]])
+B = np.array([1, 4, 2])
+
+# 1. **LU Decomposition**
+def lu_decomposition(A, B):
+    P, L, U = scipy.linalg.lu(A)
+    # Solve L * Y = B
+    Y = scipy.linalg.solve(L, B)
+    # Solve U * X = Y
+    X = scipy.linalg.solve(U, Y)
+    return X
+
+# 2. **Cholesky Decomposition** (Only works for positive definite matrix A)
+def cholesky_decomposition(A, B):
+    if np.all(np.linalg.eigvals(A) > 0):  # Check if the matrix is positive definite
+        L = np.linalg.cholesky(A)
+        # Solve L * Y = B
+        Y = np.linalg.solve(L, B)
+        # Solve L^T * X = Y
+        X = np.linalg.solve(L.T, Y)
+        return X
+    else:
+        raise ValueError("Matrix A is not positive definite.")
+
+# 3. **QR Decomposition**
+def qr_decomposition(A, B):
+    Q, R = np.linalg.qr(A)
+    # Solve R * X = Q^T * B
+    X = np.linalg.solve(R, Q.T @ B)
+    return X
+
+# Solve using LU decomposition
+X_lu = lu_decomposition(A, B)
+print(f"Solution using LU Decomposition: {X_lu}")
+
+# Solve using Cholesky decomposition (if matrix is positive definite)
+try:
+    X_chol = cholesky_decomposition(A, B)
+    print(f"Solution using Cholesky Decomposition: {X_chol}")
+except ValueError as e:
+    print(e)
+
+# Solve using QR decomposition
+X_qr = qr_decomposition(A, B)
+print(f"Solution using QR Decomposition: {X_qr}")
+
