@@ -1,0 +1,45 @@
+# 必要なライブラリを再インポート
+import numpy as np
+import sympy as sp
+
+# シフト行列の作成 (例: 4x4 の右シフト行列)
+def shift_matrix(n, direction="right"):
+    """n×nのシフト行列を作成 (右シフト or 左シフト)"""
+    M = np.zeros((n, n))
+    if direction == "right":
+        for i in range(n - 1):
+            M[i, i + 1] = 1
+    elif direction == "left":
+        for i in range(1, n):
+            M[i, i - 1] = 1
+    return M
+
+# べき単行列の作成 (単位行列 + 係数付き単位行列)
+def powered_identity_matrix(n, k):
+    """n×n のべき単行列 (I + kI) を作成"""
+    I = np.eye(n)
+    return I + k * I
+
+# 行列の累乗
+def matrix_power(A, p):
+    """行列 A を p 乗する"""
+    return np.linalg.matrix_power(A, p)
+
+# 4x4 シフト行列 (右シフト) 作成
+shift_mat = shift_matrix(4, "right")
+
+# 4x4 べき単行列 (I + 2I) 作成
+powered_identity_mat = powered_identity_matrix(4, 2)
+
+# 行列の累乗 (シフト行列を 3 乗)
+shift_mat_powered = matrix_power(shift_mat, 3)
+
+# 結果を表示
+print("=== シフト行列 (右シフト) ===")
+sp.pprint(sp.Matrix(shift_mat))
+
+print("\n=== べき単行列 (I + 2I) ===")
+sp.pprint(sp.Matrix(powered_identity_mat))
+
+print("\n=== シフト行列の 3 乗 ===")
+sp.pprint(sp.Matrix(shift_mat_powered))
