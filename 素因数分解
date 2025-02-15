@@ -1,0 +1,33 @@
+# 変数の定義
+A, B = 9, 5
+
+# 計算対象の値
+values = {
+    "A": A,
+    "B": B,
+    "A^2": A**2,
+    "B^2": B**2,
+    "A^2 - B^2": A**2 - B**2,
+    "(A + B)": A + B,
+    "(A - B)": A - B,
+    "A^2 + B^2": A**2 + B**2,
+}
+
+# 素因数分解を行い、掛け算の形で表示する関数
+def prime_factorization_expression(n):
+    """ 整数の素因数分解を掛け算の形で表示 """
+    if isinstance(n, int):  # 整数のみ対象
+        factors = sp.factorint(n)  # 素因数分解 (辞書形式)
+        factor_expr = " * ".join([f"{p}^{e}" if e > 1 else f"{p}" for p, e in factors.items()])
+        return factor_expr if factor_expr else "1"  # 1 の場合は空白を避ける
+    return "素因数なし"  # 整数以外は対象外
+
+# 結果を表示
+def print_prime_factors():
+    print("=== 各値の素因数分解 (掛け算の形で表示) ===")
+    for key, value in values.items():
+        factor_expr = prime_factorization_expression(value)
+        print(f"{key} = {value} = {factor_expr}")
+
+# 結果の表示
+print_prime_factors()
