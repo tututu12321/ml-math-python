@@ -1,0 +1,30 @@
+# Given values
+Fin = 123.047e3  # Input frequency (Hz)
+Fs = 1e6  # Sampling frequency (Hz)
+num_points = 512  # Number of points
+simulation_time = 1000e-6  # Simulation time in seconds (10 microseconds)
+
+# Calculate periods
+T_sin = 1 / Fin  # Sine wave period (seconds)
+T_s = 1 / Fs  # Sampling period (seconds)
+
+# Calculate the ratio of sampling period to sine period
+ratio = (T_s / T_sin) * 100
+
+# Calculate the value: Sine Period ÷ Number of Points
+sign_period_per_point = T_sin / num_points
+
+# Calculate the percentage of (Sine Period ÷ Number of Points) ÷ Sine Period
+percentage_result = (sign_period_per_point / T_sin) * 100
+
+# Calculate 1 / simulation_time
+inverse_simulation_time = 1 / simulation_time
+
+# Print the results
+print("Sine period (サイン周期):", T_sin, "seconds")
+print("Sampling period (サンプリング周期):", T_s, "seconds")
+print("Ratio of sampling period to sine period (サンプリング周期 / サイン周期) × 100:", ratio, "%")
+print("Sine period divided by number of points (サイン周期 ÷ 点数):", sign_period_per_point, "seconds")
+print("Result of (Sine period ÷ Number of Points) ÷ Sine period as percentage:", percentage_result, "%")
+print("Simulation time (シミュレーション時間):", simulation_time, "seconds")
+print("1 / Simulation time:", inverse_simulation_time, "Hz")
