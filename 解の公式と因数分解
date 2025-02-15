@@ -1,0 +1,67 @@
+import sympy as sp
+
+# 変数の定義
+a, b, c = 3, 1, 9
+
+# 解の公式の計算
+discriminant = b**2 - 4*a*c  # 判別式
+sqrt_discriminant = sp.sqrt(discriminant)
+x1 = (-b + sqrt_discriminant) / (2*a)
+x2 = (-b - sqrt_discriminant) / (2*a)
+
+# 素因数分解の対象
+values = {
+    "a": a,
+    "b": b,
+    "c": c,
+    "b^2": b**2,
+    "4ac": 4*a*c,
+    "b^2 - 4ac": discriminant,
+    "2a": 2*a,
+    "b/(2a)": sp.Rational(b, 2*a),
+    "√(b^2 - 4ac)": sqrt_discriminant,
+    "√(b^2 - 4ac) / (2a)": sqrt_discriminant / (2*a),
+}
+
+# 素因数分解を行い、素数のみを表示する関数
+def prime_factorization(n):
+    """ 整数の素因数分解を求め、素数のみを表示 """
+    if isinstance(n, int):  # 整数の場合のみ素因数分解
+        return list(sp.factorint(n).keys())  # 素因数のみ抽出
+    return "素因数なし"  # ルートや虚数は対象外
+
+# 各値の素因数分解（素数のみ）
+prime_factors = {key: prime_factorization(value) for key, value in values.items()}
+factorized_values = {key: sp.factor(value) for key, value in values.items()}
+
+# 結果を表示する関数
+def print_results():
+    print("=== 二次方程式の解の公式 ===")
+    print(f"x1 = {x1}")
+    print(f"x2 = {x2}\n")
+    
+    print("=== 各値とその素因数分解 ===")
+    for key, value in values.items():
+        print(f"{key} = {value},  素因数分解: {factorized_values[key]}")
+
+    print("\n=== 各値の素因数分解 (素数のみ) ===")
+    for key, factors in prime_factors.items():
+        print(f"{key}: {factors}")
+
+# 結果を表示
+print_results()
+
+# 素因数分解を積の形で表示し、元の値に戻るか確認する関数
+def check_factorization(values):
+    print("\n=== 素因数分解の掛け算表記と元の数との一致確認 ===")
+    for key, value in values.items():
+        if isinstance(value, int):  # 整数のみ対象
+            factors = sp.factorint(value)  # 素因数分解 (辞書形式)
+            factor_expr = " * ".join([f"{p}^{e}" if e > 1 else f"{p}" for p, e in factors.items()])
+            recomputed_value = sp.prod([p**e for p, e in factors.items()])  # 元の値に戻るか確認
+            is_correct = (recomputed_value == value)
+            print(f"{key} = {value} = {factor_expr}, 一致: {is_correct}")
+            
+# 素因数分解の掛け算表記と元の値の一致確認
+check_factorization(values)
+
