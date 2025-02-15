@@ -1,0 +1,47 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
+
+# ランダムシードの設定
+np.random.seed(42)
+
+# データの生成
+num_samples = 500  # サンプル数
+VGS = np.random.uniform(0.5, 2.0, num_samples)  # ゲート-ソース電圧 (V)
+VDS = np.random.uniform(0.1, 2.0, num_samples)  # ドレイン-ソース電圧 (V)
+W_L = np.random.uniform(10, 200, num_samples)   # W/L 比
+mu_Cox = np.random.uniform(50e-6, 100e-6, num_samples)  # しきい値電圧係数 (A/V^2)
+L = np.random.uniform(0.18e-6, 1e-6, num_samples)  # チャネル長 (m)
+Vth = 0.5  # しきい値電圧 (V)
+
+# 飽和領域の電流式 (I_D = 1/2 * μCox * (W/L) * (VGS - Vth)^2)
+ID = 0.5 * mu_Cox * (W_L) * (VGS - Vth) ** 2  
+
+# 特徴量とターゲット
+X = np.column_stack([VGS, VDS, W_L, mu_Cox, L])
+y = ID  # 目的変数（ドレイン電流）
+
+# データの分割 (学習用 80%, テスト用 20%)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# 線形回帰モデルの学習
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# 予測
+y_pred = model.predict(X_test)
+
+# モデル評価 (RMSE)
+rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+print("RMSE:", rmse)
+
+# 予測と実際の値をプロット
+plt.scatter(y_test, y_pred, alpha=0.5)
+plt.xlabel("Actual I_D (A)")
+plt.ylabel("Predicted I_D (A)")
+plt.title("MOSFET Drain Current Prediction")
+plt.grid(True)
+plt.show()
