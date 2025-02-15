@@ -1,0 +1,72 @@
+import numpy as np
+
+# 内分点・外分点の計算関数 (距離指定版)
+def divide_point_by_distance(A, B, d, total_distance, external=False):
+    """
+    2点 A, B を距離 d で内分または外分する点の座標を求める。
+    
+    引数:
+    A, B : tuple - 2次元座標 (x, y)
+    d : float - 分割する距離 (m)
+    total_distance : float - A から B までの全体の距離
+    external : bool - Trueなら外分点, Falseなら内分点 (デフォルト: False)
+    
+    戻り値:
+    (x, y) : tuple - 分割点の座標
+    """
+    x1, y1 = A
+    x2, y2 = B
+
+    # 内分比 m:n を計算 (d : (total_distance - d))
+    m = d
+    n = total_distance - d
+
+    if external:
+        x = (m * x2 - n * x1) / (m - n)
+        y = (m * y2 - n * y1) / (m - n)
+    else:
+        x = (m * x2 + n * x1) / (m + n)
+        y = (m * y2 + n * y1) / (m + n)
+
+    return (x, y)
+
+# 例: 点A(1,2), 点B(5,6) を距離 2m で内分・外分する
+A = (1, 2)
+B = (5, 6)
+
+# A と B の距離を計算
+total_distance = np.sqrt((B[0] - A[0])**2 + (B[1] - A[1])**2)
+
+# 距離 d = 2m で分割
+d = 2
+
+# 内分点
+internal_point = divide_point_by_distance(A, B, d, total_distance)
+# 外分点
+external_point = divide_point_by_distance(A, B, d, total_distance, external=True)
+
+# 結果表示
+print(f"A から B までの距離: {total_distance:.2f} m")
+print(f"内分点 (距離 {d} m): {internal_point}")
+print(f"外分点 (距離 {d} m): {external_point}")
+
+# 可視化
+import matplotlib.pyplot as plt
+
+# 点のプロット
+plt.figure(figsize=(6,6))
+plt.plot([A[0], B[0]], [A[1], B[1]], 'k--', label="Line AB") # AB直線
+plt.scatter(*A, color='red', label="A (1,2)")
+plt.scatter(*B, color='blue', label="B (5,6)")
+plt.scatter(*internal_point, color='green', label=f"Internal ({d}m)")
+plt.scatter(*external_point, color='purple', label=f"External ({d}m)")
+
+# 軸ラベル
+plt.xlabel("X-axis")
+plt.ylabel("Y-axis")
+plt.legend()
+plt.grid(True)
+plt.title("Internal and External Division by Distance")
+
+# プロット表示
+plt.show()
