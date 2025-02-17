@@ -1,0 +1,82 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 目的関数（線形回帰1と2の誤差を計算）
+def func(params, X, y):
+    m, b = params
+    predictions = m * X + b
+    return np.sum((predictions - y) ** 2)  # 二乗誤差
+
+# 勾配（導関数）
+def grad_func(params, X, y):
+    m, b = params
+    grad_m = 2 * np.sum((m * X + b - y) * X)
+    grad_b = 2 * np.sum(m * X + b - y)
+    return np.array([grad_m, grad_b])
+
+# アダム最適化のパラメータ
+alpha = 0.0001  # 学習率をさらに小さくして精度向上
+beta1 = 0.9   # 一次モーメントの減衰率
+beta2 = 0.999 # 二次モーメントの減衰率
+epsilon = 1e-8 # ゼロ除算回避の小さな値
+max_iter = 1000 # 最大反復回数を増加
+
+# データポイント（仮のデータ）
+X = np.linspace(-10, 10, 100)
+y1 = 2 * X + 3 + np.random.normal(0, 0.5, len(X))  # 精度向上のためノイズを減らす
+y2 = -1 * X + 5 + np.random.normal(0, 0.5, len(X))  # 精度向上のためノイズを減らす
+
+# 初期値（m, b）を浮動小数点型で設定
+params1 = np.array([2.0, 3.0], dtype=np.float64)  # 初期パラメータ (m1, b1) for line 1
+params2 = np.array([-1.0, 5.0], dtype=np.float64) # 初期パラメータ (m2, b2) for line 2
+
+# アダム最適化の状態
+m1_mom, v1_mom = np.zeros(2), np.zeros(2)
+m2_mom, v2_mom = np.zeros(2), np.zeros(2)
+t = 0
+
+# アダム最適化ループ（線形回帰1と2）
+for i in range(max_iter):
+    t += 1
+    # 線形回帰1の最適化
+    grad1 = grad_func(params1, X, y1)
+    m1_mom = beta1 * m1_mom + (1 - beta1) * grad1
+    v1_mom = beta2 * v1_mom + (1 - beta2) * (grad1 ** 2)
+    m1_hat = m1_mom / (1 - beta1 ** t)
+    v1_hat = v1_mom / (1 - beta2 ** t)
+    params1 -= alpha * m1_hat / (np.sqrt(v1_hat) + epsilon)
+
+    # 線形回帰2の最適化
+    grad2 = grad_func(params2, X, y2)
+    m2_mom = beta1 * m2_mom + (1 - beta1) * grad2
+    v2_mom = beta2 * v2_mom + (1 - beta2) * (grad2 ** 2)
+    m2_hat = m2_mom / (1 - beta1 ** t)
+    v2_hat = v2_mom / (1 - beta2 ** t)
+    params2 -= alpha * m2_hat / (np.sqrt(v2_hat) + epsilon)
+
+# 最適化後のパラメータ
+m1, b1 = params1
+m2, b2 = params2
+
+# 直線の交点を求める
+A = np.array([[m1, -1], [m2, -1]])
+b = np.array([-b1, -b2])
+intersection = np.linalg.solve(A, b)
+
+# プロット
+plt.scatter(X, y1, color="blue", alpha=0.5, label="Data Line 1")
+plt.scatter(X, y2, color="red", alpha=0.5, label="Data Line 2")
+plt.plot(X, m1 * X + b1, color="blue", linewidth=2, label=f"Fitted Line 1: y={m1:.2f}x+{b1:.2f}")
+plt.plot(X, m2 * X + b2, color="red", linewidth=2, label=f"Fitted Line 2: y={m2:.2f}x+{b2:.2f}")
+plt.scatter(intersection[0], intersection[1], color="black", marker="x", s=100, label="Intersection")
+
+# グラフの設定
+plt.xlabel("X")
+plt.ylabel("Y")
+plt.title("Adam Optimization for Linear Regression and Intersection (Improved Fit)")
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# 交点の表示
+intersection
