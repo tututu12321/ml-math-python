@@ -1,0 +1,29 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import zscore
+
+# サイン波電圧信号の生成
+np.random.seed(42)
+t = np.linspace(0, 2*np.pi, 100)  # 時間軸 (0 to 2π, 100点)
+voltage = 1.2 * np.sin(t)  # サイン波 (電圧 1.2V 振幅)
+
+# 一部に異常を加える（電圧スパイクなど）
+anomalies = np.random.choice(range(len(voltage)), size=5, replace=False)  # 異常点の位置
+voltage[anomalies] += np.random.uniform(1.5, 2.0, size=len(anomalies))  # 異常を加える
+
+# Zスコアを用いた異常検知
+z_scores = zscore(voltage)
+threshold = 2.0  # 異常とみなす閾値
+anomaly_indices = np.where(np.abs(z_scores) > threshold)[0]
+
+# プロット
+plt.figure(figsize=(10, 5))
+plt.plot(t, voltage, label="Voltage Signal", color='blue')
+plt.scatter(t[anomaly_indices], voltage[anomaly_indices], color='red', label="Anomalies", zorder=3)
+plt.axhline(y=np.mean(voltage) + threshold * np.std(voltage), color='gray', linestyle='--', label="Threshold")
+plt.axhline(y=np.mean(voltage) - threshold * np.std(voltage), color='gray', linestyle='--')
+plt.xlabel("Time")
+plt.ylabel("Voltage (V)")
+plt.title("Anomaly Detection in Sine Wave Voltage")
+plt.legend()
+plt.show()
