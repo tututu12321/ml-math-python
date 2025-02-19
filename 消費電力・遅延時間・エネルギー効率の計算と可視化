@@ -1,0 +1,58 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# パラメータ設定
+alpha = 0.5  # 切り替え確率 (Switching Activity)
+C = 1e-12    # 負荷キャパシタンス (Load Capacitance) [F]
+V_values = np.linspace(0.5, 1.2, 10)  # 電源電圧の範囲 (0.5V 〜 1.2V)
+f_values = np.logspace(6, 9, 10)  # クロック周波数の範囲 (1MHz 〜 1GHz)
+
+# 消費電力の計算
+P_matrix = np.zeros((len(V_values), len(f_values)))
+for i, V in enumerate(V_values):
+    for j, f in enumerate(f_values):
+        P_matrix[i, j] = alpha * C * V**2 * f
+
+# ゲート遅延の計算
+V_th = 0.3  # スレッショルド電圧 [V]
+k = 1e-9    # トランジスタ特性定数
+gamma = 1.5 # モデルパラメータ
+
+t_d_values = k * V_values / ((V_values - V_th) ** gamma)
+
+# エネルギー効率の計算 (TOPS/W)
+TOPS = 10  # 仮定: 10TOPS
+efficiency = TOPS / P_matrix
+
+# 消費電力の可視化
+plt.figure(figsize=(8, 6))
+for i, V in enumerate(V_values):
+    plt.plot(f_values, P_matrix[i, :], label=f"V = {V:.1f}V")
+plt.xlabel("Clock Frequency (Hz)")
+plt.ylabel("Power Consumption (W)")
+plt.title("Power Consumption vs. Clock Frequency")
+plt.legend()
+plt.grid()
+plt.xscale("log")  # クロック周波数を対数スケールに設定
+plt.show()
+
+# ゲート遅延時間の可視化
+plt.figure(figsize=(8, 6))
+plt.plot(V_values, t_d_values, marker='o', linestyle='-')
+plt.xlabel("Supply Voltage (V)")
+plt.ylabel("Gate Delay Time (s)")
+plt.title("Gate Delay vs. Supply Voltage")
+plt.grid()
+plt.show()
+
+# エネルギー効率の可視化
+plt.figure(figsize=(8, 6))
+for i, V in enumerate(V_values):
+    plt.plot(f_values, efficiency[i, :], label=f"V = {V:.1f}V")
+plt.xlabel("Clock Frequency (Hz)")
+plt.ylabel("Efficiency (TOPS/W)")
+plt.title("Energy Efficiency vs. Clock Frequency")
+plt.legend()
+plt.grid()
+plt.xscale("log")  
+plt.show()
