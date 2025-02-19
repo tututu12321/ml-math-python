@@ -1,0 +1,21 @@
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.metrics import confusion_matrix
+
+# データ（混同行列の値）
+# 実際に陽性の人 = 30（正しく陽性と判断）+ 7（誤って陰性と判断）
+# 実際に陰性の人 = 4（誤って陽性と判断）+ 786（正しく陰性と判断）
+actual = np.array([1] * 30 + [1] * 7 + [0] * 4 + [0] * 786)  # 実際の状態
+predicted = np.array([1] * 30 + [0] * 7 + [1] * 4 + [0] * 786)  # 検査結果
+
+# 混同行列の計算
+cm = confusion_matrix(actual, predicted)
+
+# 混同行列の可視化
+plt.figure(figsize=(6, 4))
+sns.heatmap(cm, annot=True, fmt='d', cmap="Blues", xticklabels=["Negative", "Positive"], yticklabels=["Negative", "Positive"])
+plt.xlabel("Predicted Label")
+plt.ylabel("Actual Label")
+plt.title("Confusion Matrix ")
+plt.show()
