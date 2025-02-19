@@ -1,0 +1,59 @@
+import torch
+import torch.nn as nn
+import torch.optim as optim
+
+# --- スパースニューラルネットワークの定義 ---
+class SparseNN(nn.Module):
+    def __init__(self, input_size, hidden_size, output_size):
+        super(SparseNN, self).__init__()
+        self.fc1 = nn.Linear(input_size, hidden_size)
+        self.relu = nn.ReLU()
+        self.fc2 = nn.Linear(hidden_size, output_size)
+    
+    def forward(self, x):
+        x = self.fc1(x)
+        x = self.relu(x)
+        x = self.fc2(x)
+        return x
+
+# --- データセットの作成（ダミーデータ） ---
+torch.manual_seed(0)
+input_size = 5
+hidden_size = 10
+output_size = 1
+N = 100  # サンプル数
+
+X = torch.randn(N, input_size)
+y = torch.randn(N, output_size)
+
+# --- モデル・損失関数・最適化 ---
+model = SparseNN(input_size, hidden_size, output_size)
+criterion = nn.MSELoss()
+optimizer = optim.Adam(model.parameters(), lr=0.01)
+
+# --- L1正則化を適用した学習 ---
+lambda_l1 = 0.01  # L1正則化の係数
+epochs = 100
+
+for epoch in range(epochs):
+    optimizer.zero_grad()
+    
+    # 順伝播
+    outputs = model(X)
+    loss = criterion(outputs, y)
+    
+    # L1正則化項の追加
+    l1_norm = sum(torch.abs(param).sum() for param in model.parameters())
+    loss += lambda_l1 * l1_norm
+    
+    # 逆伝播 & 最適化
+    loss.backward()
+    optimizer.step()
+    
+    if epoch % 10 == 0:
+        print(f'Epoch {epoch}, Loss: {loss.item()}')
+
+# --- 重みのスパース性を確認 ---
+print("\nTrained Weights:")
+for name, param in model.named_parameters():
+    print(f"{name}: {param.data}")
