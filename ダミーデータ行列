@@ -1,0 +1,22 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# ダミーデータの生成（ランダムな行列）
+dummy_data = np.random.rand(10, 10)  # 10x10のランダム行列
+
+# 行列を画像として表示し、行列の値を画像上にプリントする関数
+def print_image_from_matrix(matrix):
+    fig, ax = plt.subplots()
+    cax = ax.imshow(matrix, cmap='gray', interpolation='nearest')  # グレースケールで表示
+    plt.colorbar(cax)  # カラーバーの表示
+    plt.title("Dummy Data Image")  # 画像のタイトル
+    
+    # 行列の値を画像に上にプリント
+    for i in range(matrix.shape[0]):
+        for j in range(matrix.shape[1]):
+            ax.text(j, i, f'{matrix[i, j]:.2f}', ha='center', va='center', color='red', fontsize=8)
+
+    plt.show()
+
+# ダミーデータから画像を表示
+print_image_from_matrix(dummy_data)
