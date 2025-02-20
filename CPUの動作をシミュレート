@@ -1,0 +1,73 @@
+# Simple Python simulation of CPU operation
+
+class Register:
+    """Simple register to hold data."""
+    
+    def __init__(self, name):
+        self.name = name
+        self.value = 0
+        
+    def load(self, value):
+        """Load a value into the register."""
+        self.value = value
+        
+    def read(self):
+        """Read the value from the register."""
+        return self.value
+    
+    def store(self, value):
+        """Store a value into the register."""
+        self.value = value
+
+class ALU:
+    """Arithmetic Logic Unit that performs basic operations."""
+    
+    def add(self, operand1, operand2):
+        """Perform addition."""
+        return operand1 + operand2
+
+class CPU:
+    """A simple CPU that performs operations."""
+    
+    def __init__(self):
+        self.reg1 = Register("R1")
+        self.reg2 = Register("R2")
+        self.reg3 = Register("R3")  # Result register
+        self.alu = ALU()
+        self.pc = 0  # Program Counter
+    
+    def fetch(self):
+        """Fetch instruction - for simulation, we load values into registers."""
+        print(f"Fetching instruction for operation.")
+        self.pc += 1  # Move program counter
+    
+    def decode(self):
+        """Decode the instruction - in this case, just get data from registers."""
+        print(f"Decoding instruction: Add values from R1 and R2.")
+    
+    def execute(self):
+        """Execute the instruction (Add the two values)."""
+        print(f"Executing addition operation.")
+        result = self.alu.add(self.reg1.read(), self.reg2.read())
+        self.reg3.store(result)  # Store result in R3
+        print(f"Result of addition: {result}")
+    
+    def run(self, value1, value2):
+        """Run the simulation for adding two values."""
+        # Load data into registers
+        self.reg1.load(value1)
+        self.reg2.load(value2)
+        
+        # CPU operation flow
+        self.fetch()   # Fetch the instruction
+        self.decode()  # Decode the instruction
+        self.execute()  # Execute the addition
+    
+    def print_results(self):
+        """Print the contents of the registers."""
+        print(f"R1: {self.reg1.read()}  R2: {self.reg2.read()}  R3 (Result): {self.reg3.read()}")
+
+# Example of using the CPU simulation
+cpu = CPU()
+cpu.run(10, 20)  # Add 10 and 20
+cpu.print_results()  # Output the result of the addition
