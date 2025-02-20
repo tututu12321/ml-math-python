@@ -1,0 +1,125 @@
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import matplotlib.pyplot as plt
+
+# 1. Partial Derivative Example (using numpy)
+def partial_derivative(func, var_idx, point, h=1e-5):
+    """
+    Calculate the partial derivative of the function at a given point.
+    func: function to differentiate
+    var_idx: index of the variable with respect to which the derivative is taken
+    point: point (input) at which to calculate the derivative
+    h: small delta value for numerical differentiation
+    """
+    point_perturb = np.copy(point)
+    point_perturb[var_idx] += h
+    return (func(*point_perturb) - func(*point)) / h
+
+# Example function: f(x, y) = x^2 + y^2
+def example_function(x, y):
+    return x**2 + y**2
+
+# Calculate partial derivatives of f(x, y) = x^2 + y^2 at the point (1, 2)
+point = np.array([1, 2])
+partial_x = partial_derivative(example_function, 0, point)
+partial_y = partial_derivative(example_function, 1, point)
+print(f"Partial derivative with respect to x at (1, 2): {partial_x}")
+print(f"Partial derivative with respect to y at (1, 2): {partial_y}")
+
+# 2. Gradient (using numpy)
+def gradient(func, point):
+    grad = np.zeros_like(point)
+    for i in range(len(point)):
+        grad[i] = partial_derivative(func, i, point)
+    return grad
+
+# Compute the gradient of f(x, y) at (1, 2)
+grad = gradient(example_function, point)
+print(f"Gradient at (1, 2): {grad}")
+
+# 3. Jacobian Matrix (using numpy)
+def jacobian(func, point, n_vars):
+    jacobian_matrix = np.zeros((n_vars, n_vars))
+    for i in range(n_vars):
+        jacobian_matrix[i] = gradient(func, point)
+    return jacobian_matrix
+
+# Compute the Jacobian matrix of f(x, y) = x^2 + y^2 at (1, 2)
+jacobian_matrix = jacobian(example_function, point, 2)
+print("Jacobian Matrix at (1, 2):")
+print(jacobian_matrix)
+
+# 4. Backpropagation using PyTorch (for a simple neural network)
+# A simple neural network for backpropagation and automatic differentiation
+
+class SimpleNN(nn.Module):
+    def __init__(self):
+        super(SimpleNN, self).__init__()
+        self.fc1 = nn.Linear(2, 2)  # Linear layer with 2 input and 2 output
+        self.fc2 = nn.Linear(2, 1)  # Linear layer with 2 input and 1 output
+    
+    def forward(self, x):
+        x = torch.relu(self.fc1(x))
+        x = self.fc2(x)
+        return x
+
+# Example usage with backpropagation
+model = SimpleNN()
+criterion = nn.MSELoss()  # Mean Squared Error Loss
+optimizer = optim.SGD(model.parameters(), lr=0.01)
+
+# Input and target output (for training)
+x_input = torch.tensor([[1.0, 2.0]], requires_grad=True)
+target = torch.tensor([[5.0]])
+
+# Forward pass
+output = model(x_input)
+
+# Compute loss
+loss = criterion(output, target)
+
+# Backward pass (autodiff computes gradients automatically)
+loss.backward()
+
+# Print gradients (dL/dw)
+print("Gradients of the loss with respect to the parameters:")
+for name, param in model.named_parameters():
+    print(f"{name}: {param.grad}")
+
+# Update the parameters using backpropagation
+optimizer.step()
+
+# 5. Automatic Differentiation using PyTorch
+# For a simple function f(x, y) = x^2 + y^2, we'll compute gradients automatically
+
+x = torch.tensor([1.0], requires_grad=True)
+y = torch.tensor([2.0], requires_grad=True)
+
+# Define the function: f(x, y) = x^2 + y^2
+f = x**2 + y**2
+
+# Compute gradients using automatic differentiation
+f.backward()
+
+# Print gradients (dL/dx, dL/dy)
+print(f"Automatic Gradient of f with respect to x: {x.grad}")
+print(f"Automatic Gradient of f with respect to y: {y.grad}")
+
+# Visualization: Plotting the function f(x, y) = x^2 + y^2
+x_vals = np.linspace(-3, 3, 100)
+y_vals = np.linspace(-3, 3, 100)
+X, Y = np.meshgrid(x_vals, y_vals)
+Z = X**2 + Y**2
+
+fig = plt.figure(figsize=(8, 6))
+ax = fig.add_subplot(111, projection='3d')
+ax.plot_surface(X, Y, Z, cmap='viridis')
+
+ax.set_xlabel('X-axis')
+ax.set_ylabel('Y-axis')
+ax.set_zlabel('f(x, y) = x^2 + y^2')
+ax.set_title('Surface Plot of f(x, y) = x^2 + y^2')
+
+plt.show()
