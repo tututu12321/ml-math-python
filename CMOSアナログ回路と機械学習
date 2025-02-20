@@ -1,0 +1,65 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import SGDClassifier
+
+# 訓練データ (X: 入力, Y: 出力)
+X = np.array([[0], [1]])  # 入力データ
+Y = np.array([1, 0])      # 否定の出力（0は1に変換、1は0に変換）
+
+# 線形二値分類モデルの定義（ロジスティック回帰）
+mNOT = SGDClassifier(loss='log_loss')  # 'log' -> 'log_loss'
+
+# モデルの学習
+mNOT.fit(X, Y)
+
+# モデルによる予測
+predictions = mNOT.predict(X)
+
+# 予測結果の表示
+print("Predictions:", predictions)
+
+# 入力データの範囲
+N = 100
+X_range = np.linspace(0, 1, N).reshape(N, -1)
+
+# 入力範囲に対する予測
+P = mNOT.predict(X_range)
+
+# 結果をプロット
+fig, ax = plt.subplots(dpi=100)
+ax.set_aspect('equal')
+ax.set_xlabel('$x$')
+ax.set_ylabel('$y$')
+ax.plot(X_range, P, label="NOT Gate Output")
+ax.scatter(X, Y, color='red', label="Training Data", zorder=5)
+ax.legend()
+plt.show()
+
+# モデルの重みとバイアス
+print("Model Coefficients:", mNOT.coef_)
+print("Model Intercept:", mNOT.intercept_)
+
+# CMOS回路によるシグモイド関数の近似（VDD, ゲイン, 閾値を追加）
+def sigmoid_cmos(x, VDD=5, gain=10, threshold=2.5):
+    """
+    CMOS回路でのシグモイド関数の近似を行います。
+    VDD: 電源電圧
+    gain: ゲイン（シグモイド関数の急峻さ）
+    threshold: 閾値（シグモイド関数のシフト）
+    """
+    return VDD / (1 + np.exp(-gain * (x - threshold)))
+
+# 入力データ
+x = np.linspace(-10, 10, 100)
+
+# シグモイド関数を計算（VDD=5, ゲイン=1, 閾値=0）
+y = sigmoid_cmos(x, VDD=1, gain=-10, threshold=0)
+
+# 結果をプロット
+plt.plot(x, y, label="Sigmoid Function (CMOS NOT)")
+plt.title("Sigmoid Function Approximation by CMOS NOT Gate")
+plt.xlabel("Input (x)")
+plt.ylabel("Output (y)")
+plt.grid(True)
+plt.legend()
+plt.show()
