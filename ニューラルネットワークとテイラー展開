@@ -1,0 +1,59 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.neural_network import MLPRegressor
+
+# 時間の生成
+time = np.linspace(0, 10, 1000)  # 時間の範囲
+voltage_true = np.sin(time)  # 真のサイン波（電圧）
+
+# テイラー展開による近似
+# 1項目の近似
+voltage_taylor_1 = time
+# 3項目の近似
+voltage_taylor_3 = time - (time**3) / 6
+
+# ニューラルネットワークによる近似
+# サイン波のデータを使ってニューラルネットワークを訓練
+X_train = time.reshape(-1, 1)  # 時間を1次元配列に変換
+y_train = np.sin(time)  # 出力はサイン波（電圧）
+
+# MLPRegressorによる回帰
+model = MLPRegressor(
+    hidden_layer_sizes=(50, 50),  # 隠れ層のユニット数
+    max_iter=10000,                # 最大イテレーション数
+    random_state=42,               # 乱数のシード
+    activation='tanh',             # tanh活性化関数
+    learning_rate_init=0.005,      # 学習率
+    solver='adam',                 # Adamオプティマイザ
+)
+
+# モデルの訓練
+model.fit(X_train, y_train)
+
+# 訓練データを用いて予測
+voltage_pred = model.predict(X_train)
+
+# プロット（テイラー展開とニューラルネットワークを別々に）
+fig, axes = plt.subplots(2, 1, figsize=(10, 12))
+
+# 真のサイン波（電圧）とテイラー展開による近似
+axes[0].plot(time, voltage_true, label="True sine wave (Voltage)", color='red', linewidth=2)
+axes[0].plot(time, voltage_taylor_1, label="Taylor series (1 term)", linestyle='--', color='green')
+axes[0].plot(time, voltage_taylor_3, label="Taylor series (3 terms)", linestyle='--', color='blue')
+axes[0].set_title("Voltage Approximation: Taylor Expansion")
+axes[0].set_xlabel("Time (t)")
+axes[0].set_ylabel("Voltage (V)")
+axes[0].legend()
+axes[0].grid(True)
+
+# 真のサイン波（電圧）とニューラルネットワークによる近似
+axes[1].plot(time, voltage_true, label="True sine wave (Voltage)", color='red', linewidth=2)
+axes[1].plot(time, voltage_pred, label="Neural network approximation", linestyle='-.', color='purple')
+axes[1].set_title("Voltage Approximation: Neural Network")
+axes[1].set_xlabel("Time (t)")
+axes[1].set_ylabel("Voltage (V)")
+axes[1].legend()
+axes[1].grid(True)
+
+plt.tight_layout()
+plt.show()
