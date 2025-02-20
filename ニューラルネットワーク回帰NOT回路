@@ -1,0 +1,59 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.neural_network import MLPRegressor
+
+# シグモイド関数を計算（VDD=1, ゲイン=-10, 閾値=0）
+def sigmoid_cmos(x, VDD=5, gain=-10, threshold=0):
+    """
+    CMOS回路でのシグモイド関数の近似を行います。
+    VDD: 電源電圧
+    gain: ゲイン（シグモイド関数の急峻さ）
+    threshold: 閾値（シグモイド関数のシフト）
+    """
+    return VDD / (1 + np.exp(-gain * (x - threshold)))
+
+# 入力データ（xの範囲）
+x = np.linspace(-10, 10, 100)
+
+# シグモイド関数を計算（VDD=1, ゲイン=-10, 閾値=0）
+y = sigmoid_cmos(x, VDD=1, gain=-10, threshold=0)
+
+# 結果をプロット
+plt.scatter(x, y, color='red', label="Sigmoid Data Points", zorder=5)
+plt.title("Sigmoid Function (Data Points)")
+plt.xlabel("Input (x)")
+plt.ylabel("Output (y)")
+plt.grid(True)
+plt.legend()
+plt.show()
+
+# ニューラルネットワーク回帰で関数を近似
+# データを訓練データとして使用
+X_train = x.reshape(-1, 1)  # 入力データ（2次元配列に変換）
+y_train = y  # 出力データ
+
+# MLPRegressorを使ってモデルを作成
+model = MLPRegressor(
+    hidden_layer_sizes=(50, 50),  # 隠れ層のユニット数を増加
+    max_iter=10000,                # 最大イテレーション数を増加
+    random_state=42,               # 乱数のシード
+    activation='tanh',             # tanh活性化関数を使用
+    learning_rate_init=0.01,       # 学習率の設定
+    solver='adam',                 # Adamオプティマイザを使用
+)
+
+# モデルの訓練
+model.fit(X_train, y_train)
+
+# モデルによる予測
+y_pred = model.predict(X_train)
+
+# 近似結果をプロット
+plt.plot(x, y_pred, label="NN Approximation", color='blue')
+plt.scatter(x, y, color='red', label="Sigmoid Data Points", zorder=5)
+plt.title("Sigmoid Function Approximation by Neural Network")
+plt.xlabel("Input (x)")
+plt.ylabel("Output (y)")
+plt.grid(True)
+plt.legend()
+plt.show()
