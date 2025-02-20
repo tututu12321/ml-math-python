@@ -1,0 +1,203 @@
+# トランジスタをシミュレートするクラス
+
+class Transistor:
+    """トランジスタ"""
+    
+    def __init__(self):
+        self.state = 0  # 0: OFF, 1: ON
+    
+    def switch_on(self):
+        """トランジスタをONにする"""
+        self.state = 1
+    
+    def switch_off(self):
+        """トランジスタをOFFにする"""
+        self.state = 0
+    
+    def get_state(self):
+        """トランジスタの状態を取得"""
+        return self.state
+
+# 論理ゲートのクラス（トランジスタを使用）
+class ANDGate:
+    """ANDゲート（トランジスタを使用）"""
+    def __init__(self):
+        self.transistor1 = Transistor()
+        self.transistor2 = Transistor()
+        self.output_transistor = Transistor()
+    
+    def process(self, a, b):
+        """AND演算"""
+        if a == 1:
+            self.transistor1.switch_on()
+        else:
+            self.transistor1.switch_off()
+        
+        if b == 1:
+            self.transistor2.switch_on()
+        else:
+            self.transistor2.switch_off()
+        
+        # 両方がONのときのみ出力トランジスタをON
+        if self.transistor1.get_state() == 1 and self.transistor2.get_state() == 1:
+            self.output_transistor.switch_on()
+        else:
+            self.output_transistor.switch_off()
+        
+        return self.output_transistor.get_state()
+
+class ORGate:
+    """ORゲート（トランジスタを使用）"""
+    def __init__(self):
+        self.transistor1 = Transistor()
+        self.transistor2 = Transistor()
+        self.output_transistor = Transistor()
+    
+    def process(self, a, b):
+        """OR演算"""
+        if a == 1:
+            self.transistor1.switch_on()
+        else:
+            self.transistor1.switch_off()
+        
+        if b == 1:
+            self.transistor2.switch_on()
+        else:
+            self.transistor2.switch_off()
+        
+        # どちらかがONなら出力トランジスタをON
+        if self.transistor1.get_state() == 1 or self.transistor2.get_state() == 1:
+            self.output_transistor.switch_on()
+        else:
+            self.output_transistor.switch_off()
+        
+        return self.output_transistor.get_state()
+
+class NOTGate:
+    """NOTゲート（トランジスタを使用）"""
+    def __init__(self):
+        self.transistor = Transistor()
+    
+    def process(self, a):
+        """NOT演算"""
+        if a == 1:
+            self.transistor.switch_off()
+        else:
+            self.transistor.switch_on()
+        
+        return self.transistor.get_state()
+
+# ALU (算術論理演算ユニット) の拡張
+class ALU:
+    """算術論理演算ユニット (ALU)"""
+    def __init__(self):
+        self.and_gate = ANDGate()
+        self.or_gate = ORGate()
+        self.not_gate = NOTGate()
+
+    def add(self, a, b):
+        """加算演算"""
+        return a + b
+    
+    def subtract(self, a, b):
+        """減算演算"""
+        return a - b
+    
+    def and_op(self, a, b):
+        """AND演算"""
+        return self.and_gate.process(a, b)
+    
+    def or_op(self, a, b):
+        """OR演算"""
+        return self.or_gate.process(a, b)
+    
+    def not_op(self, a):
+        """NOT演算"""
+        return self.not_gate.process(a)
+
+# インストラクション・デコーダ
+class InstructionDecoder:
+    """命令デコーダ"""
+    def decode(self, instruction):
+        """命令のデコード"""
+        if instruction == "ADD":
+            return "add"
+        elif instruction == "SUB":
+            return "subtract"
+        elif instruction == "AND":
+            return "and"
+        elif instruction == "OR":
+            return "or"
+        elif instruction == "NOT":
+            return "not"
+        else:
+            return "unknown"
+
+# レジスタ
+class Register:
+    """レジスタ"""
+    def __init__(self, name):
+        self.name = name
+        self.value = 0
+        
+    def load(self, value):
+        self.value = value
+        
+    def read(self):
+        return self.value
+
+# CPUの実装
+class CPU:
+    """簡易CPU"""
+    def __init__(self):
+        self.reg1 = Register("R1")  # レジスタ1
+        self.reg2 = Register("R2")  # レジスタ2
+        self.reg3 = Register("R3")  # レジスタ3 (結果格納)
+        self.alu = ALU()  # ALU (算術論理演算ユニット)
+        self.decoder = InstructionDecoder()  # 命令デコーダ
+    
+    def execute(self, instruction, value1, value2=None):
+        """命令を実行"""
+        # レジスタに値をロード
+        self.reg1.load(value1)
+        if value2 is not None:
+            self.reg2.load(value2)
+        
+        # 命令をデコード
+        decoded_instruction = self.decoder.decode(instruction)
+        
+        # 演算を実行
+        if decoded_instruction == "add":
+            result = self.alu.add(self.reg1.read(), self.reg2.read())
+        elif decoded_instruction == "subtract":
+            result = self.alu.subtract(self.reg1.read(), self.reg2.read())
+        elif decoded_instruction == "and":
+            result = self.alu.and_op(self.reg1.read(), self.reg2.read())
+        elif decoded_instruction == "or":
+            result = self.alu.or_op(self.reg1.read(), self.reg2.read())
+        elif decoded_instruction == "not":
+            result = self.alu.not_op(self.reg1.read())
+        else:
+            result = "Unknown instruction"
+        
+        # 結果をレジスタに格納
+        self.reg3.load(result)
+    
+    def print_results(self):
+        """結果の表示"""
+        print(f"R1: {self.reg1.read()}  R2: {self.reg2.read()}  R3 (Result): {self.reg3.read()}")
+
+# CPUの実行例
+cpu = CPU()
+
+# 加算処理
+cpu.execute("ADD", 5, 3)
+cpu.print_results()
+
+# AND演算
+cpu.execute("AND", 5, 3)
+cpu.print_results()
+
+# NOT演算
+cpu.execute("NOT", 5)
+cpu.print_results()
