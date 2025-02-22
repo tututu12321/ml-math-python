@@ -1,0 +1,36 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
+
+# サンプルデータ生成
+np.random.seed(42)
+X_train = np.array([1, 3, 5, 7, 9]).reshape(-1, 1)
+y_train = np.sin(X_train).ravel() + 0.1 * np.random.randn(len(X_train))  # ノイズあり
+
+# カーネル定義（RBFカーネルと定数カーネル）
+kernel = C(1.0) * RBF(1.0)
+
+# ガウス過程回帰器
+gp = GaussianProcessRegressor(kernel=kernel)
+
+# 学習
+gp.fit(X_train, y_train)
+
+# 最適化されたカーネル（ハイパーパラメータ）
+print("最適化されたカーネル:", gp.kernel_)
+
+# 予測データ
+X_test = np.linspace(0, 10, 1000).reshape(-1, 1)
+y_pred, sigma = gp.predict(X_test, return_std=True)
+
+# プロット
+plt.plot(X_test, np.sin(X_test), 'r:', label='True function')
+plt.scatter(X_train, y_train, color='red', label='Training points')
+plt.plot(X_test, y_pred, 'b-', label='Prediction')
+plt.fill_between(X_test.ravel(), y_pred - sigma, y_pred + sigma, color='blue', alpha=0.2, label='Uncertainty')
+plt.xlabel('Input')
+plt.ylabel('Output')
+plt.title('Gaussian Process Regression')
+plt.legend()
+plt.show()
