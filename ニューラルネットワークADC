@@ -1,0 +1,75 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.neural_network import MLPRegressor
+
+# 定数の設定 (Setting constants)
+sampling_rate = 1000  # サンプリングレート (Sampling rate)
+f_signal = 5  # サイン波の周波数 (Frequency of the sine wave)
+duration = 1  # サンプル時間 (Duration in seconds)
+bit_depth = 3  # ADCのビット深度 (Bit depth of ADC)
+
+# サイン波の生成 (Generate sine wave)
+t = np.linspace(0, duration, int(sampling_rate * duration))
+sine_wave = np.sin(2 * np.pi * f_signal * t)
+
+# 逐次比較型A/D変換 (Simulate SAR ADC)
+def sar_adc(signal, bit_depth, v_ref=1.0):
+    """
+    逐次比較型A/D変換をシミュレート (Simulate Successive Approximation ADC).
+    signal: 入力信号 (Input signal)
+    bit_depth: ADCのビット深度 (Bit depth)
+    v_ref: 参照電圧 (Reference voltage)
+    """
+    num_samples = len(signal)
+    adc_values = np.zeros(num_samples)
+    
+    # 量子化する範囲を設定 (Set quantization range)
+    step_size = v_ref / (2**bit_depth - 1)
+    
+    # 各サンプルに対してADC変換 (ADC conversion for each sample)
+    for i in range(num_samples):
+        adc_values[i] = np.round(signal[i] / step_size) * step_size
+    
+    return adc_values
+
+# サイン波をADCで変換 (Convert sine wave to ADC values)
+adc_waveform = sar_adc(sine_wave, bit_depth)
+
+# ニューラルネットワーク回帰 (Neural Network regression)
+# 入力データと出力データを準備 (Prepare input and output data)
+X_train = adc_waveform.reshape(-1, 1)  # 入力データはADCの波形 (Input data is the ADC waveform)
+y_train = sine_wave  # 出力データは元のサイン波 (Output data is the original sine wave)
+
+# ニューラルネットワークモデルの作成 (Create neural network model)
+nn_model = MLPRegressor(hidden_layer_sizes=(50,), max_iter=1000, activation='relu')
+
+# モデルの学習 (Train the model)
+nn_model.fit(X_train, y_train)
+
+# ニューラルネットワークによる予測 (Predict using neural network)
+y_pred = nn_model.predict(X_train)
+
+# 結果のプロット (Plot the results)
+plt.figure(figsize=(12, 6))
+
+# ADC変換結果 (ADC output waveform)
+plt.subplot(1, 2, 1)
+plt.plot(t, adc_waveform, label="ADC Output", color="orange")
+plt.title('SAR ADC Output')
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude')
+plt.grid(True)
+plt.legend()
+
+# ニューラルネットワークによる再生 (Reconstructed signal by neural network)
+plt.subplot(1, 2, 2)
+plt.plot(t, sine_wave, label="True Signal", color="blue")
+plt.plot(t, y_pred, label="Predicted Signal (NN)", linestyle="--", color="green")
+plt.title('Neural Network Regression for SAR ADC Output')
+plt.xlabel('Time [s]')
+plt.ylabel('Amplitude')
+plt.grid(True)
+plt.legend()
+
+plt.tight_layout()
+plt.show()
