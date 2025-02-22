@@ -1,0 +1,59 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 2次元DCT基底行列の作成
+def create_dct_matrix(N):
+    k = 1 / np.sqrt(2) if N == 8 else 1  # スケーリング係数
+    C = np.zeros((N, N))
+    for u in range(N):
+        for v in range(N):
+            C[u, v] = np.cos(np.pi / N * (u + 0.5) * v)
+    C[0, :] = C[0, :] * np.sqrt(1 / 2)  # 第一行のスケーリング
+    return k * C
+
+# 2次元DCT変換
+def dct_2d(X):
+    N = X.shape[0]
+    C = create_dct_matrix(N)  # DCT基底行列の作成
+    Y = C @ X @ C.T  # 2次元DCT
+    return Y
+
+# 逆DCT変換
+def idct_2d(Y):
+    N = Y.shape[0]
+    C = create_dct_matrix(N)  # DCT基底行列の作成
+    X = C.T @ Y @ C  # 逆2次元DCT
+    return X
+
+# 8x8 の入力行列（画像データとして扱う）
+X = np.array([
+    [140, 145, 155, 160, 160, 170, 175, 180],
+    [140, 140, 150, 155, 155, 165, 170, 175],
+    [130, 135, 140, 145, 145, 155, 160, 165],
+    [125, 130, 135, 140, 140, 150, 155, 160],
+    [120, 125, 130, 135, 135, 145, 150, 155],
+    [115, 120, 125, 130, 130, 140, 145, 150],
+    [110, 115, 120, 125, 125, 135, 140, 145],
+    [105, 110, 115, 120, 120, 130, 135, 140]
+])
+
+# 2次元DCTを計算
+Y = dct_2d(X)
+print("2次元DCT係数:\n", Y)
+
+# 逆2次元DCTを計算
+X_reconstructed = idct_2d(Y)
+print("再構築された画像データ:\n", X_reconstructed)
+
+# 結果のプロット
+plt.subplot(1, 2, 1)
+plt.title('Original Image (X)')
+plt.imshow(X, cmap='gray', interpolation='nearest')
+plt.colorbar()
+
+plt.subplot(1, 2, 2)
+plt.title('Reconstructed Image (X_reconstructed)')
+plt.imshow(np.round(X_reconstructed), cmap='gray', interpolation='nearest')
+plt.colorbar()
+
+plt.show()
