@@ -1,0 +1,53 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import cross_val_score
+from sklearn.linear_model import Ridge
+
+# サンプルデータ（部屋数、面積、築年数）
+X = np.array([
+    [2, 60, 10],  # 2部屋、60平方メートル、築10年
+    [3, 80, 5],   # 3部屋、80平方メートル、築5年
+    [1, 40, 20],  # 1部屋、40平方メートル、築20年
+    [4, 100, 2],  # 4部屋、100平方メートル、築2年
+    [2, 50, 15]   # 2部屋、50平方メートル、築15年
+])
+
+# 価格データ（ターゲット）
+y = np.array([300000, 400000, 200000, 500000, 350000])  # 不動産価格（単位：円）
+
+# 特徴量を標準化（平均0、標準偏差1にスケーリング）
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# リッジ回帰（L2正則化）モデル
+ridge_model = Ridge(alpha=1.0)  # alphaは正則化パラメータ
+
+# 交差検証を使ってモデルを評価
+cv_scores = cross_val_score(ridge_model, X_scaled, y, cv=5, scoring='neg_mean_squared_error')
+
+# 交差検証結果（平均MSE）
+mean_cv_score = np.mean(cv_scores)
+print(f"平均交差検証スコア（MSE）: {-mean_cv_score:.2f}")
+
+# モデルを訓練データに適合
+ridge_model.fit(X_scaled, y)
+
+# 予測値の計算
+y_pred = ridge_model.predict(X_scaled)
+
+# 結果の表示
+print("最適なパラメータ:")
+print(f"θ0 (切片): {ridge_model.intercept_}")
+print(f"θ1 (部屋数の重み): {ridge_model.coef_[0]}")
+print(f"θ2 (面積の重み): {ridge_model.coef_[1]}")
+print(f"θ3 (築年数の重み): {ridge_model.coef_[2]}")
+
+# 実際の価格と予測価格をプロット
+plt.scatter(range(len(y)), y, color='red', label='Actual Prices')
+plt.plot(range(len(y)), y_pred, color='blue', label='Predicted Prices')
+plt.xlabel('Property Index')
+plt.ylabel('Price (in yen)')
+plt.title('Multiple Linear Regression with Ridge Regularization')
+plt.legend()
+plt.show()
