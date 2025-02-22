@@ -1,0 +1,49 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import stats
+
+# サンプルデータの生成
+np.random.seed(42)
+x_data = np.linspace(0, 10, 100)
+true_theta = [1.0, 2.0]  # 真のパラメータ
+y_data = true_theta[0] + true_theta[1] * x_data + np.random.normal(0, 1, len(x_data))  # 直線とノイズ
+
+# 確率的回帰モデルの事前分布（仮定）
+def prior(theta):
+    return stats.norm(0, 10).pdf(theta[0]) * stats.norm(0, 10).pdf(theta[1])  # 正規分布を仮定
+
+# 尤度関数（データの観測に基づいてモデルの予測と一致する確率）
+def likelihood(theta, x, y):
+    y_pred = theta[0] + theta[1] * x
+    return np.prod(stats.norm(y_pred, 1).pdf(y))  # ノイズの標準偏差は1と仮定
+
+# 事後分布（尤度関数 * 事前分布）
+def posterior(theta, x, y):
+    return likelihood(theta, x, y) * prior(theta)
+
+# パラメータの探索範囲
+theta_0_vals = np.linspace(-5, 5, 100)
+theta_1_vals = np.linspace(-5, 5, 100)
+theta_0_grid, theta_1_grid = np.meshgrid(theta_0_vals, theta_1_vals)
+
+# 事後分布の計算
+posterior_vals = np.zeros_like(theta_0_grid)
+for i in range(len(theta_0_vals)):
+    for j in range(len(theta_1_vals)):
+        theta = [theta_0_grid[i, j], theta_1_grid[i, j]]
+        posterior_vals[i, j] = posterior(theta, x_data, y_data)
+
+# 事後分布の可視化
+plt.contourf(theta_0_vals, theta_1_vals, posterior_vals, levels=20, cmap='viridis')
+plt.colorbar(label='Posterior probability density')
+plt.xlabel('θ0')
+plt.ylabel('θ1')
+plt.title('Posterior Distribution (Probabilistic Linear Regression)')
+plt.show()
+
+# 最大事後確率を求める
+max_posterior_index = np.unravel_index(np.argmax(posterior_vals), posterior_vals.shape)
+best_theta_0 = theta_0_vals[max_posterior_index[0]]
+best_theta_1 = theta_1_vals[max_posterior_index[1]]
+
+print(f"推定されたパラメータ: θ0 = {best_theta_0}, θ1 = {best_theta_1}")
