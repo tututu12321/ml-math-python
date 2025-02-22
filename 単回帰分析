@@ -1,0 +1,29 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Sample data (observed data)
+X = np.array([1, 2, 3, 4, 5])  # Input
+y = np.array([1.2, 2.2, 2.8, 4.2, 5.1])  # Output (with noise)
+
+# Design matrix X (adding 1's for the bias term)
+X_matrix = np.vstack([np.ones(len(X)), X]).T  # The first column is for the bias term
+
+# Solving the normal equation
+theta = np.linalg.inv(X_matrix.T @ X_matrix) @ X_matrix.T @ y
+
+# Predicted values
+y_pred = X_matrix @ theta
+
+# Display the optimal parameters
+print("Optimal Parameters:")
+print(f"θ0 (Intercept): {theta[0]}")
+print(f"θ1 (Slope): {theta[1]}")
+
+# Plotting
+plt.scatter(X, y, color='red', label='Observed Data')
+plt.plot(X, y_pred, color='blue', label='Regression Line')
+plt.xlabel('Input (X)')
+plt.ylabel('Output (y)')
+plt.title('Simple Linear Regression - Least Squares Fitting')
+plt.legend()
+plt.show()
