@@ -1,0 +1,14 @@
+# 必要なライブラリを再インポート
+import numpy as np
+
+# x, y の範囲設定（0.0001 から 0.05 までスイープ）
+x_values = np.linspace(0.0001, 0.05, 100)
+y_values = np.linspace(0.0001, 0.05, 100)
+
+# 計算結果を表示
+print("   x        y       (1+x)(1+y)      1+x+y")
+print("-" * 50)
+for x, y in zip(x_values, y_values):
+    expr1 = (1 + x) * (1 + y)  # (1+x)(1+y)
+    expr2 = 1 + x + y  # 1+x+y
+    print(f"{x:.5f}  {y:.5f}  {expr1:.8f}  {expr2:.8f}")
