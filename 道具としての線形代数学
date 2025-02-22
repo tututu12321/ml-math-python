@@ -1,0 +1,37 @@
+# 必要なライブラリをインポート
+import numpy as np
+import scipy.linalg as la
+
+# 連立方程式のLU分解 --------------------------------------
+A = np.array([[3, 1, -1], [1, -2, 2], [2, 1, 2]])
+b = np.array([1, -2, 3])
+
+# LU分解
+P, L, U = la.lu(A)
+
+# 連立方程式を解く
+y = la.solve(L, np.dot(P.T, b))
+x_lu = la.solve(U, y)
+
+# 固有値・固有ベクトルのスペクトル分析 ----------------------
+eig_vals, eig_vecs = np.linalg.eig(A)
+
+# 最小二乗法のQR分解 --------------------------------------
+# 仮のデータセット (y = 2x + 1 にノイズを加えたもの)
+x_data = np.linspace(0, 10, 10)
+y_data = 2 * x_data + 1 + np.random.normal(0, 1, len(x_data))
+
+# 行列Aとベクトルbの設定（y ≈ Ax + b）
+A_qr = np.vstack([x_data, np.ones(len(x_data))]).T
+Q, R = np.linalg.qr(A_qr)
+coeff_qr = la.solve(R, np.dot(Q.T, y_data))
+
+# 結果の表示 ----------------------------------------------
+print("=== LU 分解による連立方程式の解 ===")
+print(x_lu)
+
+print("\n=== 固有値 ===")
+print(eig_vals)
+
+print("\n=== QR 分解による最小二乗法の係数 ===")
+print(coeff_qr)
