@@ -1,0 +1,78 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+
+# 定数の設定 (Setting constants)
+Vdd = 5.0  # 電源電圧 (Supply voltage)
+V_Tn = 1.0  # NMOSのしきい値電圧 (Threshold voltage for NMOS)
+V_Tp = -1.0  # PMOSのしきい値電圧 (Threshold voltage for PMOS)
+
+# ゲインの設定 (Gain setting for logistic function)
+gain = 1.0  # ロジスティック関数のゲイン (Logistic function gain)
+Vth = 2.5  # しきい値電圧 (Threshold voltage for inverter)
+
+# ロジスティック関数の定義 (Logistic function definition)
+def logistic_inverter(Vin, Vdd, Vth, gain):
+    return Vdd * (1 / (1 + np.exp(-gain * (Vth - Vin))))
+
+# 入力電圧の範囲を設定 (Define input voltage range)
+Vin = np.linspace(0, Vdd, 1000)
+
+# ロジスティック関数をサンプリング (Sampling the logistic function)
+Vout = logistic_inverter(Vin, Vdd, Vth, gain)
+
+# 入力データと出力データの標準化 (Standardize input and output data)
+scaler_X = StandardScaler()
+scaler_y = StandardScaler()
+
+Vin_scaled = scaler_X.fit_transform(Vin.reshape(-1, 1))
+Vout_scaled = scaler_y.fit_transform(Vout.reshape(-1, 1))
+
+# ニューラルネットワークの定義 (Neural network definition)
+model = Sequential()
+model.add(Dense(64, input_dim=1, activation='relu'))  # 入力層と隠れ層 (Input layer and hidden layer)
+model.add(Dense(128, activation='relu'))  # 2つ目の隠れ層 (Second hidden layer)
+model.add(Dense(64, activation='relu'))  # 3つ目の隠れ層 (Third hidden layer)
+model.add(Dense(1))  # 出力層 (Output layer)
+
+# モデルのコンパイル (Compile model)
+model.compile(optimizer='adam', loss='mean_squared_error')
+
+# モデルの学習 (Train the model)
+model.fit(Vin_scaled, Vout_scaled, epochs=200, batch_size=16, verbose=0)
+
+# 予測値の取得 (Get predicted values)
+Vout_pred_scaled = model.predict(Vin_scaled)
+Vout_pred = scaler_y.inverse_transform(Vout_pred_scaled)
+
+# 微分を計算 (Calculate derivative using numerical differentiation)
+Vout_derivative = np.gradient(Vout_pred.ravel(), Vin)
+
+# 結果のプロット (Plot the results)
+plt.figure(figsize=(12, 6))
+
+# ロジスティック関数のプロット (Plot the logistic function and regression result)
+plt.subplot(1, 2, 1)
+plt.plot(Vin, Vout, label='True Logistic Function', color='blue')
+plt.plot(Vin, Vout_pred, label='NN Prediction', color='orange', linestyle='--')
+plt.title('Logistic Function and Neural Network Regression')
+plt.xlabel('Input Voltage (Vin) [V]')
+plt.ylabel('Output Voltage (Vout) [V]')
+plt.grid(True)
+plt.axvline(x=Vdd/2, color='green', linestyle='--', label='Vin = Vdd/2')
+plt.legend()
+
+# 微分のプロット (Plot the derivative)
+plt.subplot(1, 2, 2)
+plt.plot(Vin, Vout_derivative, label='dVout/dVin (Derivative)', color='red')
+plt.title('Derivative of Logistic Function Approximation')
+plt.xlabel('Input Voltage (Vin) [V]')
+plt.ylabel('dVout/dVin [V/V]')
+plt.grid(True)
+plt.axvline(x=Vdd/2, color='green', linestyle='--', label='Vin = Vdd/2')
+plt.legend()
+
+plt.tight_layout()
+plt.show()
