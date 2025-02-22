@@ -1,0 +1,19 @@
+from sklearn.linear_model import Ridge
+
+# リッジ回帰のインスタンス作成
+ridge_model = Ridge(alpha=1.0)  # alphaは正則化パラメータ
+
+# リッジ回帰を適用
+ridge_model.fit(X_poly, y)
+
+# 予測
+y_ridge_pred = ridge_model.predict(X_test_poly)
+
+# 結果のプロット
+plt.scatter(X, y, color='red', label='Actual data')
+plt.plot(X_test, y_ridge_pred, color='green', label='Ridge Regression')
+plt.xlabel('X')
+plt.ylabel('y')
+plt.title('Ridge Regression with Basis Functions')
+plt.legend()
+plt.show()
