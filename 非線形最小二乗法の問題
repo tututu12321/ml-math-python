@@ -1,0 +1,84 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# サンプルデータ（非線形のデータ）
+x_data = np.linspace(0, 10, 100)
+y_data = 3 + 2 * x_data + 0.5 * x_data**2 + np.random.normal(0, 1, len(x_data))  # 生成されたデータ
+
+# モデル関数
+def model(x, theta):
+    return theta[0] + theta[1] * x + theta[2] * x**2
+
+# 目的関数（残差の二乗和）
+def objective(theta, x, y):
+    return np.sum((model(x, theta) - y) ** 2)
+
+# 勾配（目的関数の1階導関数）
+def gradient(theta, x, y):
+    grad_0 = -2 * np.sum(y - model(x, theta))  # θ_0の勾配
+    grad_1 = -2 * np.sum((y - model(x, theta)) * x)  # θ_1の勾配
+    grad_2 = -2 * np.sum((y - model(x, theta)) * x**2)  # θ_2の勾配
+    return np.array([grad_0, grad_1, grad_2])
+
+# ヤコビ行列（1階導関数を並べたもの）
+def jacobian(theta, x, y):
+    jac_0 = -2 * np.sum(y - model(x, theta))  # θ_0に対するヤコビ行列
+    jac_1 = -2 * np.sum((y - model(x, theta)) * x)  # θ_1に対するヤコビ行列
+    jac_2 = -2 * np.sum((y - model(x, theta)) * x**2)  # θ_2に対するヤコビ行列
+    return np.array([jac_0, jac_1, jac_2])
+
+# ヘッセ行列（目的関数の2階導関数）
+def hessian(theta, x, y):
+    hess_00 = 2 * len(x)  # θ_0に対するヘッセ行列
+    hess_01 = 2 * np.sum(x)  # θ_0とθ_1に対するヘッセ行列
+    hess_02 = 2 * np.sum(x**2)  # θ_0とθ_2に対するヘッセ行列
+    hess_11 = 2 * np.sum(x**2)  # θ_1に対するヘッセ行列
+    hess_12 = 2 * np.sum(x**3)  # θ_1とθ_2に対するヘッセ行列
+    hess_22 = 2 * np.sum(x**4)  # θ_2に対するヘッセ行列
+    return np.array([[hess_00, hess_01, hess_02],
+                     [hess_01, hess_11, hess_12],
+                     [hess_02, hess_12, hess_22]])
+
+# 勾配法
+def gradient_descent(x, y, theta_init, learning_rate=0.001, max_iter=1000):
+    theta = theta_init
+    for _ in range(max_iter):
+        grad = gradient(theta, x, y)
+        theta = theta - learning_rate * grad
+        # 勾配が非常に小さい場合（収束の兆候）、終了する
+        if np.linalg.norm(grad) < 1e-6:
+            break
+    return theta
+
+# ニュートン法
+def newton_method(x, y, theta_init, max_iter=1000):
+    theta = theta_init
+    for _ in range(max_iter):
+        grad = gradient(theta, x, y)
+        hess = hessian(theta, x, y)
+        theta = theta - np.linalg.inv(hess).dot(grad)  # ヘッセ行列の逆行列と勾配を掛け算
+        # 勾配が非常に小さい場合（収束の兆候）、終了する
+        if np.linalg.norm(grad) < 1e-6:
+            break
+    return theta
+
+# 初期パラメータの設定（ランダム初期化）
+theta_init = np.random.rand(3)
+
+# 勾配法とニュートン法の適用
+theta_gd = gradient_descent(x_data, y_data, theta_init, learning_rate=0.001)
+theta_newton = newton_method(x_data, y_data, theta_init)
+
+# 結果の表示
+print("勾配法での最適パラメータ:", theta_gd)
+print("ニュートン法での最適パラメータ:", theta_newton)
+
+# 予測値のプロット
+plt.scatter(x_data, y_data, color='red', label='Data')
+plt.plot(x_data, model(x_data, theta_gd), label='Gradient Descent Fit', color='blue')
+plt.plot(x_data, model(x_data, theta_newton), label='Newton\'s Method Fit', color='green')
+plt.xlabel('x')
+plt.ylabel('y')
+plt.legend()
+plt.title('Nonlinear Least Squares Fit')
+plt.show()
