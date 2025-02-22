@@ -1,0 +1,32 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.metrics.pairwise import rbf_kernel
+from sklearn.linear_model import Ridge
+
+# サンプルデータ（非線形のデータ）
+X = np.array([1, 2, 3, 4, 5]).reshape(-1, 1)
+y = np.array([1.2, 2.2, 3.2, 4.5, 5.8])
+
+# ガウスカーネル（RBFカーネル）を使って特徴量写像を行う
+gamma = 0.5  # カーネルの幅
+K = rbf_kernel(X, X, gamma=gamma)
+
+# リッジ回帰を使用してカーネル回帰を行う
+ridge_kernel_model = Ridge(alpha=1.0)  # alphaは正則化パラメータ
+ridge_kernel_model.fit(K, y)
+
+# 予測用のカーネル行列を計算（XとX_test間のカーネル行列）
+X_test = np.linspace(1, 5, 100).reshape(-1, 1)
+K_test = rbf_kernel(X, X_test, gamma=gamma)
+
+# K_testとKを使って予測を計算
+y_kernel_pred = K_test.T @ ridge_kernel_model.coef_ + ridge_kernel_model.intercept_
+
+# 結果のプロット
+plt.scatter(X, y, color='red', label='Actual data')
+plt.plot(X_test, y_kernel_pred, color='purple', label='Kernel Ridge Regression')
+plt.xlabel('X')
+plt.ylabel('y')
+plt.title('Kernel Ridge Regression with RBF Kernel')
+plt.legend()
+plt.show()
