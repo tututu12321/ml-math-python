@@ -1,0 +1,48 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import LinearRegression
+
+# 角度θ（度）を設定し、ラジアンに変換 (Define theta in degrees and convert to radians)
+theta_degrees = np.arange(0, 1.001, 0.001)  # 0度から1度まで0.001度刻み
+theta_radians = np.deg2rad(theta_degrees)  # 角度をラジアンに変換
+
+# sin(θ)の計算 (Compute sin(θ))
+sin_values = np.sin(theta_radians)
+
+# テイラー展開による近似 (Taylor series approximation)
+taylor_approximation = theta_radians - (theta_radians**3) / 6 + (theta_radians**5) / 120
+
+# 線形回帰 (Linear regression)
+# x: θの値（ラジアン）, y: テイラー展開での近似値
+X = theta_radians.reshape(-1, 1)  # 特徴量としてθを使用
+y = taylor_approximation  # 目標値としてテイラー展開で近似した値
+model = LinearRegression()
+model.fit(X, y)
+
+# 回帰直線の予測 (Prediction of the regression line)
+y_pred = model.predict(X)
+
+# プロット
+plt.figure(figsize=(10, 6))
+
+# 実際のsin(θ)のプロット (Plot actual sin(θ))
+plt.plot(theta_degrees, sin_values, label='sin(θ)', color='blue')
+
+# テイラー展開による近似 (Plot Taylor approximation)
+plt.plot(theta_degrees, taylor_approximation, label='Taylor Approximation', color='red', linestyle='--')
+
+# 線形回帰の結果 (Plot the linear regression line)
+plt.plot(theta_degrees, y_pred, label='Linear Regression Fit', color='green', linestyle=':')
+
+# グラフの設定 (Set plot labels and title)
+plt.title('sin(θ), Taylor Approximation, and Linear Regression')
+plt.xlabel('θ (degrees)')
+plt.ylabel('Value')
+plt.legend()
+
+# グリッドを表示 (Display grid)
+plt.grid(True)
+
+# プロットを表示 (Show plot)
+plt.tight_layout()
+plt.show()
