@@ -1,0 +1,29 @@
+import time
+
+# CPUのクロック信号周波数（Hz）
+clock_frequency = 2_000_000_000  # 2 GHz (2 billion Hz)
+clock_period = 1 / clock_frequency  # クロック周期（秒）
+
+# CPUのシミュレーション（クロックに基づいて命令を実行）
+def cpu_simulation():
+    print(f"CPUシミュレーション開始（クロック周波数: {clock_frequency / 1e9} GHz）")
+    start_time = time.time()
+
+    # クロックサイクルを模擬して命令を実行
+    num_cycles = 100000  # 実行するクロックサイクル数
+    for cycle in range(num_cycles):
+        # 各クロックサイクルごとに仮想的な処理を行う（例：命令のフェッチ、デコード、実行）
+        # 実際の処理内容はシンプルなものとして、クロック周期を待つ
+        time.sleep(clock_period)  # クロック周期の間待機（シミュレーション）
+
+        # 実際のCPUでは、この部分で命令が処理されます
+        if cycle % 10000 == 0:
+            print(f"サイクル {cycle} 完了")
+
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f"\nCPUシミュレーション完了: {elapsed_time:.6f}秒")
+    print(f"1クロックサイクルの所要時間: {clock_period * 1e9:.2f}ns")
+
+# 実行
+cpu_simulation()
