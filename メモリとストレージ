@@ -1,0 +1,76 @@
+import os
+import numpy as np
+import pickle
+import matplotlib.pyplot as plt
+
+# アナログ回路（RC回路）の応答を計算する関数
+def rc_circuit_response(R, C, Vin, fs=1000, duration=1):
+    # 時間軸を作成
+    t = np.linspace(0, duration, int(fs * duration), endpoint=False)
+    
+    # RC回路の時定数
+    tau = R * C
+    
+    # 入力信号Vinに対する出力信号Voutの計算（1次遅れ系の応答）
+    Vout = Vin * (1 - np.exp(-t / tau))
+    
+    return t, Vout
+
+# メモリにデータを格納し、表示する関数
+def memory_storage_simulation(data):
+    # メモリ上にデータを格納（リストとしてシミュレート）
+    memory = data
+    print("データがメモリに格納されました:")
+    print(memory)
+
+    # メモリからデータを読み取り（表示）
+    print("\nメモリからデータを取得:")
+    print(memory)
+
+    # ストレージにデータを保存
+    save_to_storage(memory)
+
+# ストレージにデータを保存する関数
+def save_to_storage(data):
+    # ストレージへの保存（ここではファイルに保存）
+    filename = "stored_data.pkl"
+    
+    with open(filename, 'wb') as f:
+        pickle.dump(data, f)
+    
+    print(f"\nデータがストレージに保存されました: {filename}")
+
+    # ストレージからデータを読み込む
+    loaded_data = load_from_storage(filename)
+    print("\nストレージからデータを読み込みました:")
+    print(loaded_data)
+
+# ストレージからデータを読み込む関数
+def load_from_storage(filename):
+    # ストレージからデータを読み込む
+    if os.path.exists(filename):
+        with open(filename, 'rb') as f:
+            data = pickle.load(f)
+        return data
+    else:
+        print(f"ファイル {filename} は存在しません。")
+        return None
+
+# 実行用パラメータ設定
+R = 1000  # 抵抗値（1kΩ）
+C = 0.001  # キャパシタンス（1μF）
+Vin = np.ones(1000)  # 入力信号（定常的な1V入力）
+
+# アナログ回路の応答を計算
+time, Vout = rc_circuit_response(R, C, Vin)
+
+# 応答をプロット
+plt.plot(time, Vout)
+plt.title("RC Circuit Response")
+plt.xlabel("Time [s]")
+plt.ylabel("Output Voltage [V]")
+plt.grid(True)
+plt.show()
+
+# データをメモリに格納して、ストレージに保存
+memory_storage_simulation(Vout)
