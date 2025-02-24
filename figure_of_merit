@@ -1,0 +1,14 @@
+# 消費電力、サンプリング周波数、ビット数Nを入力として計算するPythonコード
+
+def figure_of_merit(consumption_power, sampling_frequency, N):
+    # figure of meritの計算
+    return consumption_power / (sampling_frequency * 2**N)
+
+# 入力値の設定 (Example values)
+consumption_power = 0.5  # 消費電力 (Consumption power in watts)
+sampling_frequency = 1000  # サンプリング周波数 (Sampling frequency in Hz)
+N = 12  # ビット数 (Number of bits)
+
+# 計算
+fom = figure_of_merit(consumption_power, sampling_frequency, N)
+fom
