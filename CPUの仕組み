@@ -1,0 +1,128 @@
+import numpy as np
+import time
+
+# シンプルなCPUモデル
+class CPU:
+    def __init__(self):
+        self.memory = None
+        self.data_bus = None
+        self.cache = []
+
+    def process(self, data):
+        print(f"CPU: 処理開始 - {data}")
+        # データをキャッシュに格納（高速なメモリ）
+        self.cache.append(data)
+        time.sleep(0.5)  # 処理に時間がかかると仮定
+        print(f"CPU: 処理完了 - {data}")
+    
+    def fetch_from_memory(self):
+        if self.memory is not None:
+            print(f"CPU: メモリからデータを取得 - {self.memory}")
+            return self.memory
+        else:
+            print("CPU: メモリが空です。")
+            return None
+
+    def send_to_memory(self, data):
+        print(f"CPU: データをメモリに書き込み - {data}")
+        self.memory = data
+    
+# チップセット（北橋と南橋）モデル
+class Chipset:
+    def __init__(self):
+        self.north_bridge = NorthBridge()
+        self.south_bridge = SouthBridge()
+
+    def manage_data_flow(self, data):
+        # 北橋によるデータ管理（メモリや高速通信）
+        self.north_bridge.handle_data(data)
+        # 南橋によるストレージ管理（低速通信）
+        self.south_bridge.handle_data(data)
+
+class NorthBridge:
+    def handle_data(self, data):
+        print(f"NorthBridge: 高速データ転送 - {data}")
+
+class SouthBridge:
+    def handle_data(self, data):
+        print(f"SouthBridge: 低速データ転送 - {data}")
+
+# ストレージ（シンプルな保存機構）
+class Storage:
+    def __init__(self):
+        self.storage_data = []
+
+    def store(self, data):
+        self.storage_data.append(data)
+        print(f"Storage: データ保存 - {data}")
+
+    def retrieve(self):
+        if self.storage_data:
+            data = self.storage_data.pop(0)
+            print(f"Storage: データ取得 - {data}")
+            return data
+        else:
+            print("Storage: データがありません。")
+            return None
+
+# メモリ（シンプルなデータ保存機構）
+class Memory:
+    def __init__(self):
+        self.memory_data = None
+
+    def write(self, data):
+        self.memory_data = data
+        print(f"Memory: データ書き込み - {data}")
+
+    def read(self):
+        if self.memory_data is not None:
+            print(f"Memory: データ読み込み - {self.memory_data}")
+            return self.memory_data
+        else:
+            print("Memory: データがありません。")
+            return None
+
+# システム全体を管理するクラス
+class ComputerSystem:
+    def __init__(self):
+        self.cpu = CPU()
+        self.chipset = Chipset()
+        self.storage = Storage()
+        self.memory = Memory()
+
+    def execute_process(self, data):
+        # ストレージからデータを読み込み、CPUに渡す
+        print("システム: ストレージからデータをロード")
+        data_from_storage = self.storage.retrieve()
+
+        if data_from_storage:
+            self.cpu.send_to_memory(data_from_storage)
+            # メモリからデータを取得し、処理を行う
+            data_in_memory = self.cpu.fetch_from_memory()
+
+            if data_in_memory:
+                self.cpu.process(data_in_memory)
+                # データ処理後、チップセットを介して転送
+                self.chipset.manage_data_flow(data_in_memory)
+            else:
+                print("システム: メモリが空です。")
+
+    def load_data_into_storage(self, data):
+        # データをストレージに格納
+        self.storage.store(data)
+
+    def save_data_to_memory(self, data):
+        # CPUにデータをメモリに書き込ませる
+        self.cpu.send_to_memory(data)
+        print(f"システム: メモリにデータ保存 - {data}")
+
+# システムの初期化と実行
+system = ComputerSystem()
+
+# データのロードと保存
+system.load_data_into_storage("データ1")
+system.load_data_into_storage("データ2")
+
+# データ処理の実行
+system.execute_process("データ1")
+system.execute_process("データ2")
