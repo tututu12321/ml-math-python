@@ -1,0 +1,54 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import LinearRegression
+
+# ランダムな入力データと出力データを生成 (Random input and output data)
+np.random.seed(42)
+X = np.random.uniform(-10, 10, 20).reshape(-1, 1)  # ランダム入力 (Random input)
+y = X**3 - 2*X**2 + X + np.random.normal(0, 10, X.shape)  # 多項式関数とノイズを加えた出力 (Polynomial function with noise)
+
+# 多項式回帰 (Polynomial Regression)
+degree = 3  # 多項式の次数 (Degree of the polynomial)
+poly = PolynomialFeatures(degree)
+X_poly = poly.fit_transform(X)  # 入力を多項式の特徴量に変換 (Transform input to polynomial features)
+
+model = LinearRegression()
+model.fit(X_poly, y)  # モデルの学習 (Train the model)
+
+# 時間軸に沿ったサイン波入力の生成 (Generate sine wave as input based on time)
+t = np.linspace(0, 10, 400)  # 時間軸 (Time axis)
+x_sine = np.sin(t)  # サイン波入力 (Sine wave input)
+
+# サイン波入力を多項式回帰モデルに通して出力を予測 (Predict output from sine wave using polynomial regression)
+x_sine_poly = poly.transform(x_sine.reshape(-1, 1))  # サイン波を多項式特徴量に変換
+y_pred = model.predict(x_sine_poly)  # 多項式回帰モデルで出力を予測
+
+# プロット (Plot)
+plt.figure(figsize=(12, 6))
+
+# 入出力特性（ランダムデータのプロット） (Plot Input-Output characteristics)
+plt.subplot(1, 3, 1)
+plt.scatter(X, y, color='green', label='Random Data Points')  # 入出力特性のランダムなデータ点 (Random data points for input-output characteristics)
+plt.title('Input-Output Characteristics (Random Data)')
+plt.xlabel('Input')
+plt.ylabel('Output')
+plt.grid(True)
+
+# 時間軸に沿ったサイン波入力と多項式回帰による出力波形 (Plot sine wave input and predicted output)
+plt.subplot(1, 3, 2)
+plt.plot(t, x_sine, label='Input: Sine Wave', color='blue')
+plt.title('Input Sine Wave (Time Domain)')
+plt.xlabel('Time')
+plt.ylabel('Input Value')
+plt.grid(True)
+
+plt.subplot(1, 3, 3)
+plt.plot(t, y_pred, label='Output: Polynomial Regression', color='orange')
+plt.title('Output with Polynomial Regression (Time Domain)')
+plt.xlabel('Time')
+plt.ylabel('Output Value')
+plt.grid(True)
+
+plt.tight_layout()
+plt.show()
