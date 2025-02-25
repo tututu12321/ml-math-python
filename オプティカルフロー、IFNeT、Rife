@@ -1,0 +1,84 @@
+import cv2
+import numpy as np
+import torch
+import torch.nn as nn
+from torchvision import transforms
+import torchvision.models as models
+from PIL import Image
+
+# オプティカルフロー計算用関数 (Lucas-Kanade法)
+def compute_optical_flow(prev_img, next_img):
+    """オプティカルフローの計算"""
+    prev_gray = cv2.cvtColor(prev_img, cv2.COLOR_BGR2GRAY)
+    next_gray = cv2.cvtColor(next_img, cv2.COLOR_BGR2GRAY)
+    
+    # ルーカス・カナデ法でオプティカルフローを計算
+    flow = cv2.calcOpticalFlowFarneback(prev_gray, next_gray, None, 0.5, 3, 15, 3, 5, 1.2, 0)
+    
+    return flow
+
+# RIFEによるフレーム補間
+class RIFE(nn.Module):
+    def __init__(self):
+        super(RIFE, self).__init__()
+        self.model = models.resnet18(pretrained=True)  # 例としてResNet18を使用
+        
+    def forward(self, frame1, frame2):
+        # 画像を正規化してフレーム間の補間を行う
+        frame1 = transforms.ToTensor()(frame1).unsqueeze(0).float()
+        frame2 = transforms.ToTensor()(frame2).unsqueeze(0).float()
+        
+        # フレーム間補間を行う（ここではResNetを使用した仮実装）
+        frame1_features = self.model(frame1)
+        frame2_features = self.model(frame2)
+        
+        # 簡単な特徴量の組み合わせ（仮想的な補間）
+        interpolated_features = (frame1_features + frame2_features) / 2
+        
+        return interpolated_features
+
+# IFNeTの簡単な融合モデル（例）
+class IFNeT(nn.Module):
+    def __init__(self):
+        super(IFNeT, self).__init__()
+        self.conv1 = nn.Conv2d(6, 64, kernel_size=3, stride=1, padding=1)  # 2つの画像を融合
+        self.conv2 = nn.Conv2d(64, 32, kernel_size=3, stride=1, padding=1)
+        self.conv3 = nn.Conv2d(32, 3, kernel_size=3, stride=1, padding=1)  # 最終的にRGB画像を出力
+    
+    def forward(self, img1, img2):
+        x = torch.cat((img1, img2), dim=1)  # 画像2つを結合
+        x = torch.relu(self.conv1(x))
+        x = torch.relu(self.conv2(x))
+        x = self.conv3(x)  # 出力
+        return x
+
+# 動作の例: オプティカルフロー計算、RIFE補間、IFNeT融合
+def optical_flow_rife_ifnet(prev_frame, next_frame):
+    # 1. オプティカルフロー計算
+    flow = compute_optical_flow(prev_frame, next_frame)
+    
+    # 2. RIFEによるフレーム補間
+    model_rife = RIFE()
+    interpolated_frame = model_rife(prev_frame, next_frame)
+    
+    # 3. IFNeTによる画像融合
+    img1 = transforms.ToTensor()(prev_frame).unsqueeze(0).float()
+    img2 = transforms.ToTensor()(next_frame).unsqueeze(0).float()
+    
+    model_ifnet = IFNeT()
+    fused_image = model_ifnet(img1, img2)
+    
+    return flow, interpolated_frame, fused_image
+
+# サンプル画像の読み込み（2つのフレーム）
+prev_frame = cv2.imread("frame1.jpg")  # 画像ファイル1
+next_frame = cv2.imread("frame2.jpg")  # 画像ファイル2
+
+# オプティカルフロー、RIFE補間、IFNeT融合を実行
+flow, interpolated_frame, fused_image = optical_flow_rife_ifnet(prev_frame, next_frame)
+
+# 結果の表示
+cv2.imshow("Interpolated Frame", interpolated_frame.detach().numpy())
+cv2.imshow("Fused Image", fused_image.detach().numpy())
+cv2.waitKey(0)
+cv2.destroyAllWindows()
