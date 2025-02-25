@@ -1,0 +1,43 @@
+import cv2
+import matplotlib.pyplot as plt
+from google.colab import files
+
+# 画像をアップロード
+print("画像をアップロードしてください")
+uploaded = files.upload()
+
+# アップロードしたファイルの名前を取得
+file_name = list(uploaded.keys())[0]
+
+# 画像の読み込み
+image = cv2.imread(file_name)  # 画像のパスを指定
+if image is None:
+    print("画像の読み込みに失敗しました。画像のパスを確認してください。")
+else:
+    print("画像が正常に読み込まれました。")
+
+# グレースケールに変換
+gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+# Haar Cascadeで顔を検出するための事前学習済みモデルを読み込み
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+
+# 顔の検出
+faces = face_cascade.detectMultiScale(gray_image, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+
+# 検出した顔に四角形を描画
+for (x, y, w, h) in faces:
+    cv2.rectangle(image, (x, y), (x + w, y + h), (255, 0, 0), 2)  # 青色の四角形で顔を囲む
+
+# 画像をRGBに変換して表示
+image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+# 結果を表示
+plt.figure(figsize=(10, 6))
+plt.imshow(image_rgb)
+plt.axis('off')  # 軸を非表示
+plt.title(f"Detected {len(faces)} Face(s)")
+plt.show()
+
+# 顔の数を表示
+print(f"Detected faces: {len(faces)}")
