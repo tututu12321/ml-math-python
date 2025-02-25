@@ -1,0 +1,53 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.stats import binom
+
+# パラメータ設定
+n = 10  # 試行回数
+p = 0.5  # 成功確率
+x_values = np.arange(0, n+1)
+
+# 二項分布の確率質量関数（PMF）
+pmf_values = binom.pmf(x_values, n, p)
+
+# PMFを表示
+plt.figure(figsize=(8, 6))
+plt.bar(x_values, pmf_values, color='skyblue', edgecolor='black')
+plt.title('Binomial Distribution PMF')
+plt.xlabel('Number of Successes (x)')
+plt.ylabel('Probability')
+plt.grid(True)
+plt.show()
+
+# フィッシャー・ネイマンの分解定理に基づく分解
+# 二項分布の確率質量関数は次のように分解されます:
+# P(X = x | p) = binom.pmf(x, n, p) = (n choose x) * p^x * (1-p)^(n-x)
+# この式で十分統計量は x です。
+
+# 統計量x（成功回数）を十分統計量として確認
+# 例えば、x=5の場合、二項分布の確率を求める
+
+x_example = 5
+pmf_example = binom.pmf(x_example, n, p)
+print(f"Probability of {x_example} successes in {n} trials with p={p}: {pmf_example:.4f}")
+
+# フィッシャー情報量の計算（フィッシャー・ネイマン分解）
+# 二項分布の対数尤度関数の2回微分を求め、その負の値がフィッシャー情報量です。
+# ログ尤度関数の導関数を求め、フィッシャー情報量を計算します。
+
+from scipy import misc
+
+def log_likelihood(p, x, n):
+    return x * np.log(p) + (n - x) * np.log(1 - p)
+
+# 対数尤度関数の導関数
+def likelihood_derivative(p, x, n):
+    return x / p - (n - x) / (1 - p)
+
+# フィッシャー情報量（尤度の2回微分）
+def fisher_information(p, x, n):
+    return -np.mean(misc.derivative(likelihood_derivative, p, dx=1e-6, args=(x, n))**2)
+
+# 例: x=5の場合
+fisher_info = fisher_information(0.5, x_example, n)
+print(f"Fisher Information for x={x_example}: {fisher_info:.4f}")
