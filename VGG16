@@ -1,0 +1,42 @@
+import tensorflow as tf
+import matplotlib.pyplot as plt
+from tensorflow.keras.preprocessing import image
+from tensorflow.keras.applications.vgg16 import VGG16, preprocess_input
+import numpy as np
+from google.colab import files
+
+# 画像アップロード（Google Colabで使う場合）
+print("画像をアップロードしてください")
+uploaded = files.upload()
+
+# アップロードされたファイルの名前を取得
+file_name = list(uploaded.keys())[0]
+
+# 事前学習済みVGG16モデルをロード
+model = VGG16(weights='imagenet')
+
+# アップロードした画像の読み込み
+img = image.load_img(file_name, target_size=(224, 224))  # VGG16は224x224の画像を必要とします
+
+# 画像をNumpy配列に変換
+img_array = image.img_to_array(img)
+
+# 画像をVGG16に入力する前に前処理を行う
+img_array = np.expand_dims(img_array, axis=0)
+img_array = preprocess_input(img_array)
+
+# 画像を予測
+predictions = model.predict(img_array)
+
+# 予測結果を解釈
+from tensorflow.keras.applications.vgg16 import decode_predictions
+decoded_predictions = decode_predictions(predictions, top=3)[0]
+
+# 結果を表示
+print("Predicted class: ", decoded_predictions[0][1])
+print("Prediction confidence: ", decoded_predictions[0][2])
+
+# 画像を表示
+plt.imshow(img)
+plt.axis('off')  # 軸を非表示
+plt.show()
