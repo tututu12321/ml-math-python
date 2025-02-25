@@ -1,0 +1,71 @@
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, Dense, Flatten, Reshape
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.datasets import mnist
+import matplotlib.pyplot as plt
+
+# MNISTデータセットを読み込み（手書き数字データ）
+(x_train, y_train), (x_test, y_test) = mnist.load_data()
+
+# データの前処理
+x_train = x_train.astype('float32') / 255.0  # ピクセル値を0から1に正規化
+x_test = x_test.astype('float32') / 255.0
+
+# 入力の形を変える（28x28の画像を1Dベクトルにフラット化）
+x_train = x_train.reshape(-1, 28*28)
+x_test = x_test.reshape(-1, 28*28)
+
+# エンコーダの構築
+input_img = Input(shape=(28*28,))  # 入力画像の次元
+encoded = Dense(128, activation='relu')(input_img)  # エンコーディング層
+encoded = Dense(64, activation='relu')(encoded)    # 圧縮層（ボトルネック）
+
+# デコーダの構築
+decoded = Dense(128, activation='relu')(encoded)   # デコーディング層
+decoded = Dense(28*28, activation='sigmoid')(decoded)  # 出力層（元の画像サイズに戻す）
+
+# モデルの作成
+autoencoder = Model(input_img, decoded)
+
+# モデルのコンパイル
+autoencoder.compile(optimizer=Adam(), loss='binary_crossentropy')
+
+# モデルの学習
+autoencoder.fit(x_train, x_train, epochs=20, batch_size=256, validation_data=(x_test, x_test))
+
+# テストデータで予測
+decoded_imgs = autoencoder.predict(x_test)
+
+# いくつかの画像を表示して結果を確認
+n = 10  # 表示する画像数
+plt.figure(figsize=(20, 4))
+for i in range(n):
+    ax = plt.subplot(2, n, i + 1)
+    plt.imshow(x_test[i].reshape(28, 28), cmap='gray')
+    ax.axis('off')
+    ax = plt.subplot(2, n, i + 1 + n)
+    plt.imshow(decoded_imgs[i].reshape(28, 28), cmap='gray')
+    ax.axis('off')
+plt.show()
+
+# 分類タスクのためにエンコーダを別に作成
+encoder = Model(input_img, encoded)
+
+# エンコーダで特徴量を抽出
+encoded_imgs = encoder.predict(x_train)
+
+# ここでは特徴量を使って分類タスクを行う
+from sklearn.linear_model import LogisticRegression
+classifier = LogisticRegression(max_iter=1000)
+classifier.fit(encoded_imgs, y_train)
+
+# テストデータの特徴量を使って分類
+encoded_test_imgs = encoder.predict(x_test)
+y_pred = classifier.predict(encoded_test_imgs)
+
+# 分類の精度を表示
+from sklearn.metrics import accuracy_score
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Classification Accuracy: {accuracy * 100:.2f}%")
