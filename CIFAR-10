@@ -1,0 +1,22 @@
+import torch
+import torchvision
+import torchvision.transforms as transforms
+import matplotlib.pyplot as plt
+import numpy as np
+
+# データの前処理（画像をTensorに変換し、正規化）
+transform = transforms.Compose([
+    transforms.ToTensor(),  # 画像をTensor形式に変換
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))  # 画像の正規化
+])
+
+# CIFAR-10のトレーニングデータとテストデータをロード
+trainset = torchvision.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+testset = torchvision.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+
+# データローダーの設定（バッチサイズ32でデータをバッチ処理）
+trainloader = torch.utils.data.DataLoader(trainset, batch_size=32, shuffle=True)
+testloader = torch.utils.data.DataLoader(testset, batch_size=32, shuffle=False)
+
+# CIFAR-10のクラスラベル
+classes = ['airplane', 'automobile', 'bird', 'cat', 'deer', 'dog', 'frog', 'horse', 'ship', 'truck']
