@@ -1,0 +1,86 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, classification_report
+import tensorflow as tf
+from tensorflow.keras import layers, models
+from tensorflow.keras.utils import to_categorical
+
+# Irisデータセットのロード
+iris = load_iris()
+X = iris.data
+y = iris.target
+
+# データの分割（2クラス分類のため、SetosaとVersicolorを使用）
+X = X[y != 2]  # SetosaとVersicolorのみ使用
+y = y[y != 2]
+
+# 訓練データとテストデータに分割
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+# ロジスティック回帰モデル（2クラス分類）
+log_reg = LogisticRegression()
+
+# ロジスティック回帰の学習
+log_reg.fit(X_train, y_train)
+
+# 予測
+y_pred_log_reg = log_reg.predict(X_test)
+
+# ソフトマックス回帰（多クラス分類）
+# ソフトマックス回帰用にラベルをone-hotエンコード
+y_train_cat = to_categorical(y_train, 2)  # SetosaとVersicolorの2クラス
+y_test_cat = to_categorical(y_test, 2)
+
+# モデルの作成
+model = models.Sequential([
+    layers.Dense(10, activation='relu', input_shape=(X_train.shape[1],)),
+    layers.Dense(2, activation='softmax')  # 2クラス分類
+])
+
+# モデルのコンパイル
+model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+# モデルの訓練
+model.fit(X_train, y_train_cat, epochs=50, batch_size=32, verbose=0)
+
+# 予測
+y_pred_softmax = model.predict(X_test)
+
+# 予測結果を最も高い確率のクラスに変換
+y_pred_class_softmax = np.argmax(y_pred_softmax, axis=1)
+
+# ロジスティック回帰とソフトマックス回帰の精度を表示
+print(f"Logistic Regression Accuracy: {accuracy_score(y_test, y_pred_log_reg):.2f}")
+print(f"Softmax Regression Accuracy: {accuracy_score(y_test, y_pred_class_softmax):.2f}")
+
+# 分類レポートの表示
+print("\nClassification Report for Logistic Regression:")
+print(classification_report(y_test, y_pred_log_reg))
+
+print("\nClassification Report for Softmax Regression:")
+print(classification_report(y_test, y_pred_class_softmax))
+
+# 結果を可視化
+plt.figure(figsize=(12, 6))
+
+# ロジスティック回帰の結果
+plt.subplot(1, 2, 1)
+plt.scatter(X_test[:, 0], X_test[:, 1], c=y_pred_log_reg, cmap='coolwarm', marker='o', label='Prediction')
+plt.title("Logistic Regression Prediction")
+plt.xlabel("Feature 1")
+plt.ylabel("Feature 2")
+plt.grid(True)
+
+# ソフトマックス回帰の結果
+plt.subplot(1, 2, 2)
+plt.scatter(X_test[:, 0], X_test[:, 1], c=y_pred_class_softmax, cmap='coolwarm', marker='o', label='Prediction')
+plt.title("Softmax Regression Prediction")
+plt.xlabel("Feature 1")
+plt.ylabel("Feature 2")
+plt.grid(True)
+
+plt.tight_layout()
+plt.show()
