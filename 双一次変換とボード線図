@@ -1,0 +1,42 @@
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy import signal
+
+# 連続時間システムの定義（s-domain）
+# 例：連続時間でのLPF（低域通過フィルタ）
+s1 = signal.TransferFunction([1], [1, 1])  # H(s) = 1 / (s + 1)
+
+# サンプリング時間の設定
+T = 0.1  # サンプリング周期
+
+# 双一次変換を使って離散時間に変換
+z1 = signal.cont2discrete(([1], [1, 1]), T, method='bilinear')
+
+# 連続と離散の周波数応答の計算
+w, mag_s, phase_s = signal.bode(s1)  # 連続時間のボード線図
+w, mag_z, phase_z = signal.dlti(z1[0], z1[1]).bode()  # 離散時間のボード線図
+
+# プロット（ボード線図）
+fig, ax = plt.subplots(2, 1, figsize=(10, 8))
+
+# 増幅のプロット
+ax[0].semilogx(w, mag_s, label="Continuous-time (s-domain)")
+ax[0].semilogx(w, mag_z, label="Discrete-time (z-domain)")
+ax[0].set_title('Magnitude Response (Gain)')
+ax[0].set_xlabel('Frequency [rad/s]')
+ax[0].set_ylabel('Magnitude [dB]')
+ax[0].grid(True)
+ax[0].legend()
+
+# 位相のプロット
+ax[1].semilogx(w, phase_s, label="Continuous-time (s-domain)")
+ax[1].semilogx(w, phase_z, label="Discrete-time (z-domain)")
+ax[1].set_title('Phase Response')
+ax[1].set_xlabel('Frequency [rad/s]')
+ax[1].set_ylabel('Phase [degrees]')
+ax[1].grid(True)
+ax[1].legend()
+
+plt.tight_layout()
+plt.show()
