@@ -1,0 +1,25 @@
+
+# パラメータ設定
+V_CPU = 1.2  # CPU動作電圧 (V)
+f_CPU = 3.5e9  # CPUクロック周波数 (Hz) 例: 3.5 GHz
+C_CPU = 1e-12  # CPUスイッチング容量 (F) 例: 1ピコファラッド
+N_CPU = 4  # CPUコア数
+
+V_GPU = 1.1  # GPU動作電圧 (V)
+f_GPU = 1.5e9  # GPUクロック周波数 (Hz) 例: 1.5 GHz
+C_GPU = 2e-12  # GPUスイッチング容量 (F) 例: 2ピコファラッド
+N_cores_GPU = 1024  # GPUコア数 例: 1024コア
+
+# 消費電力の計算 (動的消費電力 P = C * V^2 * f)
+P_CPU = C_CPU * V_CPU**2 * f_CPU  # CPUの消費電力 (W)
+P_GPU = C_GPU * V_GPU**2 * f_GPU * N_cores_GPU  # GPUの消費電力 (W)
+
+# パフォーマンスの計算 (Performance = f * N)
+Performance_CPU = f_CPU * N_CPU  # CPUの計算能力 (単位: Flops)
+Performance_GPU = f_GPU * N_cores_GPU  # GPUの計算能力 (単位: Flops)
+
+# 結果表示
+print(f"CPUの消費電力: {P_CPU:.6e} W")
+print(f"GPUの消費電力: {P_GPU:.6e} W")
+print(f"CPUの計算能力: {Performance_CPU:.2e} Flops")
+print(f"GPUの計算能力: {Performance_GPU:.2e} Flops")
