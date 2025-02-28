@@ -1,0 +1,26 @@
+
+import numpy as np
+
+# 浮遊ゲートの電荷の有無を表す状態
+# 0: 電荷あり（「0」）、1: 電荷なし（「1」）
+charge_state = np.array([0, 1])  # 電荷あり:0, 電荷なし:1
+
+# MOSFETの制御ゲートへの電圧を仮定
+# 0: ON（電荷蓄積）、1: OFF（電荷消去）
+control_gate_voltage = np.array([1, 0])  # 1: 浮遊ゲートに電荷を蓄積（書き込み）、0: 電荷を消去（消去）
+
+# 電流の流れやすさ
+# 0: 流れにくい（電荷あり）、1: 流れやすい（電荷なし）
+current_flow = np.where(charge_state == 0, 0, 1)
+
+# 結果を表示
+for i in range(len(charge_state)):
+    charge_status = "電荷あり" if charge_state[i] == 0 else "電荷なし"
+    flow_status = "流れにくい" if current_flow[i] == 0 else "流れやすい"
+    control_status = "ON（電荷蓄積）" if control_gate_voltage[i] == 1 else "OFF（電荷消去）"
+    
+    # 各状態の詳細をプリント
+    print(f"状態 {charge_status}:")
+    print(f"  ・ 電流は {flow_status}")
+    print(f"  ・ 制御ゲート状態: {control_status}")
+    print()
