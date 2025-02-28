@@ -1,0 +1,59 @@
+
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+
+# アニメーションの設定
+fig, ax = plt.subplots()
+
+# パラメータ設定
+num_steps = 10  # アニメーションのステップ数
+cpu_position = [0, 0]  # CPUの初期位置
+memory_position = [10, 0]  # メモリの位置
+gpu_position = [5, 2]  # GPUの位置
+
+# プロットの初期設定
+ax.set_xlim(0, 12)
+ax.set_ylim(-1, 3)
+
+# CPU, メモリ, GPUの表示
+cpu_circle = plt.Circle(cpu_position, 0.3, color='blue', label='CPU')
+memory_circle = plt.Circle(memory_position, 0.3, color='green', label='Memory')
+gpu_circle = plt.Circle(gpu_position, 0.3, color='red', label='GPU')
+
+ax.add_artist(cpu_circle)
+ax.add_artist(memory_circle)
+ax.add_artist(gpu_circle)
+
+# 計算の進行を示す矢印
+arrow = ax.annotate('', xy=memory_position, xytext=cpu_position,
+                    arrowprops=dict(facecolor='red', edgecolor='red', arrowstyle="->", lw=2))
+
+# タイトルとラベル
+ax.set_title("Simulation of CPU, Memory, and GPU Process")
+ax.set_xlabel("System Bus")
+ax.set_ylabel("Status")
+ax.legend()
+
+# 更新関数：CPUからメモリへデータが移動
+def update(frame):
+    # CPUからメモリに向かってデータが移動
+    new_x = cpu_position[0] + (memory_position[0] - cpu_position[0]) * frame / num_steps
+    new_y = cpu_position[1] + (memory_position[1] - cpu_position[1]) * frame / num_steps
+    cpu_circle.set_center([new_x, new_y])
+
+    # GPUからの並列処理の表現
+    gpu_x = gpu_position[0] + np.sin(frame * 0.1)
+    gpu_y = gpu_position[1] + np.cos(frame * 0.1)
+    gpu_circle.set_center([gpu_x, gpu_y])
+
+    # 矢印の位置更新
+    arrow.set_positions([cpu_circle.center, memory_position])
+    return cpu_circle, arrow, gpu_circle
+
+# アニメーションの作成
+ani = FuncAnimation(fig, update, frames=num_steps, interval=500, blit=True)
+
+# アニメーションの表示
+plt.tight_layout()
+plt.show()
