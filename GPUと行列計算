@@ -1,0 +1,31 @@
+
+import numpy as np
+import multiprocessing
+
+# 行列のサイズ
+N = 500
+
+# 行列の初期化
+A = np.random.rand(N, N)
+B = np.random.rand(N, N)
+
+# 行列積の部分計算を行う関数
+def matrix_multiply_row(i):
+    return np.dot(A[i, :], B)
+
+# GPUの並列処理を模倣するためにマルチプロセスを使用
+def parallel_matrix_multiply():
+    # 複数のプロセスで行列の積を計算
+    with multiprocessing.Pool(processes=multiprocessing.cpu_count()) as pool:
+        result = pool.map(matrix_multiply_row, range(N))
+
+    return np.array(result)
+
+# 並列計算による行列積計算
+if __name__ == "__main__":
+    # 並列計算の実行
+    result = parallel_matrix_multiply()
+
+    # 結果表示（最初の10個の行だけ表示）
+    print("行列積の最初の10行:")
+    print(result[:10])
