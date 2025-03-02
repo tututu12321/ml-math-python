@@ -1,0 +1,29 @@
+# -*- coding: utf-8 -*-
+# 必要なライブラリをインポート
+import numpy as np  # 数値計算
+import matplotlib.pyplot as plt  # 可視化
+import seaborn as sns  # カラーマップ用
+
+# 2Dグリッドの作成（メートル単位）
+x = np.linspace(-2, 2, 20)  # x座標 [m]
+y = np.linspace(-2, 2, 20)  # y座標 [m]
+X, Y = np.meshgrid(x, y)
+
+# ベクトル場 F = (Fx, Fy) [m/s]
+Fx = X  # x方向の速度成分 [m/s]
+Fy = Y  # y方向の速度成分 [m/s]
+
+# 発散 (div F) の計算 [1/s]
+dFx_dx = np.gradient(Fx, x, axis=1)  # ∂Fx/∂x [1/s]
+dFy_dy = np.gradient(Fy, y, axis=0)  # ∂Fy/∂y [1/s]
+div_F = dFx_dx + dFy_dy  # 発散 ∇・F [1/s]
+
+# 可視化（発散のカラーマップ）
+plt.figure(figsize=(7, 6))
+contour = plt.contourf(X, Y, div_F, cmap="coolwarm")
+plt.colorbar(label="Divergence (1/s)")  # SI単位を表示
+plt.quiver(X, Y, Fx, Fy, color="black", scale=5)  # ベクトル場
+plt.xlabel("x (m)")
+plt.ylabel("y (m)")
+plt.title("2D Divergence of Vector Field (1/s)")
+plt.show()
