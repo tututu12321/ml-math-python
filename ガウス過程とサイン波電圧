@@ -1,0 +1,47 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF, WhiteKernel
+
+# 日本語コメント
+# 50Hzの正弦波を生成し、それにガウス過程回帰を適用する
+
+# 基本パラメータ設定
+fs = 1000  # サンプリング周波数 [Hz]
+T = 0.1    # 信号の継続時間 [s]
+t = np.linspace(0, T, int(fs*T))  # 時間ベクトル
+f = 50     # 正弦波の周波数 [Hz]
+A = 1.0    # 振幅
+
+# 50Hzの正弦波を生成
+signal = A * np.sin(2 * np.pi * f * t)
+
+# ノイズを加える
+noise = np.random.normal(0, 0.1, len(t))  # ガウスノイズ
+noisy_signal = signal + noise
+
+# データセットを作成
+X_train = t.reshape(-1, 1)  # 時間を特徴量として使用
+y_train = noisy_signal       # 出力はノイズを加えた正弦波
+
+# ガウス過程回帰のカーネル定義
+kernel = RBF(length_scale=0.01) + WhiteKernel(noise_level=0.1)
+
+# ガウス過程回帰モデルの作成と学習
+gp = GaussianProcessRegressor(kernel=kernel, alpha=0.01, n_restarts_optimizer=10)
+gp.fit(X_train, y_train)
+
+# 予測
+y_pred, sigma = gp.predict(X_train, return_std=True)
+
+# 結果の可視化
+plt.figure(figsize=(10, 5))
+plt.plot(t, signal, label="True Signal (50Hz Sine Wave)", linestyle="dashed")
+plt.scatter(t, noisy_signal, s=10, color="red", label="Noisy Observations", alpha=0.5)
+plt.plot(t, y_pred, label="GPR Prediction", color="blue")
+plt.fill_between(t, y_pred - 2*sigma, y_pred + 2*sigma, color="blue", alpha=0.2, label="Confidence Interval (2σ)")
+plt.xlabel("Time [s]")
+plt.ylabel("Amplitude")
+plt.title("Gaussian Process Regression on 50Hz Sine Wave")
+plt.legend()
+plt.show()
