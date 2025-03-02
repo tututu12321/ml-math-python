@@ -1,0 +1,83 @@
+# -*- coding: utf-8 -*-
+# 必要なライブラリをインポート
+import pandas as pd  # データ操作
+import numpy as np  # 数値計算
+import matplotlib.pyplot as plt  # 可視化
+import seaborn as sns  # 可視化
+
+# 機械学習用
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error, r2_score
+
+# ダミーデータの作成
+np.random.seed(42)
+n_samples = 500
+
+data = {
+    "Factory": np.random.choice(["A", "B", "C"], n_samples),
+    "Material_Type": np.random.choice(["X", "Y", "Z"], n_samples),
+    "Temperature": np.random.uniform(200, 400, n_samples),  # 温度 (200-400℃)
+    "Pressure": np.random.uniform(0.5, 2.5, n_samples),  # 圧力 (0.5-2.5 MPa)
+    "Process_Time": np.random.uniform(50, 200, n_samples),  # プロセス時間 (50-200 分)
+    "Defect_Rate": np.random.uniform(0, 0.1, n_samples),  # 不良率 (0-10%)
+}
+
+# 歩留まりの計算（仮の関数: 温度・圧力・時間・不良率に基づく）
+data["Yield"] = (
+    95 - 0.03 * data["Temperature"]
+    - 5 * data["Defect_Rate"]
+    - 2 * (data["Pressure"] - 1.5) ** 2
+    + 0.01 * data["Process_Time"]
+    + np.random.normal(0, 2, n_samples)  # ノイズ追加
+)
+
+# DataFrameに変換
+df = pd.DataFrame(data)
+
+# データの確認
+print(df.head())
+
+# カテゴリ変数のエンコーディング（修正: sparse=False → sparse_output=False）
+categorical_features = ["Factory", "Material_Type"]
+encoder = OneHotEncoder(sparse_output=False, drop="first")  # ここを修正
+encoded_cats = encoder.fit_transform(df[categorical_features])
+encoded_df = pd.DataFrame(encoded_cats, columns=encoder.get_feature_names_out())
+
+# 数値データの選択
+numerical_features = ["Temperature", "Pressure", "Process_Time", "Defect_Rate"]
+numerical_df = df[numerical_features]
+
+# 特徴量データセットを作成
+X = pd.concat([numerical_df, encoded_df], axis=1)
+y = df["Yield"]  # 目的変数: 歩留まり
+
+# データの標準化
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# 訓練データとテストデータに分割
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+
+# モデルの定義（ランダムフォレストを使用）
+model = RandomForestRegressor(n_estimators=100, random_state=42)
+model.fit(X_train, y_train)
+
+# 予測
+y_pred = model.predict(X_test)
+
+# モデルの評価
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+
+print(f"Mean Squared Error (MSE): {mse:.2f}")
+print(f"R-squared (R²): {r2:.2f}")
+
+# 結果の可視化
+plt.figure(figsize=(8, 6))
+sns.scatterplot(x=y_test, y=y_pred)
+plt.xlabel("Actual Yield")
+plt.ylabel("Predicted Yield")
+plt.title("Actual vs Predicted Yield")
+plt.show()
