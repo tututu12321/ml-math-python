@@ -1,0 +1,66 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF, WhiteKernel
+
+# --- 1. 50Hzの正弦波データを生成 ---
+fs = 1000  # サンプリング周波数 [Hz]
+T = 0.1    # 信号の継続時間 [s]
+t = np.linspace(0, T, int(fs*T))  # 時間ベクトル
+f = 50     # 正弦波の周波数 [Hz]
+A = 1.0    # 振幅
+
+# 正弦波の電圧データを生成
+signal = A * np.sin(2 * np.pi * f * t)
+
+# --- 2. ノイズを加える ---
+noise = np.random.normal(0, 0.0001, len(t))  # ガウスノイズ
+noisy_signal = signal + noise
+
+# --- 3. 特徴エンジニアリング ---
+df = pd.DataFrame({"Time": t, "Voltage": noisy_signal})
+
+# 移動平均 (rolling mean)
+df["Rolling_Mean"] = df["Voltage"].rolling(window=10, min_periods=1).mean()
+
+# 移動標準偏差 (rolling std)
+df["Rolling_Std"] = df["Voltage"].rolling(window=10, min_periods=1).std()
+
+# NaN を削除する
+df.dropna(inplace=True)  # ← 重要！
+
+# --- 4. ガウス過程回帰 (GPR) の適用 ---
+X_train = df[["Time", "Rolling_Mean", "Rolling_Std"]].values  # 特徴量
+y_train = df["Voltage"].values  # 出力
+
+# ガウス過程回帰のカーネル設定
+kernel = RBF(length_scale=0.01) + WhiteKernel(noise_level=0.1)
+
+# モデル学習
+gp = GaussianProcessRegressor(kernel=kernel, alpha=0.01, n_restarts_optimizer=10)
+gp.fit(X_train, y_train)
+
+# 予測
+y_pred, sigma = gp.predict(X_train, return_std=True)
+
+# --- 5. 結果の可視化 ---
+plt.figure(figsize=(12, 6))
+
+# 元の信号
+plt.plot(df["Time"], signal[:len(df)], label="True Signal (50Hz Sine Wave)", linestyle="dashed")
+
+# ノイズ付きデータ
+plt.scatter(df["Time"], df["Voltage"], s=10, color="red", label="Noisy Observations", alpha=0.5)
+
+# GPRによる予測
+plt.plot(df["Time"], y_pred, label="GPR Prediction", color="blue")
+
+# 信頼区間 (2σ)
+plt.fill_between(df["Time"], y_pred - 2*sigma, y_pred + 2*sigma, color="blue", alpha=0.2, label="Confidence Interval (2σ)")
+
+plt.xlabel("Time [s]")
+plt.ylabel("Voltage [V]")
+plt.title("Feature Engineering on 50Hz Sine Wave with Gaussian Process Regression")
+plt.legend()
+plt.show()
