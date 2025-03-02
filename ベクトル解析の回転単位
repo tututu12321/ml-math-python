@@ -1,0 +1,29 @@
+# -*- coding: utf-8 -*-
+# 必要なライブラリをインポート
+import numpy as np  # 数値計算
+import matplotlib.pyplot as plt  # 可視化
+import seaborn as sns  # ヒートマップ
+
+# 2Dグリッドの作成（メートル単位）
+x = np.linspace(-2, 2, 20)  # x座標（m）
+y = np.linspace(-2, 2, 20)  # y座標（m）
+X, Y = np.meshgrid(x, y)
+
+# 流体の速度場 F = (Fx, Fy) [m/s]
+Fx = -Y  # x方向の速度成分（m/s）
+Fy = X   # y方向の速度成分（m/s）
+
+# 渦度（∇×F）の計算 [1/s]
+dFy_dx = np.gradient(Fy, x, axis=1)  # ∂Fy/∂x [1/s]
+dFx_dy = np.gradient(Fx, y, axis=0)  # ∂Fx/∂y [1/s]
+vorticity = dFy_dx - dFx_dy  # 渦度 ω = ∂Fy/∂x - ∂Fx/∂y [1/s]
+
+# 可視化（渦度ヒートマップとベクトル場）
+plt.figure(figsize=(7, 6))
+contour = plt.contourf(X, Y, vorticity, cmap="coolwarm")
+plt.colorbar(label="Vorticity (1/s or Hz)")  # SI単位を表示
+plt.quiver(X, Y, Fx, Fy, color="black", scale=5)  # ベクトル場
+plt.xlabel("x (m)")
+plt.ylabel("y (m)")
+plt.title("2D Vorticity of Vector Field (Hz or 1/s)")
+plt.show()
