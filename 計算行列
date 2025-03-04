@@ -1,0 +1,79 @@
+import nltk
+from nltk.tokenize import word_tokenize, sent_tokenize
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer, WordNetLemmatizer
+from nltk.util import bigrams, trigrams
+import string
+import itertools
+import re
+import numpy as np
+import pandas as pd
+from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
+from gensim.models import Word2Vec
+from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
+import matplotlib.pyplot as plt
+import time
+from scipy.linalg import lu_factor, lu_solve
+
+# 必要なデータをダウンロード（初回のみ必要）
+nltk.download('punkt')
+nltk.download('stopwords')
+nltk.download('wordnet')
+nltk.download('averaged_perceptron_tagger')
+nltk.download('omw-1.4')
+nltk.download('maxent_treebank_pos_tagger')
+nltk.download('averaged_perceptron_tagger_eng')
+
+# punktのリソースが見つからない場合のエラーハンドリング
+def ensure_punkt():
+    try:
+        word_tokenize("test")
+    except LookupError:
+        nltk.download('punkt')
+        nltk.download('punkt_tab')
+
+ensure_punkt()
+
+# ガウス消去法の実装
+def gaussian_elimination(A, b):
+    A = A.astype(float)
+    b = b.astype(float)
+    n = len(A)
+    for i in range(n):
+        for j in range(i+1, n):
+            factor = A[j][i] / A[i][i]
+            A[j, i:] -= factor * A[i, i:]
+            b[j] -= factor * b[i]
+    x = np.zeros(n)
+    for i in range(n-1, -1, -1):
+        x[i] = (b[i] - np.dot(A[i, i+1:], x[i+1:])) / A[i, i]
+    return x
+
+# LU分解を用いた解法
+def lu_decomposition(A, b):
+    lu, piv = lu_factor(A)
+    x = lu_solve((lu, piv), b)
+    return x
+
+# 行列とベクトルの生成
+np.random.seed(42)
+n = 100  # 100次の正方行列
+A = np.random.rand(n, n)
+b = np.random.rand(n)
+
+# ガウス消去法の計算時間測定
+A_gauss = A.copy()
+b_gauss = b.copy()
+start_time = time.time()
+x_gauss = gaussian_elimination(A_gauss, b_gauss)
+gaussian_time = time.time() - start_time
+print(f"Gaussian Elimination Time: {gaussian_time:.6f} seconds")
+
+# LU分解の計算時間測定
+A_lu = A.copy()
+b_lu = b.copy()
+start_time = time.time()
+x_lu = lu_decomposition(A_lu, b_lu)
+lu_time = time.time() - start_time
+print(f"LU Decomposition Time: {lu_time:.6f} seconds")
