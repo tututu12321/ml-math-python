@@ -1,0 +1,36 @@
+import numpy as np
+from scipy.stats import norm
+from scipy.integrate import quad
+
+# **ガウス分布の期待値と分散の計算**
+# 平均mu、標準偏差sigmaの正規分布
+mu = 0  # 平均
+sigma = 1  # 標準偏差
+
+# 確率密度関数 (PDF)
+def gaussian_pdf(x, mu, sigma):
+    return norm.pdf(x, mu, sigma)
+
+# 期待値の計算
+expected_value, _ = quad(lambda x: x * gaussian_pdf(x, mu, sigma), -np.inf, np.inf)
+
+# 分散の計算
+variance, _ = quad(lambda x: (x - mu) ** 2 * gaussian_pdf(x, mu, sigma), -np.inf, np.inf)
+
+print(f"Expected Value (Mean): {expected_value}")
+print(f"Variance: {variance}")
+
+# **ベイズ推論における事後分布の期待値の計算**
+# 事前分布: N(mu_prior, sigma_prior^2)
+# 尤度関数: N(mu_likelihood, sigma_likelihood^2)
+mu_prior = 1.0
+sigma_prior = 1.0
+mu_likelihood = 2.0
+sigma_likelihood = 0.5
+
+# 事後分布の平均と分散の計算
+sigma_posterior_sq = 1 / (1 / sigma_prior**2 + 1 / sigma_likelihood**2)
+mu_posterior = sigma_posterior_sq * (mu_prior / sigma_prior**2 + mu_likelihood / sigma_likelihood**2)
+
+print(f"Posterior Mean: {mu_posterior}")
+print(f"Posterior Variance: {sigma_posterior_sq}")
