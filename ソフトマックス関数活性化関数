@@ -1,0 +1,29 @@
+import numpy as np
+
+def softmax(x):
+    """
+    ソフトマックス関数 (Softmax Function)
+    x: 入力配列 (Input array)
+    """
+    exp_x = np.exp(x - np.max(x))  # オーバーフロー防止のため最大値を引く
+    return exp_x / np.sum(exp_x)
+
+# 具体例
+x = np.array([2.0, 1.0, 0.1])
+y = softmax(x)
+print("Softmax Output:", y)
+print("Sum of Softmax Outputs:", np.sum(y))  # 合計は1になる
+
+# ソフトマックス関数の微分 (Jacobian matrix)
+def softmax_derivative(x):
+    """
+    ソフトマックス関数の微分 (Derivative of Softmax Function)
+    x: 入力ベクトル (Input vector)
+    """
+    s = softmax(x)
+    jacobian = np.diag(s) - np.outer(s, s)  # ヤコビ行列 (Jacobian Matrix)
+    return jacobian
+
+# 微分の計算
+jacobian_matrix = softmax_derivative(x)
+print("Softmax Derivative (Jacobian Matrix):\n", jacobian_matrix)
