@@ -1,0 +1,118 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.special import erf
+
+# シグモイド型関数の定義
+def tanh(x):
+    return np.tanh(x)
+
+def logistic(x):
+    return 1 / (1 + np.exp(-x))
+
+def algebraic_sigmoid(x):
+    return x / np.sqrt(1 + x**2)
+
+def arctan_sigmoid(x):
+    return (2 / np.pi) * np.arctan((np.pi / 2) * x)
+
+def softsign(x):
+    return x / (1 + np.abs(x))
+
+# シグモイド型関数の微分
+def tanh_derivative(x):
+    return 1 - tanh(x) ** 2
+
+def logistic_derivative(x):
+    return logistic(x) * (1 - logistic(x))
+
+def algebraic_sigmoid_derivative(x):
+    return 1 / ((1 + x**2) ** (3/2))
+
+def arctan_sigmoid_derivative(x):
+    return 1 / (1 + ((np.pi / 2) * x) ** 2)
+
+def softsign_derivative(x):
+    return 1 / (1 + np.abs(x)) ** 2
+
+# シグモイド型関数の積分
+def tanh_integral(x):
+    return np.log(np.cosh(x))
+
+def logistic_integral(x):
+    return np.log(1 + np.exp(x))
+
+def algebraic_sigmoid_integral(x):
+    return np.sqrt(1 + x**2) - 1
+
+def arctan_sigmoid_integral(x):
+    return (2 / np.pi) * (x * np.arctan((np.pi / 2) * x) - 0.5 * np.log(1 + ((np.pi / 2) * x) ** 2))
+
+def softsign_integral(x):
+    return np.abs(x) - np.log(1 + np.abs(x))
+
+# Swish型関数
+def swish(x):
+    return x * logistic(x)
+
+def algebraic_swish(x):
+    return x * (1 + algebraic_sigmoid(x)) / 2
+
+# Softplus型関数
+def softplus(x):
+    return np.log(1 + np.exp(x))
+
+def algebraic_softplus(x):
+    return (np.sqrt(1 + x**2) + x) / 2
+
+# xの範囲
+x = np.linspace(-5, 5, 500)
+
+# プロットの作成
+plt.figure(figsize=(12, 8))
+
+# シグモイド型関数
+plt.subplot(2, 3, 1)
+plt.plot(x, tanh(x), label="tanh", linestyle='dashed')
+plt.plot(x, logistic(x), label="logistic")
+plt.plot(x, algebraic_sigmoid(x), label="Algebraic Sigmoid")
+plt.plot(x, arctan_sigmoid(x), label="Arctan Sigmoid")
+plt.plot(x, softsign(x), label="Softsign")
+plt.title("Sigmoid-type Functions")
+plt.legend()
+
+# 微分の比較
+plt.subplot(2, 3, 2)
+plt.plot(x, tanh_derivative(x), label="tanh'")
+plt.plot(x, logistic_derivative(x), label="logistic'")
+plt.plot(x, algebraic_sigmoid_derivative(x), label="Algebraic Sigmoid'")
+plt.plot(x, arctan_sigmoid_derivative(x), label="Arctan Sigmoid'")
+plt.plot(x, softsign_derivative(x), label="Softsign'")
+plt.title("Derivative of Sigmoid-type Functions")
+plt.legend()
+
+# 積分の比較
+plt.subplot(2, 3, 3)
+plt.plot(x, tanh_integral(x), label="∫tanh(x) dx")
+plt.plot(x, logistic_integral(x), label="∫logistic(x) dx")
+plt.plot(x, algebraic_sigmoid_integral(x), label="∫Algebraic Sigmoid(x) dx")
+plt.plot(x, arctan_sigmoid_integral(x), label="∫Arctan Sigmoid(x) dx")
+plt.plot(x, softsign_integral(x), label="∫Softsign(x) dx")
+plt.title("Integral of Sigmoid-type Functions")
+plt.legend()
+
+# Swish型関数
+plt.subplot(2, 3, 4)
+plt.plot(x, swish(x), label="Swish")
+plt.plot(x, algebraic_swish(x), label="Algebraic Swish")
+plt.title("Swish-type Functions")
+plt.legend()
+
+# Softplus型関数
+plt.subplot(2, 3, 5)
+plt.plot(x, softplus(x), label="Softplus")
+plt.plot(x, algebraic_softplus(x), label="Algebraic Softplus")
+plt.title("Softplus-type Functions")
+plt.legend()
+
+plt.tight_layout()
+plt.show()
