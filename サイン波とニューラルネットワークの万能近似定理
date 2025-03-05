@@ -1,0 +1,65 @@
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import matplotlib.pyplot as plt
+
+# **関数の定義**
+def target_function(x):
+    return np.sin(2 * np.pi * x)
+
+# **データの作成**
+np.random.seed(42)
+x_train = np.random.rand(100, 1)  # [0,1]の範囲でサンプリング
+y_train = target_function(x_train)
+
+x_train_tensor = torch.tensor(x_train, dtype=torch.float32)
+y_train_tensor = torch.tensor(y_train, dtype=torch.float32)
+
+# **ニューラルネットワークの定義**
+class SimpleNN(nn.Module):
+    def __init__(self, hidden_units=10):
+        super(SimpleNN, self).__init__()
+        self.model = nn.Sequential(
+            nn.Linear(1, hidden_units),
+            nn.Tanh(),  # 非線形性を加える
+            nn.Linear(hidden_units, hidden_units),
+            nn.Tanh(),
+            nn.Linear(hidden_units, 1)
+        )
+    
+    def forward(self, x):
+        return self.model(x)
+
+# **モデルの学習**
+hidden_units = 20  # 隠れ層のニューロン数
+model = SimpleNN(hidden_units)
+criterion = nn.MSELoss()
+optimizer = optim.Adam(model.parameters(), lr=0.01)
+
+epochs = 2000
+for epoch in range(epochs):
+    optimizer.zero_grad()
+    output = model(x_train_tensor)
+    loss = criterion(output, y_train_tensor)
+    loss.backward()
+    optimizer.step()
+
+    if epoch % 500 == 0:
+        print(f"Epoch {epoch}, Loss: {loss.item()}")
+
+# **予測と可視化**
+x_test = np.linspace(0, 1, 100).reshape(-1, 1)
+x_test_tensor = torch.tensor(x_test, dtype=torch.float32)
+y_pred_tensor = model(x_test_tensor).detach().numpy()
+y_true = target_function(x_test)
+
+plt.figure(figsize=(8, 5))
+plt.scatter(x_train, y_train, color='red', label="Training Data", alpha=0.6)
+plt.plot(x_test, y_true, label="True Function (sin(2πx))", linestyle='dashed')
+plt.plot(x_test, y_pred_tensor, label="NN Approximation", linestyle='solid')
+plt.xlabel("x")
+plt.ylabel("f(x)")
+plt.title("Universal Approximation Theorem Demonstration")
+plt.legend()
+plt.show()
