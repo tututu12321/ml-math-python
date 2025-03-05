@@ -1,0 +1,47 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
+
+# サイン波の周波数 (Hz)
+freq = 5.0  
+
+# 真の関数（特定の周波数を持つサイン波）
+def true_function(X):
+    return np.sin(2 * np.pi * freq * X).ravel()
+
+# サンプリングデータを作成
+np.random.seed(1)
+X = np.sort(np.random.rand(10, 1), axis=0)  # 0〜1の範囲でランダムな10点
+y = true_function(X)
+
+# ガウス過程回帰モデルの構築（最尤推定を使用）
+kernel = C(1.0, (1e-3, 1e3)) * RBF(0.1, (1e-2, 1e2))
+gp = GaussianProcessRegressor(kernel=kernel, n_restarts_optimizer=10)
+
+# モデルの学習
+gp.fit(X, y)
+
+# 予測のためのデータ点を作成（0〜1の範囲）
+x_pred = np.linspace(0, 1, 100)[:, np.newaxis]
+
+# 予測値と予測の不確かさ（分散）を計算
+y_pred, std_dev = gp.predict(x_pred, return_std=True)
+lower_bound = y_pred - 1.96 * std_dev
+upper_bound = y_pred + 1.96 * std_dev
+
+# プロット
+plt.figure(figsize=(10,6))
+plt.scatter(X, y, c='r', label='Sampled Data')  # サンプリング点
+plt.plot(x_pred, y_pred, 'b', label='Gaussian Process Prediction')  # GP予測
+plt.fill_between(x_pred[:, 0], lower_bound, upper_bound, alpha=0.2, color='blue', label='Uncertainty')  # 信頼区間
+
+# 真のサイン関数をプロット
+true_y = true_function(x_pred)
+plt.plot(x_pred, true_y, 'g', label='True Sine Function', linestyle='dashed')
+
+plt.xlabel('Time (s)')
+plt.ylabel('Amplitude')
+plt.title(f'Gaussian Process Regression on {freq}Hz Sine Wave')
+plt.legend()
+plt.show()
