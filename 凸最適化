@@ -1,0 +1,129 @@
+import numpy as np
+import scipy.optimize as opt
+import cvxpy as cp
+import matplotlib.pyplot as plt
+
+# 4.1 勾配降下法 (Gradient Descent)
+def gradient_descent(f_grad, x0, lr=0.1, tol=1e-6, max_iter=1000):
+    """
+    f_grad: 関数の勾配 (Gradient of the function)
+    x0: 初期値 (Initial value)
+    lr: 学習率 (Learning rate)
+    tol: 収束判定 (Tolerance for convergence)
+    max_iter: 最大反復回数 (Maximum iterations)
+    """
+    x = x0
+    for i in range(max_iter):
+        grad = f_grad(x)
+        x_new = x - lr * grad
+        if np.linalg.norm(x_new - x) < tol:
+            break
+        x = x_new
+    return x
+
+# 4.2 ラグランジュ乗数法 (Lagrange Multipliers)
+def lagrange_method(f, g, x0):
+    """
+    f: 目的関数 (Objective function)
+    g: 制約関数 (Constraint function)
+    x0: 初期値 (Initial value)
+    """
+    cons = {'type': 'eq', 'fun': g}
+    result = opt.minimize(f, x0, constraints=cons)
+    return result.x
+
+# 4.3 ニュートン法 (Newton's Method)
+def newton_method(f_grad, f_hess, x0, tol=1e-6, max_iter=100):
+    """
+    f_grad: 勾配 (Gradient)
+    f_hess: ヘッシアン行列 (Hessian matrix)
+    x0: 初期値 (Initial value)
+    """
+    x = x0
+    for i in range(max_iter):
+        grad = f_grad(x)
+        hess = f_hess(x)
+        delta_x = np.linalg.solve(hess, -grad)
+        x_new = x + delta_x
+        if np.linalg.norm(delta_x) < tol:
+            break
+        x = x_new
+    return x
+
+# 4.4 線形計画法 (Linear Programming)
+def linear_programming(A, b, c):
+    """
+    A: 制約行列 (Constraint matrix)
+    b: 制約値 (Constraint values)
+    c: 目的関数の係数 (Objective function coefficients)
+    """
+    result = opt.linprog(c, A_eq=A, b_eq=b, method='highs')
+    return result.x
+
+# 4.4 二次計画法 (Quadratic Programming)
+def quadratic_programming(P, q, A, b):
+    """
+    P: 二次項の係数行列 (Quadratic term matrix)
+    q: 一次項の係数 (Linear term vector)
+    A: 制約行列 (Constraint matrix)
+    b: 制約ベクトル (Constraint values)
+    """
+    n = len(q)
+    x = cp.Variable(n)
+    objective = cp.Minimize((1/2) * cp.quad_form(x, P) + q.T @ x)
+    constraints = [A @ x == b]
+    prob = cp.Problem(objective, constraints)
+    prob.solve()
+    return x.value
+
+# 4.5 凸最適化 (Convex Optimization)
+def convex_optimization():
+    """
+    簡単な凸最適化問題 (Simple convex optimization problem)
+    min (x-1)^2 + (y-2)^2
+    制約: x + y = 1
+    """
+    x = cp.Variable()
+    y = cp.Variable()
+    objective = cp.Minimize((x - 1)**2 + (y - 2)**2)
+    constraints = [x + y == 1]
+    prob = cp.Problem(objective, constraints)
+    prob.solve()
+    return x.value, y.value
+
+# 例の実行 (Example Execution)
+if __name__ == "__main__":
+    # 勾配降下法の例 (Gradient Descent Example)
+    f_grad = lambda x: 2*x  # f(x) = x^2 の勾配
+    x_min = gradient_descent(f_grad, x0=np.array([10.0]))
+    print("Gradient Descent Minimum:", x_min)
+
+    # ラグランジュ乗数法の例 (Lagrange Method Example)
+    f = lambda x: (x[0]-1)**2 + (x[1]-2)**2
+    g = lambda x: x[0] + x[1] - 1
+    x_lagrange = lagrange_method(f, g, x0=np.array([0.0, 0.0]))
+    print("Lagrange Method Solution:", x_lagrange)
+
+    # ニュートン法の例 (Newton's Method Example)
+    f_hess = lambda x: np.array([[2]])  # f(x) = x^2 のヘッシアン
+    x_newton = newton_method(f_grad, f_hess, x0=np.array([10.0]))
+    print("Newton's Method Minimum:", x_newton)
+
+    # 線形計画法の例 (Linear Programming Example)
+    A = np.array([[1, 1]])
+    b = np.array([1])
+    c = np.array([-1, -2])
+    x_lp = linear_programming(A, b, c)
+    print("Linear Programming Solution:", x_lp)
+
+    # 二次計画法の例 (Quadratic Programming Example)
+    P = np.array([[2, 0], [0, 2]])
+    q = np.array([-2, -5])
+    A = np.array([[1, 1]])
+    b = np.array([1])
+    x_qp = quadratic_programming(P, q, A, b)
+    print("Quadratic Programming Solution:", x_qp)
+
+    # 凸最適化の例 (Convex Optimization Example)
+    x_convex, y_convex = convex_optimization()
+    print("Convex Optimization Solution:", (x_convex, y_convex))
