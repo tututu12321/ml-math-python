@@ -1,0 +1,56 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.linear_model import Ridge
+from sklearn.preprocessing import StandardScaler
+from scipy.linalg import svd
+
+# **データの作成**
+def generate_data(n_samples=100, n_features=10, noise=0.1):
+    np.random.seed(42)
+    X = np.random.randn(n_samples, n_features)
+    true_coefs = np.random.randn(n_features)
+    y = X @ true_coefs + noise * np.random.randn(n_samples)
+    return X, y, true_coefs
+
+# データの準備
+X, y, true_coefs = generate_data()
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# **特異値分解（SVD）による線形回帰のイメージ**
+U, S, VT = svd(X_scaled, full_matrices=False)
+S_inv = np.diag(1 / S)
+X_pseudo_inv = VT.T @ S_inv @ U.T
+w_svd = X_pseudo_inv @ y  # SVDによる回帰係数
+
+# **Ridge回帰（正則化あり）**
+alphas = np.logspace(-2, 2, 10)
+ridge_coefs = []
+for alpha in alphas:
+    ridge = Ridge(alpha=alpha)
+    ridge.fit(X_scaled, y)
+    ridge_coefs.append(ridge.coef_)
+
+ridge_coefs = np.array(ridge_coefs)
+
+# **プロット（特異値分解 vs Ridge回帰）**
+plt.figure(figsize=(8, 5))
+plt.plot(true_coefs, 'o-', label='True Coefficients')
+plt.plot(w_svd, 'x-', label='SVD Linear Regression')
+plt.plot(ridge_coefs[-1], 's-', label=f'Ridge Regression (alpha={alphas[-1]})')
+plt.xlabel("Feature Index")
+plt.ylabel("Coefficient Value")
+plt.title("SVD vs Ridge Regression Coefficients")
+plt.legend()
+plt.show()
+
+# **Ridge回帰の正則化の影響を可視化**
+plt.figure(figsize=(8, 5))
+for i in range(X.shape[1]):
+    plt.plot(alphas, ridge_coefs[:, i], label=f'Feature {i}')
+plt.xscale("log")
+plt.xlabel("Regularization Strength (alpha)")
+plt.ylabel("Coefficient Value")
+plt.title("Effect of Regularization in Ridge Regression")
+plt.legend()
+plt.show()
