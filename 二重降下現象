@@ -1,0 +1,71 @@
+import numpy as np
+import torch
+import torch.nn as nn
+import torch.optim as optim
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+
+# **データセットの作成**
+def generate_data(n_samples=500, noise=0.1):
+    X = np.linspace(-2, 2, n_samples).reshape(-1, 1)
+    y = np.sin(2 * np.pi * X) + noise * np.random.randn(n_samples, 1)
+    return X, y
+
+# データの準備
+X, y = generate_data()
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train_tensor = torch.tensor(X_train, dtype=torch.float32)
+y_train_tensor = torch.tensor(y_train, dtype=torch.float32)
+X_test_tensor = torch.tensor(X_test, dtype=torch.float32)
+y_test_tensor = torch.tensor(y_test, dtype=torch.float32)
+
+# **ニューラルネットワークの定義**
+class SimpleNN(nn.Module):
+    def __init__(self, width):
+        super(SimpleNN, self).__init__()
+        self.model = nn.Sequential(
+            nn.Linear(1, width),
+            nn.ReLU(),
+            nn.Linear(width, width),
+            nn.ReLU(),
+            nn.Linear(width, 1)
+        )
+    
+    def forward(self, x):
+        return self.model(x)
+
+# **二重降下現象を観察する**
+width_values = [1, 2, 4, 8, 16, 32, 64, 128, 256]  # ネットワークの幅を変更
+train_errors = []
+test_errors = []
+
+for width in width_values:
+    model = SimpleNN(width)
+    criterion = nn.MSELoss()
+    optimizer = optim.Adam(model.parameters(), lr=0.01)
+    epochs = 500
+    
+    for epoch in range(epochs):
+        optimizer.zero_grad()
+        output = model(X_train_tensor)
+        loss = criterion(output, y_train_tensor)
+        loss.backward()
+        optimizer.step()
+    
+    # 損失の記録
+    train_loss = criterion(model(X_train_tensor), y_train_tensor).item()
+    test_loss = criterion(model(X_test_tensor), y_test_tensor).item()
+    train_errors.append(train_loss)
+    test_errors.append(test_loss)
+    print(f"Width {width}, Train Loss: {train_loss}, Test Loss: {test_loss}")
+
+# **二重降下現象の可視化**
+plt.figure(figsize=(8, 5))
+plt.plot(width_values, train_errors, label="Train Error", marker='o')
+plt.plot(width_values, test_errors, label="Test Error", marker='o')
+plt.xscale("log")
+plt.xlabel("Model Width")
+plt.ylabel("Mean Squared Error")
+plt.title("Double Descent Phenomenon in Neural Networks")
+plt.legend()
+plt.show()
