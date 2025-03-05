@@ -1,0 +1,37 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# **C言語の「Hello, World!」プログラムをバイナリに変換**
+c_code = "#include <stdio.h>\nint main() { printf(\"Hello, World!\\n\"); return 0; }"
+
+# **文字列をバイナリに変換**
+def text_to_binary(text):
+    return ''.join(format(ord(char), '08b') for char in text)
+
+binary_code = text_to_binary(c_code)
+
+# **クロック信号の作成（実行時間を短縮）**
+def generate_clock_signal(binary_code, clock_period=0.01):  # クロック周期を短縮
+    time_stamps = []
+    signal = []
+    current_time = 0
+    
+    for bit in binary_code:
+        time_stamps.extend([current_time, current_time + clock_period])
+        signal.extend([int(bit), int(bit)])
+        current_time += clock_period
+    
+    return np.array(time_stamps), np.array(signal)
+
+# **クロック信号のプロット**
+time_stamps, signal = generate_clock_signal(binary_code[:100])  # 最初の100ビットをプロット
+
+plt.figure(figsize=(12, 4))
+plt.step(time_stamps, signal, where='post', label="Clock Signal")
+plt.xlabel("Time (seconds)")
+plt.ylabel("Signal (0 or 1)")
+plt.title("C Hello World as Clock Signal with Shortened Execution Time")
+plt.ylim(-0.2, 1.2)
+plt.grid(True)
+plt.legend()
+plt.show()
