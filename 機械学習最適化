@@ -1,0 +1,61 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# シグモイド関数 (Sigmoid function)
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+# 訓練データ (Training Data)
+np.random.seed(0)
+X = np.random.rand(100, 2)  # 100サンプル、2入力
+y = np.random.randint(0, 2, (100, 1))  # 0 or 1 のラベル
+
+# 重みとバイアスの初期化 (Initialize Weights and Bias)
+weights = np.random.randn(2, 1)  # 2入力 -> 1出力
+bias = np.random.randn(1)
+
+# 学習率とエポック数 (Learning Rate & Epochs)
+learning_rate = 0.1
+epochs = 1000
+loss_history = []
+
+# 学習ループ (Training Loop)
+for epoch in range(epochs):
+    # 順伝播 (Forward Propagation)
+    linear_output = np.dot(X, weights) + bias
+    y_pred = sigmoid(linear_output)
+    
+    # 損失の計算 (Compute Loss)
+    loss = np.mean((y - y_pred) ** 2)  # MSE Loss
+    loss_history.append(loss)
+
+    # 逆伝播 (Backpropagation)
+    error = y_pred - y
+    d_weights = np.dot(X.T, error * (y_pred * (1 - y_pred))) / len(y)
+    d_bias = np.sum(error * (y_pred * (1 - y_pred))) / len(y)
+
+    # パラメータの更新 (Update Parameters)
+    weights -= learning_rate * d_weights
+    bias -= learning_rate * d_bias
+
+    # 100エポックごとにログ出力 (Logging)
+    if epoch % 100 == 0:
+        print(f"Epoch {epoch}: Loss = {loss:.4f}")
+
+# 学習曲線のプロット (Loss Curve)
+plt.plot(loss_history)
+plt.xlabel("Epochs")
+plt.ylabel("MSE Loss")
+plt.title("Loss Curve")
+plt.show()
+
+# 学習済みモデルを用いた予測
+y_pred_final = sigmoid(np.dot(X, weights) + bias)
+
+# プロット (Scatter Plot with Predictions)
+plt.scatter(X[:, 0], X[:, 1], c=y_pred_final.flatten(), cmap='coolwarm', edgecolors='k')
+plt.colorbar(label="Predicted Output")
+plt.xlabel("Input x1")
+plt.ylabel("Input x2")
+plt.title("Input vs Predicted Output")
+plt.show()
