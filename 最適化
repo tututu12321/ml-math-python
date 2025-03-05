@@ -1,0 +1,40 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 目的関数 (Objective function)
+def objective_function(x, y):
+    return x**2 + y**2  # 簡単な二次関数 (Convex function)
+
+# 偏微分 (Gradient of the function)
+def gradient(x, y):
+    df_dx = 2 * x
+    df_dy = 2 * y
+    return np.array([df_dx, df_dy])
+
+# 初期値 (Initial point)
+x, y = np.random.rand(2) * 10 - 5  # -5 〜 5 の範囲でランダムに設定
+learning_rate = 0.1  # 学習率
+epochs = 50  # 更新回数
+trajectory = [(x, y)]  # 遷移を記録
+
+# 勾配降下法 (Gradient Descent)
+for _ in range(epochs):
+    grad = gradient(x, y)
+    x -= learning_rate * grad[0]
+    y -= learning_rate * grad[1]
+    trajectory.append((x, y))  # 途中経過を記録
+
+# 最適化結果 (Optimized result)
+print(f"Optimized x: {x:.4f}, y: {y:.4f}, f(x, y): {objective_function(x, y):.4f}")
+
+# 可視化 (Visualization)
+trajectory = np.array(trajectory)
+X, Y = np.meshgrid(np.linspace(-5, 5, 100), np.linspace(-5, 5, 100))
+Z = objective_function(X, Y)
+
+plt.contour(X, Y, Z, levels=20, cmap="jet")
+plt.plot(trajectory[:, 0], trajectory[:, 1], marker="o", color="red", linestyle="dashed", markersize=4)
+plt.xlabel("x")
+plt.ylabel("y")
+plt.title("Gradient Descent Optimization")
+plt.show()
