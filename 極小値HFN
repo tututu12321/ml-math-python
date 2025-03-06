@@ -1,0 +1,43 @@
+import numpy as np
+import sympy as sp
+import matplotlib.pyplot as plt
+
+# === シンボリック計算（微分） ===
+x = sp.Symbol('x')
+f = x**4 + x**3 + x**2 + x + 1  # 関数 f(x)
+f_derivative = sp.diff(f, x)  # 1階導関数 f'(x)
+f_second_derivative = sp.diff(f_derivative, x)  # 2階導関数 f''(x)
+
+# === 局所解（臨界点を求める） ===
+critical_points = sp.solve(f_derivative, x)
+critical_values = [f.subs(x, cp) for cp in critical_points]  # 各点の関数値
+second_derivative_values = [f_second_derivative.subs(x, cp) for cp in critical_points]  # 2階微分値
+
+# === 実数解のみを取得 ===
+real_critical_points = [cp.evalf() for cp in critical_points if cp.is_real]
+real_critical_values = [f.subs(x, cp).evalf() for cp in real_critical_points]
+
+# === 数値計算のためのx範囲 ===
+x_vals = np.linspace(-2, 1.5, 400)
+y_vals = x_vals**4 + x_vals**3 + x_vals**2 + x_vals + 1
+
+# === プロット ===
+plt.figure(figsize=(8, 5))
+plt.plot(x_vals, y_vals, label=r"$f(x) = x^4 + x^3 + x^2 + x + 1$", color='blue')
+plt.axhline(0, color='black', linewidth=0.8)
+plt.axvline(0, color='black', linewidth=0.8)
+
+# === 局所解のプロット ===
+for cp, val in zip(real_critical_points, real_critical_values):
+    plt.scatter(cp, val, color='red', label=f"Local Extrema at x={cp:.2f}")
+
+plt.xlabel("x")
+plt.ylabel("f(x)")
+plt.title("Local Minima and Maxima of $f(x) = x^4 + x^3 + x^2 + x + 1$")
+plt.legend()
+plt.grid()
+plt.show()
+
+# === 結果の表示 ===
+print("局所解（臨界点）:", real_critical_points)
+print("局所解の関数値:", real_critical_values)
