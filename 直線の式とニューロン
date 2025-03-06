@@ -1,0 +1,24 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# パラメータ設定
+w = 2.5  # 重み (weight)
+b = 1.0  # バイアス (bias)
+
+# 特徴量（入力データ）の範囲を設定
+x = np.linspace(-10, 10, 100)  # -10 から 10 までの100点を生成
+
+# 目的関数の計算
+y = w * x + b
+
+# グラフの描画
+plt.figure(figsize=(8, 5))
+plt.plot(x, y, label=r'$y = w \cdot x + b$', color='b')
+plt.axhline(0, color='gray', linestyle='--', linewidth=0.8)  # x軸
+plt.axvline(0, color='gray', linestyle='--', linewidth=0.8)  # y軸
+plt.xlabel("Feature Input Data (x)")
+plt.ylabel("Objective Function Output (y)")
+plt.title("Objective Function: $y = w \\cdot x + b$")
+plt.legend()
+plt.grid()
+plt.show()
