@@ -1,0 +1,53 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# パラメータ設定
+gain_linear = 2.5  # 線形ゲイン
+bias = 1.0  # バイアス (bias)
+frequency = 50  # 周波数 (Hz)
+sampling_rate = 10000  # サンプリングレート (Hz)
+duration = 0.02  # 20ms（1周期 = 1/50 = 0.02秒）
+
+# ゲインをデシベルに変換
+gain_db = 20 * np.log10(gain_linear)
+print(f"Gain in dB: {gain_db:.2f} dB")
+
+# 時間軸の作成
+t = np.linspace(0, duration, int(sampling_rate * duration))  # 0 から 20ms までのデータ生成
+
+# 入力信号（50Hzのサイン波）
+x = np.sin(2 * np.pi * frequency * t)
+
+# 出力信号（ゲインとバイアス適用）
+y = gain_linear * x + bias
+
+# 直線データ作成 (y = gain × x + bias)
+linear_y = gain_linear * x + bias  # 直線としての出力を計算
+
+# 図の作成（2つのサブプロット）
+fig, axs = plt.subplots(2, 1, figsize=(8, 8))
+
+# ① サイン波とその出力
+axs[0].plot(t, x, label="Input: 50Hz sin(t)", linestyle="dashed", color="r")
+axs[0].plot(t, y, label=rf'Output: {gain_linear} × sin(2π {frequency}t) + {bias}', color="b")
+axs[0].axhline(0, color='gray', linestyle='--', linewidth=0.8)  # x軸
+axs[0].axvline(0, color='gray', linestyle='--', linewidth=0.8)  # y軸
+axs[0].set_xlabel("Time (seconds)")
+axs[0].set_ylabel("Amplitude")
+axs[0].set_title(f"Input & Output Signals (Gain: {gain_db:.2f} dB, Frequency: {frequency}Hz)")
+axs[0].legend()
+axs[0].grid()
+
+# ② 直線 y = gain × x + bias
+axs[1].plot(x, linear_y, label=rf'Linear Output: {gain_linear} × x + {bias}', linestyle="solid", color="g")
+axs[1].axhline(0, color='gray', linestyle='--', linewidth=0.8)  # x軸
+axs[1].axvline(0, color='gray', linestyle='--', linewidth=0.8)  # y軸
+axs[1].set_xlabel("Input Signal (x)")
+axs[1].set_ylabel("Output Signal (y)")
+axs[1].set_title(f"Linear Function: y = {gain_linear} × x + {bias}")
+axs[1].legend()
+axs[1].grid()
+
+# グラフ表示
+plt.tight_layout()
+plt.show()
