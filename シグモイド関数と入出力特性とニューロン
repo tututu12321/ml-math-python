@@ -1,0 +1,86 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# シグモイド関数の定義
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+
+# シグモイド関数の微分
+def sigmoid_derivative(z):
+    return sigmoid(z) * (1 - sigmoid(z))
+
+# パラメータ設定
+w = 2.5  # 重み
+b = 1.0  # バイアス
+
+# 特徴量入力データの範囲
+x = np.linspace(-5, 5, 100)
+
+# 目的関数入力 (z = w*x + b)
+z = w * x + b
+
+# 目的関数出力 (y = sigmoid(z))
+y = sigmoid(z)
+
+# 逆誤差伝播の計算
+dL_dy = np.ones_like(y)  # 仮の損失勾配 dL/dy = 1
+dz_dx = np.full_like(x, w)  # dz/dx = w
+dy_dz = sigmoid_derivative(z)  # シグモイド関数の微分 dy/dz
+
+# 逆誤差伝播法の勾配 dL/dx
+dL_dx = dL_dy * dy_dz * dz_dx  # dL/dx = dL/dy * dy/dz * dz/dx
+
+# プロット作成
+fig, axs = plt.subplots(3, 2, figsize=(10, 12))
+
+# ① 目的関数入力 vs. 特徴量入力データ
+axs[0, 0].plot(x, z, label=r'$z = w \cdot x + b$', color="b")
+axs[0, 0].set_xlabel("Feature Input Data (x)")
+axs[0, 0].set_ylabel("Objective Function Input (z)")
+axs[0, 0].set_title("Objective Function Input vs Feature Input")
+axs[0, 0].legend()
+axs[0, 0].grid()
+
+# ② 目的関数出力 vs. 目的関数入力
+axs[0, 1].plot(z, y, label=r'$y = \sigma(z)$', color="r")
+axs[0, 1].set_xlabel("Objective Function Input (z)")
+axs[0, 1].set_ylabel("Objective Function Output (y)")
+axs[0, 1].set_title("Objective Function Output vs Objective Input")
+axs[0, 1].legend()
+axs[0, 1].grid()
+
+# ③ 微分 dz/dx のプロット
+axs[1, 0].plot(x, dz_dx, label=r'$\frac{dz}{dx} = w$', color="g")
+axs[1, 0].set_xlabel("Feature Input Data (x)")
+axs[1, 0].set_ylabel("dz/dx")
+axs[1, 0].set_title("Derivative of Objective Function Input")
+axs[1, 0].legend()
+axs[1, 0].grid()
+
+# ④ 微分 dy/dz のプロット（シグモイドの微分）
+axs[1, 1].plot(z, dy_dz, label=r'$\frac{dy}{dz} = \sigma(z) (1 - \sigma(z))$', color="m")
+axs[1, 1].set_xlabel("Objective Function Input (z)")
+axs[1, 1].set_ylabel("dy/dz")
+axs[1, 1].set_title("Derivative of Sigmoid Function")
+axs[1, 1].legend()
+axs[1, 1].grid()
+
+# ⑤ 逆誤差伝播の計算 dL/dx のプロット
+axs[2, 0].plot(x, dL_dx, label=r'$\frac{dL}{dx} = \frac{dL}{dy} \cdot \frac{dy}{dz} \cdot \frac{dz}{dx}$', color="c")
+axs[2, 0].set_xlabel("Feature Input Data (x)")
+axs[2, 0].set_ylabel("dL/dx")
+axs[2, 0].set_title("Backpropagation: Gradient dL/dx")
+axs[2, 0].legend()
+axs[2, 0].grid()
+
+# 空白のサブプロット（見やすくするため）
+axs[2, 1].axis("off")
+
+# グラフのレイアウト調整
+plt.tight_layout()
+plt.show()
+
+
+# グラフのレイアウト調整
+plt.tight_layout()
+plt.show()
