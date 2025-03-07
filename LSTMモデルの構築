@@ -1,0 +1,64 @@
+!pip install janome
+
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Embedding, LSTM, Dense, Dropout
+from janome.tokenizer import Tokenizer as JanomeTokenizer
+
+# サンプル日本語データ（ポジティブ = 1, ネガティブ = 0）
+data = [
+    ("この映画は最高に面白かった！", 1),
+    ("とても楽しくて感動しました", 1),
+    ("素晴らしい作品で、また見たい", 1),
+    ("この本は退屈でつまらなかった", 0),
+    ("全然面白くないし時間の無駄", 0),
+    ("二度と見たくないひどい映画", 0)
+]
+
+# 形態素解析（Janomeを使用）
+janome = JanomeTokenizer()
+def tokenize(text):
+    return " ".join([token.surface for token in janome.tokenize(text)])
+
+# データ前処理
+texts, labels = zip(*data)
+texts = [tokenize(text) for text in texts]
+labels = np.array(labels)
+
+# テキストをトークナイズ
+tokenizer = Tokenizer(num_words=1000, oov_token="<OOV>")
+tokenizer.fit_on_texts(texts)
+sequences = tokenizer.texts_to_sequences(texts)
+word_index = tokenizer.word_index
+
+# シーケンスを同じ長さにパディング
+max_length = max(len(seq) for seq in sequences)
+X = pad_sequences(sequences, maxlen=max_length, padding='post')
+y = np.array(labels)
+
+# LSTMモデルの構築
+model = Sequential([
+    Embedding(input_dim=1000, output_dim=16, input_length=max_length),
+    LSTM(32, return_sequences=True),
+    LSTM(16),
+    Dropout(0.5),
+    Dense(16, activation='relu'),
+    Dense(1, activation='sigmoid')  # 出力層（感情分類: 0 or 1）
+])
+
+model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+
+# モデルの訓練
+model.fit(X, y, epochs=10, batch_size=2, verbose=1)
+
+# テストデータで予測
+test_text = "この映画は本当に素晴らしかった！"
+test_seq = tokenizer.texts_to_sequences([tokenize(test_text)])
+test_seq_padded = pad_sequences(test_seq, maxlen=max_length, padding='post')
+
+prediction = model.predict(test_seq_padded)[0][0]
+print(f"感情分析結果: {'ポジティブ' if prediction > 0.5 else 'ネガティブ'} ({prediction:.2f})")
