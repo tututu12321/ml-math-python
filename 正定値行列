@@ -1,0 +1,30 @@
+import numpy as np
+
+# 正定値行列 (Positive Definite Matrix)
+A = np.array([[2, -1], [-1, 2]])
+
+# 半正定値行列 (Positive Semi-Definite Matrix)
+B = np.array([[2, -1], [-1, 1]])
+
+# 負定値行列 (Negative Definite Matrix) の例
+C = np.array([[-2, 1], [1, -2]])
+
+# 行列が正定値かどうかを判定する関数
+def is_positive_definite(matrix):
+    eigenvalues = np.linalg.eigvals(matrix)  # 固有値を計算
+    return np.all(eigenvalues > 0)  # すべての固有値が正なら PD
+
+# 行列が半正定値かどうかを判定する関数
+def is_positive_semi_definite(matrix):
+    eigenvalues = np.linalg.eigvals(matrix)  # 固有値を計算
+    return np.all(eigenvalues >= 0)  # すべての固有値が非負なら PSD
+
+# 判定結果を表示
+print("A is Positive Definite:", is_positive_definite(A))
+print("A is Positive Semi-Definite:", is_positive_semi_definite(A))
+
+print("B is Positive Definite:", is_positive_definite(B))
+print("B is Positive Semi-Definite:", is_positive_semi_definite(B))
+
+print("C is Positive Definite:", is_positive_definite(C))
+print("C is Positive Semi-Definite:", is_positive_semi_definite(C))
