@@ -1,0 +1,64 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Define time parameter t from -2π to 2π
+t = np.linspace(-2 * np.pi, 2 * np.pi, 1000)
+
+# Define parametric equations for each curve
+
+# Cycloid
+a = 1
+x_cycloid = a * (t - np.sin(t))
+y_cycloid = a * (1 - np.cos(t))
+
+# Astroid
+x_astroid = a * np.cos(t) ** 3
+y_astroid = a * np.sin(t) ** 3
+
+# Cardioid
+x_cardioid = 2 * np.cos(t) - np.cos(2 * t)
+y_cardioid = 2 * np.sin(t) - np.sin(2 * t)
+
+# Limacon
+x_limacon = (1 + 2 * np.cos(t)) * np.cos(t)
+y_limacon = (1 + 2 * np.cos(t)) * np.sin(t)
+
+# Lissajous Curve
+x_lissajous = 2 * np.sin(t)
+y_lissajous = 2 * np.sin(2 * t)
+
+# Logarithmic Spiral
+x_log_spiral = np.exp(t) * np.cos(t)
+y_log_spiral = np.exp(t) * np.sin(t)
+
+# Involute of a Circle
+x_involute = a * (np.cos(t) + t * np.sin(t))
+y_involute = a * (np.sin(t) - t * np.cos(t))
+
+# Plotting the graphs
+fig, axes = plt.subplots(3, 3, figsize=(12, 12))
+axes = axes.ravel()
+
+# Define curves
+curves = [
+    (x_cycloid, y_cycloid, "Cycloid"),
+    (x_astroid, y_astroid, "Astroid"),
+    (x_cardioid, y_cardioid, "Cardioid"),
+    (x_limacon, y_limacon, "Limacon"),
+    (x_lissajous, y_lissajous, "Lissajous Curve"),
+    (x_log_spiral, y_log_spiral, "Logarithmic Spiral"),
+    (x_involute, y_involute, "Involute of a Circle")
+]
+
+# Plot each curve
+for i, (x, y, title) in enumerate(curves):
+    axes[i].plot(x, y, label=title)
+    axes[i].set_title(title)
+    axes[i].set_xlabel("x")
+    axes[i].set_ylabel("y")
+    axes[i].legend()
+    axes[i].grid()
+
+# Adjust layout
+plt.tight_layout()
+plt.show()
