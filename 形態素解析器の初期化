@@ -1,0 +1,24 @@
+from janome.tokenizer import Tokenizer
+import pandas as pd
+
+# 形態素解析器の初期化
+tokenizer = Tokenizer()
+
+# 解析対象の世界史用語を含むテキスト
+text = "フランス革命は1789年に始まり、ナポレオン・ボナパルトが登場した。"
+
+# 形態素解析の実行
+tokens = tokenizer.tokenize(text)
+
+# 解析結果を整理
+words = []
+parts = []
+for token in tokens:
+    words.append(token.surface)   # 単語
+    parts.append(token.part_of_speech)  # 品詞情報
+
+# データフレームに格納
+df = pd.DataFrame({"単語": words, "品詞": parts})
+
+# 解析結果の表示
+print(df)
