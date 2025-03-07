@@ -1,0 +1,52 @@
+# Import necessary libraries
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Define grid in z-plane
+x = np.linspace(-2, 2, 100)
+y = np.linspace(-1.5, 1.5, 100)
+X, Y = np.meshgrid(x, y)
+Z = X + 1j * Y  # Complex plane representation
+
+# Joukowski transformation
+a = 1  # Circle radius
+Z_safe = np.where(np.abs(Z) > 0.1, Z, 0.1 + 0.1j)  # Avoid division by zero
+W = Z_safe + a**2 / Z_safe  # Joukowski transformation
+
+# Define uniform flow components in the z-plane (before transformation)
+U = 1  # Free-stream velocity
+alpha = np.radians(10)  # Angle of attack
+Vx_z = U * np.cos(alpha) * np.ones_like(X)  # X-component of velocity
+Vy_z = U * np.sin(alpha) * np.ones_like(Y)  # Y-component of velocity
+
+# Compute transformed velocity components
+dW_dZ = 1 - (a**2 / Z_safe**2)  # Derivative of Joukowski transformation
+Vx_w = Vx_z * np.real(dW_dZ) - Vy_z * np.imag(dW_dZ)  # X-component in w-plane
+Vy_w = Vx_z * np.imag(dW_dZ) + Vy_z * np.real(dW_dZ)  # Y-component in w-plane
+
+# Define plot grid in w-plane (for correct mapping)
+Wx = np.real(W)
+Wy = np.imag(W)
+
+# Plot streamlines before and after transformation
+fig, ax = plt.subplots(1, 2, figsize=(12, 6))
+
+# Plot flow in z-plane
+ax[0].streamplot(X, Y, Vx_z, Vy_z, color="b", density=1)
+ax[0].set_title("Flow in z-plane (cylinder)")
+ax[0].set_xlabel("Re(z)")
+ax[0].set_ylabel("Im(z)")
+ax[0].grid()
+ax[0].axis("equal")
+
+# Plot transformed flow in w-plane (Joukowski Airfoil)
+ax[1].quiver(Wx, Wy, Vx_w, Vy_w, color="r")
+ax[1].set_title("Flow in w-plane (Joukowski Airfoil)")
+ax[1].set_xlabel("Re(w)")
+ax[1].set_ylabel("Im(w)")
+ax[1].grid()
+ax[1].axis("equal")
+
+# Show plots
+plt.tight_layout()
+plt.show()
