@@ -1,0 +1,16 @@
+def voltage_comparator(input_voltage, weight):
+    """
+    入力電圧×重み付けを比較器に通し、0.5以下なら0、0.5超なら1を出力
+    """
+    weighted_voltage = input_voltage * weight  # 入力電圧×重み付け
+    output = 0 if weighted_voltage <= 0.5 else 1  # 閾値0.5で比較
+    print(f"入力電圧: {input_voltage:.2f} V, 重み: {weight:.2f}, 計算結果: {weighted_voltage:.2f} V → 出力: {output}")
+
+# テスト（入力電圧のリストと重みのリスト）
+input_voltages = [0.2, 0.4, 0.6, 0.8, 1.0]  # テスト用入力電圧
+weights = [0.5, 1.0, 1.5]  # テスト用重み
+
+# 各組み合わせで比較
+for v in input_voltages:
+    for w in weights:
+        voltage_comparator(v, w)
