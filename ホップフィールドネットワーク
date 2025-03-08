@@ -1,0 +1,61 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+class HopfieldNetwork:
+    def __init__(self, num_neurons):
+        self.num_neurons = num_neurons
+        self.weights = np.zeros((num_neurons, num_neurons))
+
+    def train(self, patterns):
+        """
+        記憶するパターンを学習（Hebbian Learning）
+        """
+        num_patterns = patterns.shape[0]
+        for p in patterns:
+            self.weights += np.outer(p, p)
+        np.fill_diagonal(self.weights, 0)  # 自己結合をゼロに
+        self.weights /= num_patterns  # 平均化
+
+    def recall(self, pattern, max_steps=10):
+        """
+        与えられたパターンをネットワークに入力し、収束するまで更新
+        """
+        pattern = pattern.copy()
+        for _ in range(max_steps):
+            new_pattern = np.sign(self.weights @ pattern)
+            new_pattern[new_pattern == 0] = 1  # -1, 1 のみを保持
+            if np.array_equal(new_pattern, pattern):  # 収束チェック
+                break
+            pattern = new_pattern
+        return pattern
+
+# テスト用パターン（3×3の白黒画像を表現）
+patterns = np.array([
+    [ 1, -1,  1, -1,  1, -1,  1, -1,  1],  # 交互パターン
+    [ 1,  1,  1, -1, -1, -1,  1,  1,  1],  # 横線
+])
+
+# ホップフィールドネットワークの作成と学習
+hopfield = HopfieldNetwork(num_neurons=patterns.shape[1])
+hopfield.train(patterns)
+
+# ノイズのある入力パターン
+noisy_pattern = np.array([ 1, -1,  1, -1, -1, -1,  1, -1,  1])  # 途中が崩れた
+
+# 記憶したパターンに収束させる
+recalled_pattern = hopfield.recall(noisy_pattern)
+
+# 結果の可視化
+def plot_pattern(pattern, title):
+    plt.imshow(pattern.reshape(3, 3), cmap="gray")
+    plt.title(title)
+    plt.axis("off")
+
+plt.figure(figsize=(9, 3))
+plt.subplot(1, 3, 1)
+plot_pattern(patterns[0], "Stored Pattern 1")
+plt.subplot(1, 3, 2)
+plot_pattern(noisy_pattern, "Noisy Input")
+plt.subplot(1, 3, 3)
+plot_pattern(recalled_pattern, "Recalled Pattern")
+plt.show()
