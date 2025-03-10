@@ -1,0 +1,30 @@
+import numpy as np
+import pandas as pd
+
+# 1. ルックアップテーブルの作成
+A_values = np.arange(0.01, 1000000.01, 0.01)  # 0.01 から 1000000 まで
+B_values = np.log(A_values)  # B = log(A)
+
+# データをDataFrameに保存
+lookup_table = pd.DataFrame({'A': A_values, 'logA': B_values})
+
+# 2. a = 101422, b = 1051234 の場合
+a = 101422
+b = 1051234
+
+# a × b の計算
+ab_product = a * b
+
+# loga + logb の計算
+log_a = np.log(a)
+log_b = np.log(b)
+logX = log_a + log_b
+
+# 3. X を求める
+X = np.exp(logX)  # X = exp(logX)
+
+# 結果を表示
+print(f"a × b = {ab_product}")
+print(f"log(a) = {log_a}, log(b) = {log_b}")
+print(f"log(X) = {logX}")
+print(f"X = {X}")
