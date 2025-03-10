@@ -1,0 +1,59 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# --- (1) テイラー展開によるサイン関数の近似 ---
+def taylor_sin(x, terms=500000000):
+    """
+    x: 入力値 (ラジアン)
+    terms: テイラー級数の項数
+    """
+    result = 0
+    for n in range(terms):
+        term = ((-1) ** n) * (x ** (2 * n + 1)) / np.math.factorial(2 * n + 1)
+        result += term
+    return result
+
+# --- (2) ルックアップテーブル(LUT)によるサイン関数の近似 ---
+def generate_lut(num_points=1000):
+    """
+    ルックアップテーブルを生成する関数。
+    num_points: サンプリング点の数
+    """
+    angles = np.linspace(0, 2 * np.pi, num_points)
+    sin_values = np.sin(angles)
+    return angles, sin_values
+
+def lookup_table_sin(x, lut):
+    """
+    ルックアップテーブルを使用してサイン値を求める関数。
+    x: 入力値 (ラジアン)
+    lut: ルックアップテーブル (角度, サイン値)
+    """
+    angles, sin_values = lut
+    x = x % (2 * np.pi)  # 角度を [0, 2π] に正規化
+    index = np.searchsorted(angles, x) % len(angles)
+    return sin_values[index]
+
+# --- 比較 ---
+# テスト用のx値 (0 から 2π まで)
+x_values = np.linspace(0, 2 * np.pi, 100)
+true_sin = np.sin(x_values)
+
+# テイラー展開 (5項まで)
+taylor_approx = [taylor_sin(x, terms=5) for x in x_values]
+
+# ルックアップテーブル
+lut = generate_lut()
+lut_approx = [lookup_table_sin(x, lut) for x in x_values]
+
+# --- 結果のプロット ---
+plt.figure(figsize=(8, 5))
+plt.plot(x_values, true_sin, label='True sin(x)', linestyle='dashed', color='black')
+plt.plot(x_values, taylor_approx, label='Taylor Approximation (5 terms)', linestyle='solid', color='blue')
+plt.plot(x_values, lut_approx, label='LUT Approximation', linestyle='dotted', color='red')
+plt.xlabel('x (radians)')
+plt.ylabel('sin(x)')
+plt.title('Comparison of True sin(x), Taylor Expansion, and LUT')
+plt.legend()
+plt.grid()
+plt.show()
