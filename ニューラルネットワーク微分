@@ -1,0 +1,39 @@
+import numpy as np
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+import matplotlib.pyplot as plt
+
+# 関数 f(x) = sin(x) のデータ生成
+x_train = np.linspace(-2*np.pi, 2*np.pi, 1000).reshape(-1, 1)  # 入力データ
+y_train = np.cos(x_train)  # 微分 f'(x) = cos(x)
+
+# ニューラルネットワークの構築
+model = keras.Sequential([
+    layers.Dense(64, activation='relu', input_shape=(1,)),  # 1層目
+    layers.Dense(64, activation='relu'),  # 2層目
+    layers.Dense(1)  # 出力層（微分値を出力）
+])
+
+# モデルのコンパイル
+model.compile(optimizer=keras.optimizers.Adam(learning_rate=0.01),
+              loss='mse')
+
+# 訓練
+model.fit(x_train, y_train, epochs=500, batch_size=32, verbose=0)
+
+# 予測
+x_test = np.linspace(-2*np.pi, 2*np.pi, 500).reshape(-1, 1)
+y_true = np.cos(x_test)  # 真の微分
+y_pred = model.predict(x_test)  # NNによる近似微分
+
+# 結果の可視化
+plt.figure(figsize=(8, 5))
+plt.plot(x_test, y_true, label='True derivative (cos(x))', linestyle='dashed', color='blue')
+plt.plot(x_test, y_pred, label='NN Approximation', color='red')
+plt.xlabel('x')
+plt.ylabel("f'(x)")
+plt.legend()
+plt.title("Neural Network Approximation of the Derivative")
+plt.grid()
+plt.show()
