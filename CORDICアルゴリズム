@@ -1,0 +1,34 @@
+import math
+
+def cordic_trig(theta, iterations=15):
+    K = 0.607252935  # Precomputed constant for 15 iterations
+    x, y, z = K, 0, theta
+    angles = [math.atan(2**-i) for i in range(iterations)]
+    
+    for i in range(iterations):
+        d = -1 if z < 0 else 1
+        x_new = x - d * y * 2**-i
+        y_new = y + d * x * 2**-i
+        z -= d * angles[i]
+        x, y = x_new, y_new
+    
+    return y, x  # sin(theta), cos(theta)
+
+def cordic_sqrt(value, iterations=15):
+    if value < 0:
+        raise ValueError("Square root of negative number is undefined.")
+    
+    x, y = value, 0
+    for _ in range(iterations):
+        x_new = 0.5 * (x + value / x)
+        x = x_new
+    
+    return x
+
+# Example Usage
+theta = math.radians(30)  # Convert 30 degrees to radians
+sin_val, cos_val = cordic_trig(theta)
+print(f"sin(30°) ≈ {sin_val}, cos(30°) ≈ {cos_val}")
+
+sqrt_val = cordic_sqrt(25)
+print(f"sqrt(25) ≈ {sqrt_val}")
