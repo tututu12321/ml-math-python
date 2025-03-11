@@ -1,0 +1,46 @@
+!pip install optuna
+
+import numpy as np
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+import optuna
+from sklearn.model_selection import train_test_split
+
+# MNISTデータセットの読み込み
+(x_train, y_train), (x_test, y_test) = keras.datasets.mnist.load_data()
+x_train, x_test = x_train / 255.0, x_test / 255.0  # 正規化
+
+# 訓練データと検証データに分割
+x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.2, random_state=42)
+
+# Optunaによるハイパーパラメータ探索
+def objective(trial):
+    model = keras.Sequential([
+        layers.Flatten(input_shape=(28, 28)),  # 入力層 (28x28ピクセル)
+        layers.Dense(trial.suggest_int('units1', 32, 256, step=32), activation='relu'),
+        layers.Dropout(trial.suggest_float('dropout1', 0.2, 0.5)),
+        layers.Dense(trial.suggest_int('units2', 32, 256, step=32), activation='relu'),
+        layers.Dropout(trial.suggest_float('dropout2', 0.2, 0.5)),
+        layers.Dense(10, activation='softmax')  # 出力層（10クラス分類）
+    ])
+
+    # 学習率の探索
+    lr = trial.suggest_float('lr', 1e-5, 1e-2, log=True)
+    model.compile(optimizer=keras.optimizers.Adam(learning_rate=lr),
+                  loss='sparse_categorical_crossentropy',
+                  metrics=['accuracy'])
+
+    # 訓練
+    history = model.fit(x_train, y_train, epochs=10, batch_size=128, validation_data=(x_val, y_val), verbose=0)
+
+    # 検証データでの最終エポックの精度を最適化指標とする
+    val_accuracy = history.history['val_accuracy'][-1]
+    return val_accuracy
+
+# Optunaの実行
+study = optuna.create_study(direction='maximize')  # 精度を最大化
+study.optimize(objective, n_trials=20)
+
+# 最適なハイパーパラメータの出力
+print("Best hyperparameters:", study.best_params)
