@@ -1,0 +1,28 @@
+import numpy as np
+
+# 単純パーセプトロンの実装
+class Perceptron:
+    def __init__(self, lr=0.1, epochs=10):
+        self.weights = np.random.rand(3)  # 重み（バイアス含む）
+        self.lr = lr
+        self.epochs = epochs
+
+    def predict(self, x):
+        x = np.insert(x, 0, 1)  # バイアス項追加
+        return 1 if np.dot(self.weights, x) >= 0 else 0
+
+    def train(self, X, y):
+        for _ in range(self.epochs):
+            for i in range(len(X)):
+                xi = np.insert(X[i], 0, 1)  # バイアス項追加
+                output = self.predict(X[i])
+                self.weights += self.lr * (y[i] - output) * xi
+
+# データ（重さ, 赤みの度合い）
+X = np.array([[150, 1], [130, 1], [120, 0], [100, 0]])
+y = np.array([1, 1, 0, 0])
+
+# 学習とテスト
+perceptron = Perceptron(lr=0.01, epochs=100)
+perceptron.train(X, y)
+print("Predicted class:", "Apple" if perceptron.predict([140, 1]) else "Orange")
