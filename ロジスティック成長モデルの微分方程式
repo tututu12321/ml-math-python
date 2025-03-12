@@ -1,0 +1,28 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import solve_ivp
+
+# ロジスティック成長モデルの微分方程式
+def logistic_growth(t, N, r, K):
+    return r * N * (1 - N / K)
+
+# パラメータ設定
+r = 0.1  # 成長率
+K = 1000  # 環境収容力
+N0 = 10   # 初期個体数
+time = np.linspace(0, 100, 1000)  # 時間範囲
+
+# 数値解を求める
+t_span = (time[0], time[-1])
+sol = solve_ivp(logistic_growth, t_span, [N0], args=(r, K), t_eval=time)
+
+# 結果のプロット
+plt.figure(figsize=(8, 5))
+plt.plot(sol.t, sol.y[0], label='Population Size (N)', color='blue')
+plt.axhline(K, color='red', linestyle='--', label='Carrying Capacity (K)')
+plt.xlabel('Time')
+plt.ylabel('Population Size')
+plt.title('Logistic Growth Model')
+plt.legend()
+plt.grid()
+plt.show()
