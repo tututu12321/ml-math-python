@@ -1,0 +1,57 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.integrate import odeint
+
+# 定数の設定
+Cm = 1.0  # 膜静容量 (μF/cm^2)
+ENa = 50.0  # ナトリウムイオンの平衡電位 (mV)
+EK = -77.0  # カリウムイオンの平衡電位 (mV)
+EL = -54.4  # 漏れ電流の平衡電位 (mV)
+GNa = 120.0  # ナトリウムイオンの最大コンダクタンス (mS/cm^2)
+GK = 36.0  # カリウムイオンの最大コンダクタンス (mS/cm^2)
+GL = 0.3  # 漏れ電流のコンダクタンス (mS/cm^2)
+
+# 外部刺激電流 (μA/cm^2)
+def I_stim(t):
+    return 10 if 5 <= t <= 10 else 0
+
+# ゲート変数のステップ関数
+def alpha_n(V): return 0.01 * (V + 55) / (1 - np.exp(-(V + 55) / 10))
+def beta_n(V): return 0.125 * np.exp(-(V + 65) / 80)
+def alpha_m(V): return 0.1 * (V + 40) / (1 - np.exp(-(V + 40) / 10))
+def beta_m(V): return 4.0 * np.exp(-(V + 65) / 18)
+def alpha_h(V): return 0.07 * np.exp(-(V + 65) / 20)
+def beta_h(V): return 1 / (1 + np.exp(-(V + 35) / 10))
+
+# ホジキン-ハクスレー方程式
+def hodgkin_huxley(y, t):
+    V, n, m, h = y
+    
+    dndt = alpha_n(V) * (1 - n) - beta_n(V) * n
+    dmdt = alpha_m(V) * (1 - m) - beta_m(V) * m
+    dhdt = alpha_h(V) * (1 - h) - beta_h(V) * h
+    
+    INa = GNa * (m ** 3) * h * (V - ENa)
+    IK = GK * (n ** 4) * (V - EK)
+    IL = GL * (V - EL)
+    dVdt = (I_stim(t) - (INa + IK + IL)) / Cm
+    
+    return [dVdt, dndt, dmdt, dhdt]
+
+# 初期条件と時間設定
+y0 = [-65, 0.317, 0.05, 0.6]  # 初期値 (V, n, m, h)
+t = np.linspace(0, 50, 1000)  # シミュレーション時間
+
+# 数値積分
+sol = odeint(hodgkin_huxley, y0, t)
+
+# 結果のプロット
+plt.figure(figsize=(10, 5))
+plt.plot(t, sol[:, 0], label='Membrane Potential (mV)')
+plt.axvspan(5, 10, color='gray', alpha=0.3, label='Stimulus')
+plt.xlabel('Time (ms)')
+plt.ylabel('Membrane Potential (mV)')
+plt.title('Hodgkin-Huxley Model Simulation')
+plt.legend()
+plt.grid()
+plt.show()
