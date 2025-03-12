@@ -1,0 +1,44 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.linalg import eig
+from sklearn.decomposition import PCA
+
+# 1. 特性方程式の導出
+A = np.array([[4, -2], [1, 1]])  # 2×2行列
+lambda_values, eigenvectors = np.linalg.eig(A)  # 固有値・固有ベクトル計算
+
+def characteristic_equation(A):
+    """行列Aの特性方程式を求める"""
+    I = np.eye(A.shape[0])
+    lambdas = np.linalg.eigvals(A)
+    det_values = np.linalg.det(A - lambdas[:, None] * I)
+    return det_values
+
+det_values = characteristic_equation(A)
+print("固有値:", lambda_values)
+print("固有ベクトル:\n", eigenvectors)
+
+# 2. システムの安定性解析
+B = np.array([[0, 1], [-1, -0.5]])  # 2×2の状態方程式
+lambda_B, _ = np.linalg.eig(B)
+
+plt.scatter(lambda_B.real, lambda_B.imag, color='red', marker='o')
+plt.axhline(0, color='black', linestyle='--')
+plt.axvline(0, color='black', linestyle='--')
+plt.title("Eigenvalues for System Stability Analysis")
+plt.xlabel("Real Part")
+plt.ylabel("Imaginary Part")
+plt.grid()
+plt.show()
+
+# 3. PCAによるデータ解析
+data = np.random.rand(100, 3)  # 100サンプルの3次元データ
+pca = PCA(n_components=2)  # 2次元に圧縮
+transformed_data = pca.fit_transform(data)
+
+plt.scatter(transformed_data[:, 0], transformed_data[:, 1], alpha=0.7)
+plt.title("PCA: Principal Component Analysis")
+plt.xlabel("Principal Component 1")
+plt.ylabel("Principal Component 2")
+plt.grid()
+plt.show()
