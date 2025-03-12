@@ -1,0 +1,67 @@
+import numpy as np
+
+# シグモイド関数とその微分
+def sigmoid(x):
+    return 1 / (1 + np.exp(-x))
+
+def sigmoid_derivative(x):
+    return x * (1 - x)
+
+# 訓練データ（入力2つ + 出力）
+inputs = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+targets = np.array([[0], [1], [1], [0]])  # XORパターン
+
+# 重みとバイアスの初期化
+np.random.seed(42)
+weights_input_hidden = np.random.uniform(-1, 1, (2, 2))
+weights_hidden_output = np.random.uniform(-1, 1, (2, 1))
+bias_hidden = np.random.uniform(-1, 1, (1, 2))
+bias_output = np.random.uniform(-1, 1, (1, 1))
+
+# 学習率
+learning_rate = 0.5
+
+# 訓練ループ
+epochs = 10000
+for epoch in range(epochs):
+    # 順伝播
+    hidden_input = np.dot(inputs, weights_input_hidden) + bias_hidden
+    hidden_output = sigmoid(hidden_input)
+    final_input = np.dot(hidden_output, weights_hidden_output) + bias_output
+    final_output = sigmoid(final_input)
+    
+    # 誤差の計算
+    error = targets - final_output
+    
+    # 逆誤差伝播
+    d_output = error * sigmoid_derivative(final_output)
+    d_hidden = d_output.dot(weights_hidden_output.T) * sigmoid_derivative(hidden_output)
+    
+    # 重みとバイアスの更新
+    weights_hidden_output += hidden_output.T.dot(d_output) * learning_rate
+    bias_output += np.sum(d_output, axis=0, keepdims=True) * learning_rate
+    weights_input_hidden += inputs.T.dot(d_hidden) * learning_rate
+    bias_hidden += np.sum(d_hidden, axis=0, keepdims=True) * learning_rate
+    
+    # 入力、出力、誤差、重み、バイアスの表示（1000エポックごとに表示）
+    if epoch % 1000 == 0:
+        print(f"Epoch {epoch}:")
+        print("入力:")
+        print(inputs)
+        print("出力:")
+        print(final_output)
+        print("誤差:")
+        print(error)
+        print("重み（入力層→隠れ層）:")
+        print(weights_input_hidden)
+        print("重み（隠れ層→出力層）:")
+        print(weights_hidden_output)
+        print("バイアス（隠れ層）:")
+        print(bias_hidden)
+        print("バイアス（出力層）:")
+        print(bias_output)
+        print("---------------------------")
+
+# 最終結果の表示
+print("学習後の出力:")
+print(final_output)
