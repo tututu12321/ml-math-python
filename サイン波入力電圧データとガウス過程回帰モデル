@@ -1,0 +1,67 @@
+!pip install GPy
+import numpy as np
+import GPy
+import matplotlib.pyplot as plt
+from numba import njit, prange
+from functools import partial
+
+# サイン波入力電圧データを生成
+def generate_sine_wave_data(num_points=20, noise_std=0.1):
+    x = np.linspace(0, 2 * np.pi, num_points)  # 0から2πまでのデータ
+    y = np.sin(x) + np.random.normal(scale=noise_std, size=x.shape)  # ノイズ付きサイン波
+    return x.reshape(-1, 1), y.reshape(-1, 1)
+
+# 学習データを作成
+X_train, Y_train = generate_sine_wave_data(num_points=30, noise_std=0.1)
+
+# ガウス過程回帰モデルの学習
+kernel = GPy.kern.RBF(input_dim=1, variance=1.0, lengthscale=0.5)  # RBFカーネル
+gp_model = GPy.models.GPRegression(X_train, Y_train, kernel)
+gp_model.optimize(messages=True)  # パラメータの最適化
+
+# 最適化されたカーネルパラメータを取得
+theta_1 = kernel.variance[0]
+theta_2 = 1 / (kernel.lengthscale[0] ** 2)
+
+# 学習データの共分散行列
+K = kernel.K(X_train, X_train) + gp_model.Gaussian_noise.variance * np.eye(X_train.shape[0])
+K_inv = np.linalg.inv(K)  # 逆行列
+
+# 高速推論関数をNumbaで実装
+@njit(cache=True, fastmath=True)
+def predict(x_input, X_train, Y_train, theta_1, theta_2, K_inv):
+    X_norm = (X_train - x_input) * theta_2
+    k_ast = theta_1 * np.exp(-0.5 * np.sum((X_train - x_input) * X_norm, axis=1))
+    mean = np.dot(k_ast, K_inv @ Y_train)
+    deviation = np.sqrt(theta_1 - np.dot(k_ast, K_inv @ k_ast))
+    return mean, deviation
+
+@njit(cache=True, fastmath=True, parallel=True)
+def predict_series(X_input, X_train, Y_train, theta_1, theta_2, K_inv):
+    N = X_input.shape[0]
+    preds = np.zeros((N, 1), dtype=np.float64)
+    deviations = np.zeros((N, 1), dtype=np.float64)
+    for i in prange(N):
+        preds[i], deviations[i] = predict(X_input[i], X_train, Y_train, theta_1, theta_2, K_inv)
+    return preds, deviations
+
+# 予測データの作成
+X_test = np.linspace(0, 2 * np.pi, 100).reshape(-1, 1)
+Y_pred, Y_std = predict_series(X_test, X_train, Y_train, theta_1, theta_2, K_inv)
+
+# 真のサイン波
+X_true = np.linspace(0, 2 * np.pi, 100)
+Y_true = np.sin(X_true)
+
+# 結果をプロット
+plt.figure(figsize=(8, 5))
+plt.plot(X_true, Y_true, color="#FF4B00", linewidth=2, label="Ground Truth")  # 真の関数
+plt.plot(X_test, Y_pred, color="#005AFF", linewidth=2, label="Prediction")  # 予測値
+plt.fill_between(X_test.flatten(), (Y_pred - 2.0 * Y_std).flatten(), (Y_pred + 2.0 * Y_std).flatten(),
+                 color="#005AFF", alpha=0.3, label="Confidence Interval")  # 信頼区間
+plt.scatter(X_train, Y_train, facecolors="white", edgecolors="black", marker="o", label="Training Data")  # 学習データ
+plt.xlabel("Input Voltage (x)")
+plt.ylabel("Output (y)")
+plt.legend()
+plt.title("Gaussian Process Regression for Sine Wave Input")
+plt.show()
