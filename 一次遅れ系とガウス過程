@@ -1,0 +1,75 @@
+import numpy as np
+import GPy
+import matplotlib.pyplot as plt
+from numba import njit, prange
+from scipy.integrate import odeint
+
+# --- 1. 一次遅れ系の過渡応答データを生成 ---
+def first_order_system(y, t, tau, K):
+    """ 一次遅れ系の微分方程式 dy/dt = (K - y) / tau """
+    return (K - y) / tau
+
+# パラメータ設定
+tau = 2.0  # 時定数
+K = 1.0  # ゲイン
+t = np.linspace(0, 10, 50)  # 時間軸
+y0 = 0  # 初期値
+
+# 微分方程式を解く
+y_true = odeint(first_order_system, y0, t, args=(tau, K)).flatten()
+
+# ノイズを追加
+noise_std = 0.05  # ノイズの標準偏差
+y_noisy = y_true + np.random.normal(scale=noise_std, size=y_true.shape)
+
+# --- 2. GPy を用いたガウス過程回帰モデルの学習 ---
+X_train = t.reshape(-1, 1)
+Y_train = y_noisy.reshape(-1, 1)
+
+# RBFカーネルを使用
+kernel = GPy.kern.RBF(input_dim=1, variance=1.0, lengthscale=1.0)
+gp_model = GPy.models.GPRegression(X_train, Y_train, kernel)
+gp_model.optimize(messages=True)  # ハイパーパラメータの最適化
+
+# 最適化されたカーネルパラメータを取得
+theta_1 = kernel.variance[0]
+theta_2 = 1 / (kernel.lengthscale[0] ** 2)
+
+# カーネル行列と逆行列を計算
+K_mat = kernel.K(X_train, X_train) + gp_model.Gaussian_noise.variance * np.eye(len(X_train))
+K_inv = np.linalg.inv(K_mat)
+
+# --- 3. Numba による高速推論 ---
+@njit(cache=True, fastmath=True)
+def predict_gp(x_input, X_train, Y_train, theta_1, theta_2, K_inv):
+    X_norm = (X_train - x_input) * theta_2
+    k_ast = theta_1 * np.exp(-0.5 * np.sum((X_train - x_input) * X_norm, axis=1))
+    mean = np.dot(k_ast, K_inv @ Y_train)
+    deviation = np.sqrt(theta_1 - np.dot(k_ast, K_inv @ k_ast))
+    return mean, deviation
+
+@njit(cache=True, fastmath=True, parallel=True)
+def predict_gp_series(X_input, X_train, Y_train, theta_1, theta_2, K_inv):
+    N = X_input.shape[0]
+    preds = np.zeros((N, 1))
+    deviations = np.zeros((N, 1))
+    for i in prange(N):
+        preds[i], deviations[i] = predict_gp(X_input[i], X_train, Y_train, theta_1, theta_2, K_inv)
+    return preds, deviations
+
+# 予測
+X_test = np.linspace(0, 10, 100).reshape(-1, 1)
+Y_pred, Y_std = predict_gp_series(X_test, X_train, Y_train, theta_1, theta_2, K_inv)
+
+# --- 4. 可視化 ---
+plt.figure(figsize=(8, 5))
+plt.plot(t, y_true, 'r', linewidth=2, label="True Response")  # 真の関数
+plt.scatter(t, y_noisy, facecolors="white", edgecolors="black", marker="o", label="Training Data")  # 学習データ
+plt.plot(X_test, Y_pred, 'b', linewidth=2, label="GP Prediction")  # 予測値
+plt.fill_between(X_test.flatten(), (Y_pred - 2.0 * Y_std).flatten(), (Y_pred + 2.0 * Y_std).flatten(),
+                 color="blue", alpha=0.3, label="Confidence Interval")  # 信頼区間
+plt.xlabel("Time (t)")
+plt.ylabel("Output (y)")
+plt.legend()
+plt.title("Gaussian Process Regression for First-Order Lag System")
+plt.show()
