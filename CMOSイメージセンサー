@@ -1,0 +1,83 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.ndimage import gaussian_filter
+from skimage import io, color, exposure
+from skimage.restoration import denoise_tv_chambolle
+
+# Simulating light input (scene illumination)
+image_size = (256, 256)
+scene_illumination = np.random.rand(*image_size)  # Simulated light input
+
+# Photoelectric conversion (photodiodes generating charge)
+photoelectric_signal = np.clip(scene_illumination * 255, 0, 255)  # Scale light intensity
+
+# Signal amplification (including shot noise & read noise)
+gain = 3.0  # Sensor gain factor
+shot_noise = np.random.poisson(photoelectric_signal)  # Photon shot noise
+read_noise = np.random.normal(0, 5, photoelectric_signal.shape)  # Read noise from electronics
+amplified_signal = gain * (photoelectric_signal + shot_noise) + read_noise
+amplified_signal = np.clip(amplified_signal, 0, 255)
+
+# A/D conversion (8-bit quantization)
+adc_resolution = 8
+quantized_signal = np.round(amplified_signal / (2**(8-adc_resolution))).astype(np.uint8)
+
+# Applying a Bayer color filter (RGGB pattern)
+def apply_bayer_filter(img):
+    bayer = np.zeros((*img.shape, 3), dtype=np.uint8)
+    bayer[::2, ::2, 0] = img[::2, ::2]  # Red
+    bayer[::2, 1::2, 1] = img[::2, 1::2]  # Green
+    bayer[1::2, ::2, 1] = img[1::2, ::2]  # Green
+    bayer[1::2, 1::2, 2] = img[1::2, 1::2]  # Blue
+    return bayer
+
+bayer_image = apply_bayer_filter(quantized_signal)
+
+# Image processing: demosaicing, white balance, noise reduction, contrast enhancement
+demosaic_image = np.zeros_like(bayer_image)
+for i in range(3):
+    demosaic_image[:, :, i] = gaussian_filter(bayer_image[:, :, i], sigma=1.5)  # Demosaic interpolation
+
+denoised_image = denoise_tv_chambolle(demosaic_image / 255, weight=0.08)  # Denoising
+balanced_image = denoised_image / denoised_image.max(axis=(0, 1))  # White balance correction
+final_image = exposure.adjust_gamma(balanced_image, gamma=1.2)  # Gamma correction for better contrast
+
+# Displaying processed images step-by-step
+plt.figure(figsize=(12, 6))
+
+plt.subplot(2, 3, 1)
+plt.title("Light Input (Scene Illumination)")
+plt.imshow(scene_illumination, cmap="gray")
+plt.axis("off")
+
+plt.subplot(2, 3, 2)
+plt.title("Photoelectric Conversion")
+plt.imshow(photoelectric_signal, cmap="gray")
+plt.axis("off")
+
+plt.subplot(2, 3, 3)
+plt.title("Amplified Signal (With Noise)")
+plt.imshow(amplified_signal, cmap="gray")
+plt.axis("off")
+
+plt.subplot(2, 3, 4)
+plt.title("A/D Converted Image")
+plt.imshow(quantized_signal, cmap="gray")
+plt.axis("off")
+
+plt.subplot(2, 3, 5)
+plt.title("Bayer Filter Applied")
+plt.imshow(bayer_image)
+plt.axis("off")
+
+plt.subplot(2, 3, 6)
+plt.title("Final Processed Image")
+plt.imshow(np.clip(final_image, 0, 1))
+plt.axis("off")
+
+plt.tight_layout()
+plt.show()
+
+# Saving images (JPEG & RAW-like formats)
+io.imsave("final_image.jpg", (final_image * 255).astype(np.uint8))
+np.save("raw_image.npy", final_image)
