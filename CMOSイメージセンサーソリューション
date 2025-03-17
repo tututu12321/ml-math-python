@@ -1,0 +1,83 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.ndimage import gaussian_filter
+from skimage import color, exposure
+from skimage.restoration import denoise_tv_chambolle
+
+# 🔹 光の入力（レンズを通過した光をシミュレーション）
+image_size = (256, 256)
+scene_illumination = np.random.rand(*image_size)  # 光の入力
+
+# 🔹 光電変換（CMOS センサーがフォトンを電圧に変換）
+photoelectric_signal = np.clip(scene_illumination * 255, 0, 255)
+
+# 🔹 CMOS の増幅 & ノイズ追加
+gain = 3.0  # 増幅率
+shot_noise = np.random.poisson(photoelectric_signal)  # ショットノイズ（光子ノイズ）
+read_noise = np.random.normal(0, 5, photoelectric_signal.shape)  # CMOS 読み出しノイズ
+amplified_signal = gain * (photoelectric_signal + shot_noise) + read_noise
+amplified_signal = np.clip(amplified_signal, 0, 255)
+
+# 🔹 A/D 変換（デジタル化）
+quantized_signal = np.round(amplified_signal).astype(np.uint8)
+
+# 🔹 ベイヤーフィルタ適用
+def apply_bayer_filter(img):
+    bayer = np.zeros((*img.shape, 3), dtype=np.uint8)
+    bayer[::2, ::2, 0] = img[::2, ::2]  # 赤 (R)
+    bayer[::2, 1::2, 1] = img[::2, 1::2]  # 緑 (G)
+    bayer[1::2, ::2, 1] = img[1::2, ::2]  # 緑 (G)
+    bayer[1::2, 1::2, 2] = img[1::2, 1::2]  # 青 (B)
+    return bayer
+
+bayer_image = apply_bayer_filter(quantized_signal)
+
+# 🔹 画像処理（ISP: デモザイク、ホワイトバランス、ノイズリダクション）
+demosaic_image = np.zeros_like(bayer_image)
+for i in range(3):
+    demosaic_image[:, :, i] = gaussian_filter(bayer_image[:, :, i], sigma=1.5)  # デモザイク補間
+
+denoised_image = denoise_tv_chambolle(demosaic_image / 255, weight=0.08)  # ノイズ除去
+balanced_image = denoised_image / denoised_image.max(axis=(0, 1))  # ホワイトバランス補正
+final_image = exposure.adjust_gamma(balanced_image, gamma=1.2)  # ガンマ補正
+
+# 🔹 画像の表示
+plt.figure(figsize=(12, 6))
+
+plt.subplot(2, 3, 1)
+plt.title("Light Input (Scene)")
+plt.imshow(scene_illumination, cmap="gray")
+plt.axis("off")
+
+plt.subplot(2, 3, 2)
+plt.title("Photoelectric Conversion")
+plt.imshow(photoelectric_signal, cmap="gray")
+plt.axis("off")
+
+plt.subplot(2, 3, 3)
+plt.title("Amplified Signal (With Noise)")
+plt.imshow(amplified_signal, cmap="gray")
+plt.axis("off")
+
+plt.subplot(2, 3, 4)
+plt.title("A/D Converted Image")
+plt.imshow(quantized_signal, cmap="gray")
+plt.axis("off")
+
+plt.subplot(2, 3, 5)
+plt.title("Bayer Filter Applied")
+plt.imshow(bayer_image)
+plt.axis("off")
+
+plt.subplot(2, 3, 6)
+plt.title("Final Processed Image (ISP Output)")
+plt.imshow(np.clip(final_image, 0, 1))
+plt.axis("off")
+
+plt.tight_layout()
+plt.show()
+
+# 🔹 画像の保存（JPEG & RAW フォーマット）
+from skimage import io
+io.imsave("final_image.jpg", (final_image * 255).astype(np.uint8))
+np.save("raw_image.npy", final_image)
