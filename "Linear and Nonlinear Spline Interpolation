@@ -1,0 +1,35 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.interpolate import CubicSpline
+
+# 🔹 点の定義
+A, B = 3, 90
+C, D = 5, 100
+
+# 🔹 直線部分 (0,0) → (A,B)
+x1 = np.linspace(0, A, 10)
+y1 = (B / A) * x1  # y = (B/A) * x の直線式
+
+# 🔹 スプライン補間用のデータ (A,B) → (C,D)
+x2 = np.array([A, (A+C)/2, C])  # 補間用の3点
+y2 = np.array([B, (B+D)/2 + 5, D])  # 滑らかに変化する中間点を追加
+
+# 🔹 非線形スプライン補間（CubicSpline）
+spline = CubicSpline(x2, y2, bc_type='natural')  # 自然境界条件
+x_spline = np.linspace(A, C, 50)
+y_spline = spline(x_spline)
+
+# 🔹 プロット
+plt.figure(figsize=(8, 5))
+plt.plot(x1, y1, label="Linear (0,0) → (A,B)", color='b', linestyle='--', marker='o')
+plt.plot(x_spline, y_spline, label="Nonlinear Spline (A,B) → (C,D)", color='r', linestyle='-', marker='x')
+
+# 🔹 補間点を強調表示
+plt.scatter([A, C], [B, D], color='black', zorder=3, label="Key Points")
+
+plt.xlabel("X")
+plt.ylabel("Y")
+plt.title("Linear and Nonlinear Spline Interpolation")
+plt.legend()
+plt.grid()
+plt.show()
