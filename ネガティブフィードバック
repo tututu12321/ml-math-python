@@ -1,0 +1,19 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 初期値設定
+A_values = np.arange(0, 10000, 1000)  # Aを0から1000まで100ずつ増加
+beta = 0.05  # βの値
+
+# 極限関数の計算
+limit_values = A_values / (1 + beta * A_values)
+
+# プロット
+plt.figure(figsize=(8, 5))
+plt.plot(A_values, limit_values, marker='o', linestyle='-', label=r'$f(A) = \frac{A}{1+\beta A}$')
+plt.xlabel("A")
+plt.ylabel("f(A)")
+plt.title("Limit Calculation of A / (1 + βA)")
+plt.grid(True)
+plt.legend()
+plt.show()
