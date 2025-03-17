@@ -1,0 +1,51 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.interpolate import interp1d
+
+# 1. サイン波の生成（1度ごとにサンプリング）
+x_deg = np.arange(0, 360, 1)  # 1度ごとにサンプリング (0度~359度)
+x_rad = np.deg2rad(x_deg)  # 度数からラジアンに変換
+y = np.sin(x_rad)  # サイン波
+
+# 2. 補間用のデータ作成（補間範囲を0〜359度に制限）
+x_fine_deg = np.linspace(0, 359, 1000)  # 1000点で補間
+x_fine_rad = np.deg2rad(x_fine_deg)
+
+# 3. 線形補間
+linear_interp = interp1d(x_deg, y, kind="linear", fill_value="extrapolate")
+y_linear = linear_interp(x_fine_deg)
+
+# 4. スプライン補間（Cubic Spline）
+cubic_interp = interp1d(x_deg, y, kind="cubic", fill_value="extrapolate")
+y_cubic = cubic_interp(x_fine_deg)
+
+# 5. 個別プロット
+fig, axs = plt.subplots(3, 1, figsize=(8, 12))
+
+# (1) 元のサンプリングデータ
+axs[0].scatter(x_deg, y, color="red", label="Sampled Data (1° step)", marker="o")
+axs[0].set_title("Sampled Sin Wave Data")
+axs[0].set_xlabel("Angle (Degrees)")
+axs[0].set_ylabel("Amplitude")
+axs[0].grid(True)
+axs[0].legend()
+
+# (2) 線形補間
+axs[1].plot(x_fine_deg, y_linear, color="blue", linestyle="--", label="Linear Interpolation")
+axs[1].set_title("Linear Interpolation")
+axs[1].set_xlabel("Angle (Degrees)")
+axs[1].set_ylabel("Amplitude")
+axs[1].grid(True)
+axs[1].legend()
+
+# (3) スプライン補間
+axs[2].plot(x_fine_deg, y_cubic, color="green", linestyle="-", label="Cubic Spline Interpolation")
+axs[2].set_title("Cubic Spline Interpolation")
+axs[2].set_xlabel("Angle (Degrees)")
+axs[2].set_ylabel("Amplitude")
+axs[2].grid(True)
+axs[2].legend()
+
+# 6. プロット表示
+plt.tight_layout()
+plt.show()
