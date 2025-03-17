@@ -1,0 +1,36 @@
+import numpy as np
+import pandas as pd
+import statsmodels.api as sm
+import matplotlib.pyplot as plt
+
+# 1. ダミーデータの作成
+x = np.array([4.4, 4.9, 5.4, 4.8, 4.8, 4.8, 5.7, 5.7, 5.1, 5.3, 5.7, 5.1, 5.4])
+y = np.array([2.9, 3.1, 3.7, 3.2, 3.0, 3.1, 4.4, 4.3, 3.4, 3.6, 3.8, 3.4, 3.7])
+
+# 2. 回帰分析の実施
+X = sm.add_constant(x)  # 切片項を追加
+model = sm.OLS(y, X).fit()  # 最小二乗法で線形回帰
+
+# 3. 回帰分析の結果を表示
+print(model.summary())
+
+# 4. 回帰係数の取得
+intercept, slope = model.params
+conf_int = model.conf_int(alpha=0.05)  # 95%信頼区間
+p_value = model.pvalues[1]  # xのP値
+
+# 5. 結果の可視化
+plt.figure(figsize=(8, 6))
+plt.scatter(x, y, color='blue', label="Data Points")  # 散布図
+plt.plot(x, intercept + slope * x, color='red', label=f"Regression Line: y={slope:.2f}x+{intercept:.2f}")  # 回帰直線
+plt.xlabel("X values")
+plt.ylabel("Y values")
+plt.title("Linear Regression Analysis")
+plt.legend()
+plt.grid()
+plt.show()
+
+# 6. 結果の出力（修正済み）
+print(f"回帰式: y = {slope:.2f}x + {intercept:.2f}")
+print(f"95% 信頼区間: {conf_int[1, 0]:.2f} ~ {conf_int[1, 1]:.2f}")
+print(f"P値: {p_value:.2e}")
