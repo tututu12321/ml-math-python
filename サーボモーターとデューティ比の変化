@@ -1,0 +1,50 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 🔹 サーボモーターの特性
+PWM_FREQUENCY = 50  # PWM信号の周波数（Hz）
+MIN_PULSE_WIDTH = 1.0  # 最小パルス幅（ms）
+MAX_PULSE_WIDTH = 2.0  # 最大パルス幅（ms）
+ANGLE_RANGE = 180  # サーボの回転範囲（度）
+
+# 🔹 PWM信号から角度を計算する関数
+def pwm_to_angle(duty_cycle):
+    """
+    PWMのデューティ比(%) から サーボモーターの角度 (度) を計算
+    """
+    pulse_width = (duty_cycle / 100) * (1000 / PWM_FREQUENCY)  # パルス幅（ms）
+    angle = np.clip(((pulse_width - MIN_PULSE_WIDTH) / (MAX_PULSE_WIDTH - MIN_PULSE_WIDTH)) * ANGLE_RANGE, 0, ANGLE_RANGE)
+    return angle
+
+# 🔹 シミュレーションの時間設定
+time = np.linspace(0, 2, 500)  # 2秒間のシミュレーション（500ステップ）
+
+# 🔹 デューティ比の変化（10% から 20% へ線形増加）
+duty_cycle = np.linspace(5, 10, len(time))  # 例: デューティ比 5% から 10% へ変化
+
+# 🔹 各時刻の角度を計算
+angles = pwm_to_angle(duty_cycle)
+
+# 🔹 結果のプロット
+plt.figure(figsize=(10, 5))
+
+# PWM信号（デューティ比）のプロット
+plt.subplot(2, 1, 1)
+plt.plot(time, duty_cycle, label="PWM Duty Cycle (%)", color='b')
+plt.xlabel("Time (s)")
+plt.ylabel("Duty Cycle (%)")
+plt.title("PWM Duty Cycle Over Time")
+plt.grid()
+plt.legend()
+
+#  サーボモーターの角度変化のプロット
+plt.subplot(2, 1, 2)
+plt.plot(time, angles, label="Servo Angle (°)", color='r')
+plt.xlabel("Time (s)")
+plt.ylabel("Servo Angle (°)")
+plt.title("Servo Motor Angle Over Time")
+plt.grid()
+plt.legend()
+
+plt.tight_layout()
+plt.show()
