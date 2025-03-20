@@ -1,0 +1,45 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import butter, filtfilt
+
+# --- 1. パラメータ設定 ---
+T = 1.0  # 正弦波の周期（秒）
+Fs = 5000  # サンプリング周波数（Hz）
+Ts = 1 / Fs  # サンプリング間隔
+time = np.arange(0, 3 * T, Ts)  # 3周期分の時間
+
+# --- 2. 正弦波のデューティ比を計算 ---
+sin_wave = (np.sin(2 * np.pi * time / T) + 1) / 2  # 0～1にスケーリング
+pwm_signal = (np.random.rand(len(sin_wave)) < sin_wave).astype(int)  # PWM波形
+
+# --- 3. バターワースローパスフィルタを適用 ---
+def lowpass_filter(signal, cutoff=2/T, fs=Fs, order=6):
+    nyquist = 0.5 * fs
+    normal_cutoff = cutoff / nyquist
+    b, a = butter(order, normal_cutoff, btype='low', analog=False)
+    return filtfilt(b, a, signal)
+
+filtered_signal = lowpass_filter(pwm_signal)  # フィルタ適用
+
+# --- 4. グラフ表示 ---
+plt.figure(figsize=(12, 6))
+
+# PWM信号のプロット
+plt.subplot(2, 1, 1)
+plt.plot(time[:1000], pwm_signal[:1000], label="PWM Signal")
+plt.ylim(-0.1, 1.1)
+plt.xlabel("Time [s]")
+plt.ylabel("Amplitude")
+plt.title("PWM Signal")
+plt.legend()
+
+# フィルタ適用後のアナログ信号プロット（サイン波）
+plt.subplot(2, 1, 2)
+plt.plot(time[:1000], filtered_signal[:1000], label="Filtered Analog Signal (Sine Wave)", color="red")
+plt.xlabel("Time [s]")
+plt.ylabel("Amplitude")
+plt.title("Analog Output after Low-pass Filter (Sine Wave)")
+plt.legend()
+
+plt.tight_layout()
+plt.show()
